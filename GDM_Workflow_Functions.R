@@ -14,9 +14,10 @@
 library(ALA4R)
 library(raster)
 library(data.table)
+source('//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow/utilities.R')
 
-## add source library
-gitr.push('all')
+## push a file to the gdm bit bucket repo
+doc(gitr.push) # e.g. gitr.push('all')
 
 ##______________________________________________________________________________________##
 
