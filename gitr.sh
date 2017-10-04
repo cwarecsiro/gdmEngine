@@ -1,6 +1,14 @@
 #! /bin/bash
-cd //ces-10-cdc//OSM_CDC_MMRG_work//users//bitbucket//gdm_workflow
-git add --all
-git commit -m 'updating workflow functions'
+
+cd $1
+#echo $1
+#echo $2
+#echo $3
+git add $2
+#msg="'$3'"
+#echo $msg
+#echo $msg
+#git commit -m "'$3'"
+git commit -m $3
 git push -u origin master
 
