@@ -7,7 +7,7 @@ cd $1
 git add $2
 #msg="'$3'"
 #echo $msg
-#echo $msg
+#echo $3
 #git commit -m "'$3'"
 git commit -m $3
 git push -u origin master

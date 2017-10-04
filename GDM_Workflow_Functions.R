@@ -15,7 +15,7 @@ library(ALA4R)
 library(raster)
 library(data.table)
 
-## add lib
+## add source lib
 gitr.push(files = 'all')
 
 ##______________________________________________________________________________________##
