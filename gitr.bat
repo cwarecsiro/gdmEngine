@@ -1,0 +1,1 @@
+"C:\Program Files\Git\\bin\\sh" "/z/users/bitbucket/gdm_workflow/gitr.sh"
