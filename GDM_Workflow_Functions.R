@@ -14,51 +14,49 @@
 library(ALA4R)
 library(raster)
 library(data.table)
+library(docstring)
+library(assertthat)
+library(httr)
 source('//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow/utilities.R')
 
 ## push a file to the gdm bit bucket repo
-doc(gitr.push) # e.g. gitr.push('all')
+## added more bling docstrings
+?gitr.push # e.g. gitr.push('all')
 
 ##______________________________________________________________________________________##
 
 download_occurrences <- function (taxon, wkt, fields, qa, method = "offline", 
-                                 email, download_reason_id, dry_run = FALSE, 
-                                 verbose = TRUE) {
+                                  email, download_reason_id, dry_run = FALSE, 
+                                  verbose = TRUE) {
   
-  'Summary'
-  '-------'
-  'Simplified and customised ALA occurrence download function'
-  ''
-  'Args'
-  '----'
-  'taxon: any taxonomic search construct'
-  'wkt: well known text polygon to limit records retrieved'
-  'fields: CSV of data fields to return. If missing, default used'
-  'qa: CSV of quality assertion fields to return. If missing default used'
-  'method: indexed or offline.'
-  'email: user email'
-  'download_reason_id: acceptable id (0:12) see ala website'
-  'verbose: default TRUE'
-  ''
-  'Returns'
-  '-------'
-  'Query status printed to screen'
-  ''
-  'Depends'
-  '-------'
-  'Depends on pkgs: assertthat, httr'
-  ''
-  'Examples'
-  '--------'
-  'download_occurrences(taxon="genus:Wandella", wkt="POLYGON((112.0+44.0,154.0+44.0,154.0+9.0,112.0+9.0,112.0+44.0))", method = "offline", 
-  email="karel.mokany@csiro.au", download_reason_id="7", verbose = TRUE)'
-  ''
-  'Notes'
-  '-----'  
-  'Largely a hack of the ALA4R function'
-  'Strips out many of the capabilities of the original function'
-  'TODO: add indexed download (currently offline only)'
-  'end doc string'
+  #'@title Download occurrences from the ALA
+  #'
+  #'@description Simplified and customised ALA occurrence download function. 
+  #'Largely a hack of the ALA4R function 'occurrences'
+  #'
+  #'@param taxon (string) Can be a free text search, or taxonomic rank can be used to focus search.
+  #'@param wkt (WKT formatted string) Bounding box to filter geographic locations of occurrences to (optional).
+  #'@param fields (CSV) Fields to return. Defaults to subset of fields.
+  #'@param qa (CSV) Quality assertion fields. Currently set to 'includeall.'
+  #'@param method (string) One of 'offline' or indexed. 'offline' only method available currently.
+  #'@param email (string) Email address to receive path to .zip archive.
+  #'@param download_reason (int) Valid ALA download reason. See website. Accepts numeric codes only (0:12). 
+  #'@param dry_run (bool) Return URL to be requested without sending the request. Default: FALSE
+  #'@param verbose (bool) Switch print statements and status checking from the ALA servers on. D
+  #'Default: TRUE. 
+  #'
+  #'@returns if verbose, query status
+  #'
+  #'@note strips away much of the functionality of the ALA4R function
+  #'
+  #'@section ToDo: add indexed method
+  #'
+  #'@section Depends: pkg: assertthat, httr
+  #'
+  #'@examples 
+  #'download_occurrences(taxon="genus:Wandella", wkt="POLYGON((112.0+44.0,154.0+44.0,154.0+9.0,112.0+9.0,112.0+44.0))", 
+  #'method = "offline",email="karel.mokany@csiro.au", download_reason_id="7", verbose = TRUE)
+  #'
   
   pkg_check = suppressWarnings(lapply(c('httr', 'assertthat'), require, character.only = TRUE))
   if(!all(unlist(pkg_check))) stop('Could not load one of required packages httr or asserthat')
