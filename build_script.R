@@ -40,13 +40,10 @@ library(knitr)
 setwd(paste(getwd(), 'vignettes', sep = '/'))
 rmarkdown::render(list.files())
 
-library(gdmEngine)
-library(assertthat)
+## test if it's working
 gitr.push(files = 'all')
 ?download_occurrences
 ?gitr.push
-rm(list = ls())
+#rm(list = ls())
+#detach(package:gdmEngine, unload = TRUE)
 
-detach(package:gdmEngine, unload = TRUE)
-
-'here I am'
