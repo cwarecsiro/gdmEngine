@@ -1,36 +1,25 @@
 
-###############################################################################
-##
-## Utility functions to support gdm workflow functions
-##
-###############################################################################
-
-library(docstring)
-
+#' @title Push files to git
+#'
+#' @description Wrappers around git functions. Defaults set up for gdm project
+#'
+#' @param repo File path to any repository. Default is set to the gdm_workflow repo. Any other path will currently error.
+#' @param files Files to be tracked. Default: this file (GDM_Workflow_functions.R). 
+#' Paths to a file should be given, and should be relative to the repository root. Also accepts an argument 'all'.
+#' @param msg Commit message (string) -m flag is set for this git function, so an argument is required. 
+#' Defaults are set provided if left blank.
+#' @param verbose Print standard output from git. Default TRUE
+#'
+#' @return std.output from git
+#' 
+#' @note make general...?
+#' 
+#' @examples gitr.push()
+#' @examples gitr.push(files = 'all')
+#' 
+#' @export
 gitr.push = function(repo = 'gdm_workflow', files = 'GDM_Workflow_Functions.R',
                      msg = 'updating workflow functions', verbose = TRUE){
-  
-  
-  #' @title Push files to git
-  #'
-  #' @description Wrappers around git functions. Defaults set up for gdm project
-  #'
-  #' @param repo File path to any repository. Default is set to the gdm_workflow repo. Any other path will currently error.
-  #' @param files Files to be tracked. Default: this file (GDM_Workflow_functions.R). 
-  #' Paths to a file should be given, and should be relative to the repository root. Also accepts an argument 'all'.
-  #' @param msg Commit message (string) -m flag is set for this git function, so an argument is required. 
-  #' Defaults are set provided if left blank.
-  #' @param verbose Print standard output from git. Default TRUE
-  #'
-  #' @return std.output from git
-  #' 
-  #' @examples gitr.push()
-  #' @examples gitr.push(files = 'all')
-  #' 
-  #' @section Depends: pkg: assertthat
-  #' @section Depends: app: git (sh.exe)
-  #' 
-  #' @note make general...?
   
   if(!file.exists('C:\\Program Files\\Git\\bin\\sh.exe')) 
     stop('Cannot find git - install it!')

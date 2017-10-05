@@ -1,0 +1,11 @@
+Package: gdmEngine
+Version: 0.01
+Date: 2017-10-05
+Title: Workflow for GDM
+Description: Functions used to develop GDMs
+Author: Macroecological Modelling Team (CSIRO)
+Maintainer: Chris Ware <chris.ware@csiro.au>
+RoxygenNote: 6.0.1
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr
