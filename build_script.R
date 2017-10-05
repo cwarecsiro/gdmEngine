@@ -19,7 +19,8 @@ DESCRIPTION = c('Package: gdmEngine',
                 'Title: Workflow for GDM',
                 'Description: Functions used to develop GDMs',
                 'Author: Macroecological Modelling Team (CSIRO)',
-                'Maintainer: Chris Ware <chris.ware@csiro.au>'
+                'Maintainer: Chris Ware <chris.ware@csiro.au>',
+                'SystemRequirements: git with shell distribution'
                 )
 
 pkg_root = '//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow/gdmEngine'
@@ -39,3 +40,13 @@ use_vignette('gdmEngine') # for later really...
 library(knitr)
 setwd(paste(getwd(), 'vignettes', sep = '/'))
 rmarkdown::render(list.files())
+
+library(gdmEngine)
+library(assertthat)
+gitr.push(files = 'all')
+?download_occurrences
+rm(list = ls())
+
+detach(package:gdmEngine, unload = TRUE)
+
+

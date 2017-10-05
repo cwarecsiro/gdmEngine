@@ -24,6 +24,15 @@ gitr.push = function(repo = 'gdm_workflow', files = 'GDM_Workflow_Functions.R',
   if(!file.exists('C:\\Program Files\\Git\\bin\\sh.exe')) 
     stop('Cannot find git - install it!')
   
+  ## exec files should be on path of package
+  sh_path = paste(.libPaths(), 'gdmEngine/exec/gitr.sh', sep = '/')
+  bat_path = paste(.libPaths(), 'gdmEngine/exec/gitr.bat', sep = '/')
+  assert_that(file.exists(sh_path))
+  assert_that(file.exists(bat_path))
+  ## account for any whitespace
+  bat_path = paste('"', bat_path, '"', sep = '')
+  sh_path = paste('"', sh_path, '"', sep = '')
+  
   ## check repo
   if(repo == 'gdm_workflow') {
     rep_root = 
@@ -58,7 +67,8 @@ gitr.push = function(repo = 'gdm_workflow', files = 'GDM_Workflow_Functions.R',
   
   ## args
   send_args = paste(
-    "//ces-10-cdc//OSM_CDC_MMRG_work//users//bitbucket//gdm_workflow//gitr.bat", 
+    bat_path,
+    sh_path,
     rep_root, 
     git_add, 
     msg, 
