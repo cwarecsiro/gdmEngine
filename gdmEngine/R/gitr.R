@@ -87,4 +87,3 @@ gitr.push = function(repo = 'gdm_workflow', files = 'GDM_Workflow_Functions.R',
 
 
 
-

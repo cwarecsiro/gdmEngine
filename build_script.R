@@ -5,12 +5,12 @@
 ##  
 ## ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-## get git funcs
-source('//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow/utilities.R')
-
 ## package libs
 library(devtools)
 library(roxygen2)
+
+## root
+pkg_root = '//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow/gdmEngine'
 
 ## DESCRIPTION file
 DESCRIPTION = c('Package: gdmEngine',
@@ -23,7 +23,6 @@ DESCRIPTION = c('Package: gdmEngine',
                 'SystemRequirements: git with shell distribution'
                 )
 
-pkg_root = '//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow/gdmEngine'
 sink(paste(pkg_root, 'DESCRIPTION', sep = '/'))
 cat(DESCRIPTION, sep = '\n')
 sink()
@@ -45,8 +44,9 @@ library(gdmEngine)
 library(assertthat)
 gitr.push(files = 'all')
 ?download_occurrences
+?gitr.push
 rm(list = ls())
 
 detach(package:gdmEngine, unload = TRUE)
 
-
+'here I am'
