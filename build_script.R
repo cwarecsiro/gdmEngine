@@ -12,7 +12,7 @@ library(roxygen2)
 ## root
 pkg_root = '//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow/gdmEngine'
 
-## DESCRIPTION file
+## write DESCRIPTION file
 DESCRIPTION = c('Package: gdmEngine',
                 'Version: 0.01',
                 paste('Date:', Sys.Date()),
@@ -22,7 +22,6 @@ DESCRIPTION = c('Package: gdmEngine',
                 'Maintainer: Chris Ware <chris.ware@csiro.au>',
                 'SystemRequirements: git with shell distribution'
                 )
-
 sink(paste(pkg_root, 'DESCRIPTION', sep = '/'))
 cat(DESCRIPTION, sep = '\n')
 sink()
@@ -34,16 +33,24 @@ build()
 install()
 ## check() update examples before this is run
 
+## documentation
 use_vignette('gdmEngine') # for later really...
 ## convert to html
 library(knitr)
 setwd(paste(getwd(), 'vignettes', sep = '/'))
 rmarkdown::render(list.files())
 
-## test if it's working
+## simple tests to see if it's working
 gitr.push(files = 'all')
 ?download_occurrences
 ?gitr.push
 #rm(list = ls())
 #detach(package:gdmEngine, unload = TRUE)
+
+## copy over package to gdm_worflow for ease of use
+src = paste('"', .libPaths(), '/gdmEngine', '"', sep = '')
+setwd('..')
+dst = paste0(getwd(), '/lib')
+if(!file.exists(dst)) dir.create(lib_dir)
+system(paste("cp -r", src, dst)) 
 

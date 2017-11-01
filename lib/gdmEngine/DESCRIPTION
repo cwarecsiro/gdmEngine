@@ -1,0 +1,13 @@
+Package: gdmEngine
+Version: 0.01
+Date: 2017-10-05
+Title: Workflow for GDM
+Description: Functions used to develop GDMs
+Author: Macroecological Modelling Team (CSIRO)
+Maintainer: Chris Ware <chris.ware@csiro.au>
+SystemRequirements: git with shell distribution
+RoxygenNote: 6.0.1
+Built: R 3.3.2; ; 2017-10-05 01:35:53 UTC; windows
+RemoteType: local
+RemoteUrl: \\ces-10-cdc\OSM_CDC_MMRG_work\users\bitbucket\gdm_workflow\gdmEngine
+RemoteSha: 0.01

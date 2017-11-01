@@ -29,9 +29,6 @@ occurrences(taxon = "class:Equisetopsida", # specify the taxon here
                                     domain.mask@extent@xmax," ",domain.mask@extent@ymax,",",
                                     domain.mask@extent@xmax," ",domain.mask@extent@ymin,",",
                                     domain.mask@extent@xmin," ",domain.mask@extent@ymin,"))"),
-            fq = "class:Equisetopsida", # specify the taxon here
-            qa = "all", 
-            method = "offline", 
             email = "mok010@csiro.au", # specify your email address here
             download_reason_id=7) 
 

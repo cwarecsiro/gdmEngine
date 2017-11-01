@@ -253,50 +253,127 @@ download_occurrences <- function (taxon, wkt, fields, qa, method = "offline",
   }
 }
 
-# A function to read in, filter and format data downloaded from the ALA
-#Clean_ALA_data <- function(
-#ALA.download.folder <- "M:\\users\\mok010\\DoEE_GDM_Capacity_Building\\source\\Biological\\genus_Wandella\\data"
-#ALA.download.folder <- "M:\\users\\mok010\\DoEE_GDM_Capacity_Building\\source\\Biological\\class_Equisetopsida\\data"
-ALA.download.folder <- "M:\\users\\mok010\\DoEE_GDM_Capacity_Building\\source\\Biological\\class_Equisetopsida_manual\\data"
-ALA.download.file <- "M:\\users\\mok010\\DoEE_GDM_Capacity_Building\\source\\Biological\\class_Mammalia_manual\\records-2017-09-11\\records-2017-09-11.csv"
+##______________________________________________________________________________________##
+## A function to read in, filter and format data downloaded from the ALA
 
+ALA.download.file <- "J:\\source\\biol\\class_Reptilia\\class_Reptilia_2017-10-04\\class_Reptilia_2017-10-04.csv"
 
+# Clean_ALA_data <- function(ALA.download.file, # path to the downloaded .csv file
+#                            output.folder = getwd(), # a folder to save the outputs to
+#                            output.name = "filtered_data", # a name to use in saving the outputs 
+#                            domain.mask,      # a raster layer specifying the analysis domain
+#                            earliest.year = 1970,
+#                            spatial.uncertainty.m = 2000)
 #)
-  {
-  
-  ## Standardise ALA input ######################
-  # Get the name/s of the data file/s in this folder
-  folder.files <- list.files(path = ALA.download.folder)
-  data.files <- folder.files[substr(folder.files,1,4) == "data"]   
-  # If there's only one data file, read it in
-  if(length(data.files) == 1)
-    {
-    ALA.data <- read.csv(paste0(ALA.download.folder,"\\",data.files[1]), na.strings=c("na","NA",""), header=TRUE, sep="\t")
-    } # end if length(data.files) == 1
-  # if there are multiple data files, read them in & join them together
-  if(length(data.files) > 1)
-    {
-    #ALA.data <- read.table(paste0(ALA.download.folder,"\\",data.files[1]), header = TRUE, sep = "\t", na.strings = c("","NaN","NA","nan"), quote = "", fill = TRUE)
+#  {
+## Read in the data
+ALA.data <- read.csv(ALA.download.file)  
+
+# catch the original number of records
+n.recs.start <- nrow(ALA.data)
+
+## Filter the data by QA assertions
+ALA.data<-ALA.data[!ALA.data$Name.not.supplied=='true',]
+ALA.data<-ALA.data[!ALA.data$Name.not.recognised=='true',]
+ALA.data<-ALA.data[!ALA.data$Cultivated...escapee=='true',]
+ALA.data<-ALA.data[!ALA.data$Unparseable.verbatim.coordinates=='true',]
+ALA.data<-ALA.data[!ALA.data$Decimal.latitude.longitude.conversion.failed=='true',]
+ALA.data<-ALA.data[!ALA.data$Unable.to.convert.UTM.coordinates=='true',]
+ALA.data<-ALA.data[!ALA.data$Supplied.coordinates.are.zero=='true',]
+ALA.data<-ALA.data[!ALA.data$Zero.latitude=='true',]
+ALA.data<-ALA.data[!ALA.data$Zero.longitude=='true',]
+ALA.data<-ALA.data[!ALA.data$Coordinates.centre.of.country=='true',]
+ALA.data<-ALA.data[!ALA.data$Supplied.coordinates.centre.of.state=='true',]
+ALA.data<-ALA.data[!ALA.data$processing.Error=='true',]
+
+## Filter by taxonomic resolution ##ADD AN ARGUMENT TO SPECIFY THIS
+ALA.data <- ALA.data[(ALA.data$Taxon.Rank...matched == 'species' | ALA.data$Taxon.Rank...matched == 'subspecies'),]
+
+## Filter by date range 
+ALA.data <- ALA.data[(ALA.data$Year...parsed >= earliest.year),]
+
+## Filter by spatial Uncertainty
+ALA.data <- ALA.data[(ALA.data$Coordinate.Uncertainty.in.Metres...parsed <= spatial.uncertainty.m),]
+
+## Filter by presence of spatial coordinates (necessary data)
+ALA.data <- ALA.data[!is.na(ALA.data$Latitude...processed),]
+ALA.data <- ALA.data[!is.na(ALA.data$Longitude...processed),]
+
+## Filter by spatial domain 
+ALA.data <- ALA.data[(ALA.data$Longitude...processed > domain.mask@extent@xmin),]
+ALA.data <- ALA.data[(ALA.data$Longitude...processed < domain.mask@extent@xmax),]
+ALA.data <- ALA.data[(ALA.data$Latitude...processed > domain.mask@extent@ymin),]
+ALA.data <- ALA.data[(ALA.data$Latitude...processed < domain.mask@extent@ymax),]
+
+## Filter by location on spatial grid
+grd.pts<-extract(domain.mask,cbind(ALA.data$Longitude...processed,ALA.data$Latitude...processed))
+ALA.data <- ALA.data[!is.na(grd.pts),]
+
+## Create cleaned data file for modelling + log file of how it was created
+# select only the data we will/might use later
+ALA.data <- ALA.data[,c(1,10,13,15:18)]
+
+# write the data to file
+out.path <- file.path(output.folder,paste0(output.name,"_",Sys.Date(),".csv")) 
+write.csv(ALA.data, out.path)
+
+# write a log file describing how the data was created *************************************
+fileConn<-file(file.path(output.folder,paste0(output.name,"_",Sys.Date(),"_log_file.txt")))
+writeLines("#######################################################################",fileConn)
+writeLines("###",fileConn)
+writeLines("### ALA data filtration log file ",fileConn)
+writeLines("###",fileConn)
+writeLines(paste0("### Created ",Sys.time()," using the Clean_ALA_data() function."),fileConn)
+writeLines("###",fileConn)
+writeLines("#######################################################################",fileConn)
+writeLines("",fileConn)
+writeLines(paste0("Input data file = ", ALA.download.file),fileConn)
+writeLines(paste0("Output data file = ", out.path),fileConn)
+writeLines(paste0("Domain mask applied = ", domain.mask),fileConn)
+writeLines(paste0("Data restricted to after ",earliest.year),fileConn)
+writeLines(paste0("Data restricted to spatial uncertainty < ",spatial.uncertainty.m, "m"),fileConn)
+writeLines(paste0("Number of records before filtering = ", n.recs.start),fileConn)
+writeLines(paste0("Number of records after filtering = ", nrow(ALA.data)),fileConn)
+close(fileConn) #**************************************************************************
+
+#} # end function Clean_ALA_data
+
+
     
-    ALA.data <- read.csv(paste0(ALA.download.folder,"\\",data.files[1]), na.strings=c("na","NA",""), header=TRUE)#, sep="\t")
-    
-    #ALA.data <- fread(paste0(ALA.download.folder,"\\",data.files[1]), sep="\t", na.strings=c("na","NA",""),header=TRUE, data.table=FALSE)
-   
-    #ALA.data <- fread(paste0(ALA.download.folder,"\\",data.files[1]), sep=",", na.strings=c("na","NA",""),header=TRUE, data.table=FALSE)#,sep="\t")
-    
-    for(i in 2:length(data.files))
-      {
-# csv      
-next.read <- read.csv(paste0(ALA.download.folder,"\\",data.files[i]), na.strings=c("na","NA",""," "), header=FALSE)#, sep="\t")
-     
-# fread
-#next.read <- fread(paste0(ALA.download.folder,"\\",data.files[i]),  sep = "\t", header = TRUE, fill = TRUE, blank.lines.skip = TRUE)
-#next.read <- fread(paste0(ALA.download.folder,"\\",data.files[i]),  sep = "\t", fill = TRUE, blank.lines.skip = TRUE)
-n.file.rows<-length(readLines(paste0(ALA.download.folder,"\\",data.files[i])))
-???next.read <- fread(paste0(ALA.download.folder,"\\",data.files[i]), sep = "\t", nrows=(n.file.rows-1), header = FALSE, fill = TRUE, blank.lines.skip = TRUE)
-colnames(next.read) <- colnames(ALA.data)
-next.read <- as.data.frame(next.read)
-# top.check <- readLines(paste0(ALA.download.folder,"\\",data.files[i]), n=5)
+#----- Below = old code, when we were dealing with multiple files -------#
+#  ## Standardise ALA input ######################
+#  # Get the name/s of the data file/s in this folder
+#  folder.files <- list.files(path = ALA.download.folder)
+#  data.files <- folder.files[substr(folder.files,1,4) == "data"]   
+#  # If there's only one data file, read it in
+#  if(length(data.files) == 1)
+#    {
+#    ALA.data <- read.csv(paste0(ALA.download.folder,"\\",data.files[1]), na.strings=c("na","NA",""), header=TRUE, sep="\t")
+#    } # end if length(data.files) == 1
+#  # if there are multiple data files, read them in & join them together
+#  if(length(data.files) > 1)
+#    {
+#    #ALA.data <- read.table(paste0(ALA.download.folder,"\\",data.files[1]), header = TRUE, sep = "\t", na.strings = c("","NaN","NA","nan"), quote = "", fill = TRUE)
+#    
+#    ALA.data <- read.csv(paste0(ALA.download.folder,"\\",data.files[1]), na.strings=c("na","NA",""), header=TRUE)#, sep="\t")
+#    
+#    #ALA.data <- fread(paste0(ALA.download.folder,"\\",data.files[1]), sep="\t", na.strings=c("na","NA",""),header=TRUE, data.table=FALSE)
+#   
+#    #ALA.data <- fread(paste0(ALA.download.folder,"\\",data.files[1]), sep=",", na.strings=c("na","NA",""),header=TRUE, data.table=FALSE)#,sep="\t")
+#    
+#    for(i in 2:length(data.files))
+#      {
+## csv      
+#next.read <- read.csv(paste0(ALA.download.folder,"\\",data.files[i]), na.strings=c("na","NA",""," "), header=FALSE)#, sep="\t")
+#     
+## fread
+##next.read <- fread(paste0(ALA.download.folder,"\\",data.files[i]),  sep = "\t", header = TRUE, fill = TRUE, blank.lines.skip = TRUE)
+##next.read <- fread(paste0(ALA.download.folder,"\\",data.files[i]),  sep = "\t", fill = TRUE, blank.lines.skip = TRUE)
+#n.file.rows<-length(readLines(paste0(ALA.download.folder,"\\",data.files[i])))
+#???next.read <- fread(paste0(ALA.download.folder,"\\",data.files[i]), sep = "\t", nrows=(n.file.rows-1), header = FALSE, fill = TRUE, blank.lines.skip = TRUE)
+#colnames(next.read) <- colnames(ALA.data)
+#next.read <- as.data.frame(next.read)
+## top.check <- readLines(paste0(ALA.download.folder,"\\",data.files[i]), n=5)
 
 # read.table
 #next.read<-read.table(paste0(ALA.download.folder,"\\",data.files[i]), header = FALSE, sep = "\t", na.strings = c("","NaN","NA","nan"))
@@ -305,31 +382,8 @@ next.read <- as.data.frame(next.read)
       ALA.data <- rbind(ALA.data,next.read)
       } # end for i 
     } # end if length(data.files) > 1
-  
-  data.table
-  
-  ## QA assertions
-  
-  ## Filter by spatial domain
-  
-  ## Filter by taxonomic resolution
-  
-  ## Filter by date range 
-  
-  ## Filter by spatial Uncertainty
-  
-  ## Filter by spatial coordinates (necessary data)
-  
-  ## Create cleaned data file for modelling + log file of how it was created
+
   
   
-  
-  
-  
-  
-  
-  
-  
-  } # end function Clean_ALA_data  
 
 
