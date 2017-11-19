@@ -33,12 +33,15 @@ build()
 install()
 ## check() update examples before this is run
 
+?download_taxalist
+
 ## documentation
 use_vignette('gdmEngine') # for later really...
 ## convert to html
 library(knitr)
 setwd(paste(getwd(), 'vignettes', sep = '/'))
 rmarkdown::render(list.files())
+
 
 ## simple tests to see if it's working
 gitr.push(files = 'all')

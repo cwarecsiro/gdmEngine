@@ -11,6 +11,9 @@
 #'@param method (string) One of 'offline' or indexed. 'offline' only method available currently.
 #'@param email (string) Email address to receive path to .zip archive.
 #'@param download_reason (int) Valid ALA download reason. See website. Accepts numeric codes only (0:12). 
+#'@param dwcHeaders (bool) Return column names as Darwin Core formatted (where available). See website. Default = TRUE.
+#'@param dst (string) File path to a directory to save downloads in. If NULL, defaults to tempdir().
+#'@param read (bool) Read file into memory once downloaded? Only relevant if method = indexed, and dst is supplied. Default = TRUE.
 #'@param dry_run (bool) Return URL to be requested without sending the request. Default: FALSE
 #'@param verbose (bool) Switch print statements and status checking from the ALA servers on. D
 #'Default: TRUE. 
@@ -28,8 +31,8 @@
 #'method = "offline",email="karel.mokany@csiro.au", download_reason_id="7", verbose = TRUE)
 #'
 download_occurrences <- function (taxon, wkt, fields, qa, method = "offline", 
-                                  email, download_reason_id, dry_run = FALSE, 
-                                  verbose = TRUE) {
+                                  email, download_reason_id, dwcHeaders = TRUE, dst = NULL, read = TRUE,
+                                  dry_run = FALSE, verbose = TRUE) {
 
   pkg_check = suppressWarnings(lapply(c('httr', 'assertthat'), require, character.only = TRUE))
   if(!all(unlist(pkg_check))) stop('Could not load one of required packages httr or asserthat')
@@ -38,7 +41,7 @@ download_occurrences <- function (taxon, wkt, fields, qa, method = "offline",
   method <- match.arg(tolower(method), c("offline", "indexed"))
   if (method == "indexed") {
     valid_fields_type <- "occurrence_stored"
-    stop('indexed currently not available: use ALA4R package instead')
+    #stop('indexed currently not available: use ALA4R package instead')
   } else {
     valid_fields_type <- "occurrence"
   } 
@@ -145,6 +148,12 @@ download_occurrences <- function (taxon, wkt, fields, qa, method = "offline",
     this_query$qa <- paste(qa, collapse = ",")
   }
   
+  if(dwcHeaders){
+    this_query$dwcHeaders = 'true'
+  } else {
+    this_query$dwcHeaders = 'false'
+  }
+  
   if (method == "offline") this_query$email <- email
   this_query$reasonTypeId <- download_reason_id
   #this_query$sourceTypeId <- ala_sourcetypeid()
@@ -156,10 +165,11 @@ download_occurrences <- function (taxon, wkt, fields, qa, method = "offline",
   #this_query$file <- "data"
   ## Build file name from taxon search and date
   fn = gsub("[[:punct:]]", "_", taxon)
+  fn = gsub("[[:punct:]]", "_", fn)
   fn = paste(fn, Sys.Date(), sep = '_')
   fn = gsub(' ', '_', fn)
   this_query$file <- fn
-  
+
   ## url builder (source utilities_internal.R)
   build_url_from_parts <- function(base_url,path=NULL,query=list()) {
     this_url <- parse_url(base_url)
@@ -201,7 +211,6 @@ download_occurrences <- function (taxon, wkt, fields, qa, method = "offline",
     
   } else {
     
-    ## Think a lot of this can be junked. 
     ## Build in a pinger to the ALA server.
     if (method == "offline") {
       ## send request	
@@ -222,6 +231,45 @@ download_occurrences <- function (taxon, wkt, fields, qa, method = "offline",
           cat(errorType, msg, sep = '')
         }
       }
+    
+    } else {
+      
+      if(is.null(dst)){
+        tmp = tempfile()
+        response = GET(this_url, write_disk(tmp, overwrite=TRUE))
+        if(response$status_code != 200) cat(response$status_code)
+        dump_into = tempdir()
+        ## assumes data.csv is always first...
+        df <- unzip(tmp, exdir = dump_into)[1] %>% read.csv(stringsAsFactors=FALSE)
+        return(df)
+      } else {
+        dst = check_filepath(dst)
+        dst = paste0(dst, this_query$file, '.zip')
+        response = GET(this_url, write_disk(dst, overwrite=TRUE))
+        if(response$status_code != 200) cat(response$status_code)
+        if(read){
+          dump_into = tempdir()
+          ## assumes data.csv is always first...
+          df <- unzip(dst, exdir = dump_into)[1] %>% read.csv(stringsAsFactors=FALSE)
+          return(df)
+        }
+      }
     }
   }
 }
+
+check_filepath = function(filepath){
+  ## check for trailing forwardslash and backslashes
+  check_nchar = substr(filepath, nchar(filepath), nchar(filepath))
+  if(check_nchar == '/'){
+    return(filepath)
+  } else if(check_nchar == '\\') {
+    return(filepath)
+  } else {
+    return(paste0(filepath, '/'))
+  }
+}
+
+
+
+

@@ -4,10 +4,11 @@
 \alias{gitr.push}
 \title{Push files to git}
 \usage{
-gitr.push(repo = "gdm_workflow", files = "GDM_Workflow_Functions.R",
-  msg = "updating workflow functions", verbose = TRUE)
+gitr.push(verbose = TRUE, ...)
 }
 \arguments{
+\item{verbose}{Print standard output from git. Default TRUE}
+
 \item{repo}{File path to any repository. Default is set to the gdm_workflow repo. Any other path will currently error.}
 
 \item{files}{Files to be tracked. Default: this file (GDM_Workflow_functions.R). 
@@ -15,8 +16,6 @@ Paths to a file should be given, and should be relative to the repository root. 
 
 \item{msg}{Commit message (string) -m flag is set for this git function, so an argument is required. 
 Defaults are set provided if left blank.}
-
-\item{verbose}{Print standard output from git. Default TRUE}
 }
 \value{
 std.output from git

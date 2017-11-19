@@ -1,0 +1,159 @@
+#'@title Download occurrences for a list of taxa from the ALA 
+#'
+#'@description Takes a vector of taxonomic names and searches the ALA for these. Can save the data and/or load to memory. 
+#'
+#'@param specieslist (vector) Vector of taxonomic names to search for.
+#'@param dst (string) Optional dstination filepath to write data to. If missing, tempdir is used.
+#'@param parallel (boolean) Split list across multiple CPUs (all available -2). Default FALSE.
+#'@param ... Additional named arguments to pass to gdmEngine::download_ala which is called internally.
+#'
+#'@return std.output
+#'
+#'@examples download_specieslist(c('spp1', 'spp2'), 'tempdir()'C:/Users/xyx, read = FALSE)
+#'
+#'@export
+download_taxalist = function(specieslist, dst = NULL, parallel = FALSE, ...){
+  
+  ## add in start-fresh or overwrite flag
+  ## make an option for just downloading zip files (probably with a log file).
+  
+  ## check args
+  if(!is.null(dst)){
+    if(!dir.exists(dst)) dir.create(dst)
+  } else {
+    dst = tempdir()
+  }  
+  ## in case the list is derived from a data.frame
+  if(is(specieslist, 'factor')){
+    specieslist = as.character(paste(specieslist))
+  }
+  ## check filepath ending
+  dst = check_filepath(dst)
+  
+  ## config dst for raw downloads
+  raw_files = paste0(dst, 'raw_files')
+  if(dir.exists(raw_files)){
+    cat('Warning: dst exists and contents will be written over...')
+  } else {
+    dir.create(raw_files)
+  }
+  
+  ## default args
+  download_args = list(
+    method = "indexed", 
+    download_reason_id = 7,
+    dst = raw_files,
+    read = FALSE,
+    verbose = FALSE)
+  
+  ## check for user download args
+  user_args = list(...)
+  if (length(user_args)) {
+    ## all opts of gdmEngine::download_occurrences
+    opts = formals(download_occurrences)
+    for (i in 1:length(user_args)) {
+      this_opt <- names(user_args)[i]
+      if (! (this_opt %in% names(opts))) {
+        cat(paste0("'", this_opt, "'", ' is not a valid option. Should be one of:'), 
+            names(opts), sep = '\n')
+      } else {
+        download_args[[this_opt]] = paste(user_args[i])
+      }
+    } # end user_opts 
+  } # end 
+  
+  ## log container
+  log = list()
+  log$ALA_DOWNLOAD = Sys.Date()
+  log_f = paste0(dst, 'ALA_download_log_', Sys.Date(), '.RData')
+  save(log, file = log_f)
+  
+  ## run
+  try(repeat{
+    
+    load(log_f)
+    not_done <- outersect(specieslist, names(log)[-1])
+    
+    ## Break check
+    if(length(not_done)==0) break 
+    
+    ## Not finished...? Start looping again.
+    
+    if(parallel){
+      no_cores = parallel::detectCores() - 2
+      cl = parallel::makeCluster(no_cores)
+      clusterExport(cl, list(), envir=environment())
+      clusterExport(cl, list('download_args', 'download_occurrences',
+                             'check_filepath', 'counter', 'outersect'))
+      #clusterEvalQ(cl, library(ALA4R))
+      clusterEvalQ(cl, library(gdmEngine))
+     
+      cat(paste0('Searching the ALA for records of ', length(not_done),
+                 ' taxa...'))
+      
+      check = parLapply(cl, not_done, function(x){
+        tryCatch({
+          do.call(download_occurrences, 
+          c(list(taxon = x), download_args))
+        }, 
+        error = function(e) {
+          e
+        })
+      })
+      
+      ## log
+      check = lapply(check, function(x)
+        if(is.null(x)) x = 'Successfully downloaded file')
+      log = c(log, check)
+      names(log)[2:length(log)] = not_done
+      
+      gc()
+      
+      stopCluster(cl = cl)
+    
+    } else { # end if parallel
+    
+      ## loop
+      for(spp in not_done){
+        
+        ## counter to print to console
+        counter(msg = 'Searching the ALA for records of', iterable = spp)
+        
+        ## Download records from ALA 
+        ## Log any errors in downloads by catching them and passing them
+        ## through to the log. 
+        check <- tryCatch(ala <- do.call(download_occurrences, 
+                                         c(list(taxon = spp), download_args)),
+                          error = function(e) e)
+        
+        ## log
+        if(!is.null(check)){ ## signifies error
+          log[[spp]] = check
+        } else {
+          log[[spp]] = 'Successfully downloaded file'
+        } 
+        
+        ## Give the ALA a break  
+        ## Sys.sleep(5)
+        
+      } # end spp loop
+    
+    gc()
+    
+    } # end else serial
+    
+    ## save log
+    save(log, file = log_f)
+  
+  })
+  
+  ## summary
+  search_summary = paste('Found records for ', 
+                         length(log[log == 'Successfully downloaded file']),
+                         'of', length(specieslist), 'listed taxa')
+  cat('\n')
+  cat('Completed occurrence searches', sep = '\n')
+  cat(search_summary)
+  
+}
+
