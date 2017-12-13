@@ -71,7 +71,7 @@ library(RCurl)
 library(httr)
 
 download_specieslist = function(specieslist, dst, ...){
-  
+  stop('new version of this in download_ala.R')
   ## args:
   ## specieslist: vector of species to download records for
   ## dst: a filepath to write to
@@ -275,11 +275,20 @@ download_specieslist = function(specieslist, dst, ...){
   
   save(possible_synonyms, file = possible_synonyms_fp)
   save(fails, file = fails_fp)
-  cat('Completed occurrence searches')
+  
+  ## summary
+  search_summary = paste('Found records for ', 
+                         nrow(spp.ala.table) - length(fails), 
+                         ' of ', nrow(spp.ala.table), ' listed taxa')
+  cat('Completed occurrence searches', sep = '\n')
+  cat(search_summary)
   
 }
 
-download_specieslist(APC[1:2], dst)
+ptm = proc.time()
+download_specieslist(APC, dst)
+proc.time()-ptm
+
 
 
 ## params:
@@ -298,9 +307,11 @@ APC = APC[-c(9863:9865)]
 ## ----------------------------------------------------------------------------
 download_specieslist(APC, dst)
 
+x = c(x, c('|', '/', '_', '\\', '|' ))
+for (i in 1:5) cat(format(x[i], justify = 'left'))
 
-
-warnings()
+for (i in 1:10) {Sys.sleep(0.5); cat("\r",x[i])}
+  warnings()
 
 
 

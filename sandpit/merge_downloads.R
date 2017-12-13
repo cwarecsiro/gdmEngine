@@ -109,7 +109,7 @@ merge_downloads = function(src,
     writeLines("",con = fileConn)
     writeLines(paste0("Output data file = ", out.path),con = fileConn)
     writeLines(paste0("Number of taxa combined = ", length(filelist)),con = fileConn)
-    writeLines(paste0("Total number of records = ", nrow(data_bound)),con = fileConn)
+    writeLines(paste0("Total number of records = ", n.recs.start),con = fileConn)
     writeLines("#######################################################################",con = fileConn)
     close(fileConn) #**************************************************************************
   } # end if !is.null #************************************************************************

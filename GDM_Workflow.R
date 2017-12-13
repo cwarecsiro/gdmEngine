@@ -12,31 +12,53 @@
 # Load libraries
 library(ALA4R)
 library(raster)
+library(gdmEngine)
+library(data.table)
+#library(dplyr)
+library(magrittr)
 
 
+## ESTABLISH KEY INPUTS --------------------------------------------------------------##
 # Read in a spatial raster specifying the domain and resolution to be modelled
-domain.mask <- raster("S:\\AUS0025\\CLIM\\MASK\\MASK0.flt")
+Aus.domain.mask <- raster("//ces-10-cdc/OSM_CDC_GISDATA_work/AUS0025/CLIM/MASK/MASK0.flt")
 
+# SPECIFY ALA DATA FILTERING THRESHOLDS
+data.start.year = 1970
+location.uncertainty.limit = 2000
 
-## DOWNLOAD BIOLOGICAL DATA --------------------------------------------------------------##
-# Download the biological data for a specified taxonomic group from the ALA, over the 
-# specified spatial domain. Records will be available for download through a link emailed
-# to the specified address.
-ala_config(caching = "off")
-occurrences(taxon = "class:Equisetopsida", # specify the taxon here
-            wkt = paste0("POLYGON((",domain.mask@extent@xmin," ",domain.mask@extent@ymin,",",
-                                    domain.mask@extent@xmin," ",domain.mask@extent@ymax,",",
-                                    domain.mask@extent@xmax," ",domain.mask@extent@ymax,",",
-                                    domain.mask@extent@xmax," ",domain.mask@extent@ymin,",",
-                                    domain.mask@extent@xmin," ",domain.mask@extent@ymin,"))"),
-            email = "mok010@csiro.au", # specify your email address here
-            download_reason_id=7) 
+# PLANTS INPUTS
+species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/APC_and_Orchid_SpeciesNames.csv"
+species.names <- read.csv(species.names.file)
+species.names <- as.character(species.names[,1])
+species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants"
+species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/raw_files"
+data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants"
 
-## FILTER & FORMAT THE BIOLOGICAL DATA ---------------------------------------------------##
-# For the specified data downloaded from ALA, prepare the data into a suitable format, 
-# filtering out records that don't meet specified criteria.
+# AMPHIBIANS INPUTS
+species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/amphibians/AFD-20171211T130458.csv"
+species.names <- read.csv(species.names.file)
+species.names <- paste(species.names$GENUS, species.names$SPECIES)
+species.names <- unique(species.names)
+species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/amphibians"
+species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/amphibians/raw_files"
+data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians"
 
+## DOWNLOAD BIOLOGICAL DATA FROM ALA -----------------------------------------------------##
+# Download the species records from ALA
+download_taxalist(specieslist = species.names,
+                  dst = species.records.folder)
 
+## MERGE THE BIOLOGICAL DATA FOR EACH SPECIES --------------------------------------------##
+All.records <- merge_downloads(src=species.records.folder.raw,
+                               output.folder = data.processing.folder,
+                               parallel = FALSE)
+
+## FILTER THE BIOLOGICAL DATA -----------------------------------------------------------##
+Flitered.records <- filter_ALA_data(ALA.download.data = All.records$data,             
+                                    output.folder = data.processing.folder,       
+                                    domain.mask = Aus.domain.mask,                   
+                                    earliest.year = data.start.year,
+                                    spatial.uncertainty.m = location.uncertainty.limit)
 
 ## AGGREGATE THE BIOLOGICAL DATA TO GRID CELLS -------------------------------------------##
 # Using specified criteria, aggregate the biological data to cells on the spacial grid, 
@@ -44,16 +66,3 @@ occurrences(taxon = "class:Equisetopsida", # specify the taxon here
 
 
 
-
-
-
-
-
-
-occurrences(taxon = focal.taxon,
-            wkt ="POLYGON((112.9 -43.7425,112.9 -8,154 -8,154 -43.7425,112.9 -43.7425))",
-            fq = focal.taxon,
-            qa = "all", 
-            method = "offline", 
-            email = email.address, 
-            download_reason_id=7) 

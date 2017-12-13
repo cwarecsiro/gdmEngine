@@ -1,9 +1,9 @@
 Package: gdmEngine
 Version: 0.01
-Date: 2017-11-20
+Date: 2017-12-13
 Title: Workflow for GDM
 Description: Functions used to develop GDMs
-Author: Macroecological Modelling Team (CSIRO)
+Author: mok010
 Maintainer: Chris Ware <chris.ware@csiro.au>
 SystemRequirements: git with shell distribution
 RoxygenNote: 6.0.1

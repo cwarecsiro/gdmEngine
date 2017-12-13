@@ -4,10 +4,15 @@
 \alias{merge_downloads}
 \title{Merge datasets downloaded from the ALA}
 \usage{
-merge_downloads(src, keep_unzip = FALSE, parallel = TRUE, verbose = TRUE)
+merge_downloads(src, output.folder = NULL, output.name = "merged_taxa_data",
+  keep_unzip = FALSE, parallel = TRUE, verbose = TRUE)
 }
 \arguments{
 \item{src}{(string) Filepath to directory where loadeds are saved. Must not be other .zip files stored in src.}
+
+\item{output.folder}{(string) A folder to save the outputs to. If none specified, no file is written.}
+
+\item{output.name}{(string), A name to use in saving the outputs. Default: 'merged_taxa_data'.}
 
 \item{keep_unzip}{(boolean) Save the unzipped contents of each file?}
 
