@@ -9,9 +9,9 @@ aggregate_ALA_data(ALA.filtered.data, domain.mask, agg.radius.ncells = NULL,
   verbose = TRUE)
 }
 \arguments{
-\item{ALA.filtered.data}{(string) Filepath to directory where loadeds are saved. Must not be other .zip files stored in src.}
+\item{ALA.filtered.data}{(dataframe) A dataframe of appropriate format held in R working environment.}
 
-\item{domain.mask, }{(raster layer) A raster layer specifying the analysis domain}
+\item{domain.mask}{(raster layer) A raster layer specifying the analysis domain}
 
 \item{agg.radius.ncells}{(float) A spatial radius, specified as number of grid cells, over which to aggregate records. If NULL, no radial aggregation is performed. Default: NULL.}
 

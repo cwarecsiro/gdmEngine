@@ -2,8 +2,8 @@
 #'
 #'@description Take filtered occurrence data and group their position to grid cell centres. 
 #'
-#'@param ALA.filtered.data (string) Filepath to directory where loadeds are saved. Must not be other .zip files stored in src.
-#'@param domain.mask, (raster layer) A raster layer specifying the analysis domain
+#'@param ALA.filtered.data (dataframe) A dataframe of appropriate format held in R working environment.
+#'@param domain.mask (raster layer) A raster layer specifying the analysis domain
 #'@param agg.radius.ncells (float) A spatial radius, specified as number of grid cells, over which to aggregate records. If NULL, no radial aggregation is performed. Default: NULL.
 #'@param output.folder (string) A folder to save the outputs to. If none specified, no file is written.
 #'@param output.name (string), A name to use in saving the outputs. Default: 'aggregated_taxa_data'.

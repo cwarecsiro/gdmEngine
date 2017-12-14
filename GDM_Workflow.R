@@ -42,6 +42,10 @@ species.names <- unique(species.names)
 species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/amphibians"
 species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/amphibians/raw_files"
 data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians"
+agg.cell.rad <- 2.25
+min.rich.limit <- 2
+max.rich.limit <- 50
+min.rich.rad <- 200
 
 ## DOWNLOAD BIOLOGICAL DATA FROM ALA -----------------------------------------------------##
 # Download the species records from ALA
@@ -63,7 +67,18 @@ Filtered.records <- filter_ALA_data(ALA.download.data = All.records$data,
 ## AGGREGATE THE BIOLOGICAL DATA TO GRID CELLS -------------------------------------------##
 Aggregated.records <- aggregate_ALA_data(ALA.filtered.data = Filtered.records,
                                           domain.mask = Aus.domain.mask,
-                                          agg.radius.ncells = 2.25,
+                                          agg.radius.ncells = agg.cell.rad,
                                           output.folder = data.processing.folder)
+
+## REFINE BIOLOGICAL DATA TO GRID CELLS CONTAINING SUITABLE NUMBERS OF SPECIES RECORDS----##
+Selected.records <- select_gridcells_composition(ALA.aggregated.data = Aggregated.records ,
+                                                domain.mask = Aus.domain.mask,
+                                                min.richness.threshold = min.rich.limit,
+                                                max.richness.threshold = max.rich.limit,
+                                                reference.radius.ncells = min.rich.rad,
+                                                min.proportion.max.richness = 0.25,
+                                                output.folder = data.processing.folder)
+
+
 
 
