@@ -16,9 +16,9 @@ library(gdmEngine)
 library(data.table)
 #library(dplyr)
 library(magrittr)
+library(plyr)
 
-
-## ESTABLISH KEY INPUTS --------------------------------------------------------------##
+## ESTABLISH KEY INPUTS ------------------------------------------------------------------##
 # Read in a spatial raster specifying the domain and resolution to be modelled
 Aus.domain.mask <- raster("//ces-10-cdc/OSM_CDC_GISDATA_work/AUS0025/CLIM/MASK/MASK0.flt")
 
@@ -53,16 +53,17 @@ All.records <- merge_downloads(src=species.records.folder.raw,
                                output.folder = data.processing.folder,
                                parallel = FALSE)
 
-## FILTER THE BIOLOGICAL DATA -----------------------------------------------------------##
-Flitered.records <- filter_ALA_data(ALA.download.data = All.records$data,             
+## FILTER THE BIOLOGICAL DATA ------------------------------------------------------------##
+Filtered.records <- filter_ALA_data(ALA.download.data = All.records$data,             
                                     output.folder = data.processing.folder,       
                                     domain.mask = Aus.domain.mask,                   
                                     earliest.year = data.start.year,
                                     spatial.uncertainty.m = location.uncertainty.limit)
 
 ## AGGREGATE THE BIOLOGICAL DATA TO GRID CELLS -------------------------------------------##
-# Using specified criteria, aggregate the biological data to cells on the spacial grid, 
-# removing data for cells where there are insuffucient records to be deemed a 'community sample'.
-
+Aggregated.records <- aggregate_ALA_data(ALA.filtered.data = Filtered.records,
+                                          domain.mask = Aus.domain.mask,
+                                          agg.radius.ncells = 2.25,
+                                          output.folder = data.processing.folder)
 
 
