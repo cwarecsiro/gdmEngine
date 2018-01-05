@@ -17,6 +17,7 @@ library(data.table)
 #library(dplyr)
 library(magrittr)
 library(plyr)
+library(assertthat)
 
 ## ESTABLISH KEY INPUTS ------------------------------------------------------------------##
 # Read in a spatial raster specifying the domain and resolution to be modelled
@@ -25,6 +26,14 @@ Aus.domain.mask <- raster("//ces-10-cdc/OSM_CDC_GISDATA_work/AUS0025/CLIM/MASK/M
 # SPECIFY ALA DATA FILTERING THRESHOLDS
 data.start.year = 1970
 location.uncertainty.limit = 2000
+
+# Specify Environmental layers
+climate.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/1990", full.names=TRUE, pattern = ".flt")
+terrain.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/LAND", full.names=TRUE, pattern = ".flt")
+env.files <- c(climate.files, terrain.files)
+env.files <- env.files[(substr(env.files, nchar(env.files)-3, nchar(env.files)) == ".flt")] # to remove some arcmap filenames
+env.files <- env.files[-c(20,21,32,35,36,38,39,40,43,44,45,46)] # remove grids we don't want to assess in the modelling
+env.stk <- stack(env.files)
 
 # PLANTS INPUTS
 species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/APC_and_Orchid_SpeciesNames.csv"
@@ -78,6 +87,27 @@ Selected.records <- select_gridcells_composition(ALA.aggregated.data = Aggregate
                                                 reference.radius.ncells = min.rich.rad,
                                                 min.proportion.max.richness = 0.25,
                                                 output.folder = data.processing.folder)
+
+## EXTRACT ENVIRONMENTAL DATA FOR SELECTED GRID CELLS ------------------------------------##
+Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,             
+                                  environment.stk = env.stk,
+                                  output.folder = data.processing.folder)
+
+## SUBSAMPLE SITE-PAIRS ------------------------------------------------------------------##
+# Alternative Methods...
+# Random
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
