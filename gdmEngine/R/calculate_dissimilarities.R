@@ -12,7 +12,8 @@
 #'
 #'@examples output = calculate_dissimilarities(My.pairs.table, My.composition.data, output.folder = 'C:/Users/processed_data', output.name = 'My.sitepair.data')
 #'
-#'@importFrom reshape2 betapart
+#'@importFrom reshape2 dcast
+#'@importFrom betapart beta.pair
 #'
 #'@export
 calculate_dissimilarities <- function(pairs.table, 
