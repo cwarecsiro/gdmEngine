@@ -55,6 +55,10 @@ agg.cell.rad <- 2.25
 min.rich.limit <- 2
 max.rich.limit <- 50
 min.rich.rad <- 200
+min.rich.proportion <- 0.25
+n.pairs.model <- 100000
+train.proportion <- 0.8
+n.pairs.test <- 20000
 
 ## DOWNLOAD BIOLOGICAL DATA FROM ALA -----------------------------------------------------##
 # Download the species records from ALA
@@ -85,7 +89,7 @@ Selected.records <- select_gridcells_composition(ALA.aggregated.data = Aggregate
                                                 min.richness.threshold = min.rich.limit,
                                                 max.richness.threshold = max.rich.limit,
                                                 reference.radius.ncells = min.rich.rad,
-                                                min.proportion.max.richness = 0.25,
+                                                min.proportion.max.richness = min.rich.proportion,
                                                 output.folder = data.processing.folder)
 
 ## EXTRACT ENVIRONMENTAL DATA FOR SELECTED GRID CELLS ------------------------------------##
@@ -93,19 +97,21 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
                                   environment.stk = env.stk,
                                   output.folder = data.processing.folder)
 
+## SPLIT DATA FOR CROSS-VALIDATION (TRAINING AND TESTING SETS) ---------------------------##
+train.indices <- sample(seq_len(nrow(Site.Env.Data)), size = floor(train.proportion * nrow(Site.Env.Data)))
+Train.Site.Env.Data <- Site.Env.Data[train.indices, ]
+Test.Site.Env.Data <- Site.Env.Data[-train.indices, ]
+
 ## SUBSAMPLE SITE-PAIRS ------------------------------------------------------------------##
-# Alternative Methods...
-# Random
+# Random .... (or alternative)
+Pairs.Table.Train <- sitepair.sample.random(site.env.data = Train.Site.Env.Data,
+                                            n.pairs.target = n.pairs.model)
+Pairs.Table.Test <- sitepair.sample.random(site.env.data = Test.Site.Env.Data,
+                                           n.pairs.target = n.pairs.test)
 
-
-
-
-
-
-
-
-
-
+## CALCULATE DISSIMILARITIES -------------------------------------------------------------##
+Pairs.Table.Train <- calculate_dissimilarities(pairs.table = Pairs.Table.Train, 
+                                               composition.data = Selected.records)
 
 
 
