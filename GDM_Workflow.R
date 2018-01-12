@@ -97,6 +97,8 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
                                   environment.stk = env.stk,
                                   output.folder = data.processing.folder)
 
+
+
 ## SPLIT DATA FOR CROSS-VALIDATION (TRAINING AND TESTING SETS) ---------------------------##
 train.indices <- sample(seq_len(nrow(Site.Env.Data)), size = floor(train.proportion * nrow(Site.Env.Data)))
 Train.Site.Env.Data <- Site.Env.Data[train.indices, ]
@@ -104,17 +106,18 @@ Test.Site.Env.Data <- Site.Env.Data[-train.indices, ]
 
 ## SUBSAMPLE SITE-PAIRS ------------------------------------------------------------------##
 # Random .... (or alternative)
-Pairs.Table.Train <- sitepair.sample.random(site.env.data = Train.Site.Env.Data,
+Pairs.Table.Train <- sitepair_sample_random(site.env.data = Train.Site.Env.Data,
                                             n.pairs.target = n.pairs.model)
-Pairs.Table.Test <- sitepair.sample.random(site.env.data = Test.Site.Env.Data,
+Pairs.Table.Test <- sitepair_sample_random(site.env.data = Test.Site.Env.Data,
                                            n.pairs.target = n.pairs.test)
 
 ## CALCULATE DISSIMILARITIES -------------------------------------------------------------##
 Pairs.Table.Train <- calculate_dissimilarities(pairs.table = Pairs.Table.Train, 
                                                composition.data = Selected.records)
+Pairs.Table.Test <- calculate_dissimilarities(pairs.table = Pairs.Table.Test, 
+                                               composition.data = Selected.records)
 
-
-
+## DERIVE A GDM --------------------------------------------------------------------------##
 
 
 
