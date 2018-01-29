@@ -13,8 +13,9 @@
 #'@param intercept Default: TRUE
 #'@return list
 #'@examples ...
+#'@importFrom nnls nnls
 #'@export
-nnls_fit <- function (x, 
+nnls_fit <- function(x, 
                       y, 
                       weights   = rep(1, nobs), 
                       start     = NULL, 
@@ -120,8 +121,7 @@ nnls_fit <- function (x,
             ngoodobs <- as.integer(nobs - sum(!good))
 			
 			## USE NNLS instead of least squares
-			require(nnls)
-            fit <- nnls(x[good, , drop = FALSE] *  w, z * w)
+      fit <- nnls(x[good, , drop = FALSE] *  w, z * w)
 			fit$coefficients <- fit$x
 			## calculate qr decomposition..
 			QR <- qr(x[good, , drop = FALSE] *  w)

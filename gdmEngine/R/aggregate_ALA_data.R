@@ -9,9 +9,11 @@
 #'@param output.name (string), A name to use in saving the outputs. Default: 'aggregated_taxa_data'.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
-#'@returns Dataframe. Also writes this dataframe to file if output.folder is specified. 
+#'@return Dataframe. Also writes this dataframe to file if output.folder is specified. 
 #'
 #'@examples output = aggregate_data(my.data, my.raster)
+#'
+#'@importFrom raster raster
 #'
 #'@export
 aggregate_ALA_data = function(ALA.filtered.data,
@@ -22,10 +24,16 @@ aggregate_ALA_data = function(ALA.filtered.data,
                               verbose = TRUE)
 {
 
+  ## Change log
+  ## ----------
+  ## change returns to return
+  ## add immports
+  ## fix definition of origin 
   
   # Aggregate the records to the centres of the grid cells they occur in
   xy <- cbind(ALA.filtered.data$decimalLongitude, ALA.filtered.data$decimalLatitude)
-  origin <- c(domain.mask@extent@xmin, domain.mask@extent@ymin)
+  #origin <- c(domain.mask@extent@xmin, domain.mask@extent@ymin)
+  origin = origin(domain.mask)
   grid_res <- res(domain.mask)
   out <- as.data.frame(t(apply(xy, 1, function(z) grid_res/2 + origin + grid_res*(floor((z - origin)/grid_res)))))
   #replace the long, lat with the grid cell centred version

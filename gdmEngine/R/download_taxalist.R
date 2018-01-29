@@ -5,17 +5,70 @@
 #'@param specieslist (vector) Vector of taxonomic names to search for.
 #'@param dst (string) Optional dstination filepath to write data to. If missing, tempdir is used.
 #'@param parallel (boolean) Split list across multiple CPUs (all available -2). Default FALSE.
+#'@param background (boolean) Runs function in background freeing up the gui.
 #'@param ... Additional named arguments to pass to gdmEngine::download_ala which is called internally.
 #'
 #'@return std.output
 #'
-#'@examples download_specieslist(c('spp1', 'spp2'), 'tempdir()'C:/Users/xyx, read = FALSE)
+#'@examples download_taxalist(c('spp1', 'spp2'), 'tempdir()'C:/Users/xyx, read = FALSE)
 #'
 #'@export
-download_taxalist = function(specieslist, dst = NULL, parallel = FALSE, ...){
+download_taxalist = function(specieslist, dst = NULL, parallel = FALSE,
+                             background = FALSE, ...){
   
   ## add in start-fresh or overwrite flag
   ## make an option for just downloading zip files (probably with a log file).
+  
+  ## first check if function is to be run in background (to free up gui)
+  if(background) {
+    
+    if(length(list(...))) {
+      
+      ## to do...
+      stop('Cannot run in background currently if ... args used')
+      
+    } else {
+      
+      ## get call
+      this_call = match.call()
+      this_call$background = FALSE
+      this_call = paste0(deparse(this_call), collapse = '')
+      
+      ## set up input arg in tmp dir/file
+      tmp_dir = tempdir()
+      tmp_file = paste0(tmp_dir, '/tmp_spplist.csv')
+      write.csv(specieslist, tmp_file, row.names = FALSE)
+      tmp_file = gsub('\\', '\\\\', tmp_file, fixed = TRUE)
+      
+      ## dst file 
+      if(!is.null(dst)) {
+        dst = gsub('\\', '\\\\', dst, fixed = TRUE)
+      }
+      
+      ## sink script to run func in tmp dir
+      tmp_script = paste0(tmp_dir, '/tmp_script.R')
+      sink(tmp_script)
+      #cat('#!/usr/bin/env Rscript')
+      cat('library(gdmEngine)', sep = '\n')
+      cat('library(parallel)', sep = '\n')
+      cat(paste0('src = read.csv(', '"', tmp_file, '"', ')'), sep = '\n')
+      if(!is.null(dst)) cat(paste0('dst = ', '"', dst, '"'), sep = '\n')
+      cat(this_call, sep = '\n')
+      sink()
+      closeAllConnections()
+      
+      ## execute
+      make_call = paste0('R CMD BATCH ', tmp_script)
+      system(make_call, wait = FALSE)
+      
+      heads_up = paste0('Searching the ALA for records. Files will be downloaded here: ', '\n',
+                        dst)
+      cat(heads_up, sep = '\n')
+      ## done
+      return()
+      
+    }
+  }
   
   ## check args
   if(!is.null(dst)){
@@ -83,14 +136,14 @@ download_taxalist = function(specieslist, dst = NULL, parallel = FALSE, ...){
       no_cores = parallel::detectCores() - 2
       cl = parallel::makeCluster(no_cores)
       clusterExport(cl, list(), envir=environment())
-      clusterExport(cl, list('download_args', 'download_occurrences',
-                             'check_filepath', 'counter', 'outersect'))
+      #clusterExport(cl, list('download_occurrences', 'download_args',
+      #                       'check_filepath', 'counter', 'outersect'))
       #clusterEvalQ(cl, library(ALA4R))
       clusterEvalQ(cl, library(gdmEngine))
       
       cat(paste0('Searching the ALA for records of ', length(not_done),
                  ' taxa...'))
-      
+
       check = parLapply(cl, not_done, function(x){
         tryCatch({
           do.call(download_occurrences, 

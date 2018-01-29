@@ -18,10 +18,18 @@
 filter_ALA_data = function(ALA.download.data,             
                            output.folder = NULL,       
                            output.name = "filtered_data",  
-                           domain.mask,                   
+                           domain.mask = NULL,                   
                            earliest.year = 1970,
                            spatial.uncertainty.m = 2000,
+                           select.fields = NULL,
                            verbose=TRUE)
+  
+  ## Change log
+  ## ----------
+  ## substituted year for eventDate in returned data.frame
+  ## set domain.mask to an optional arg
+  ## made cols to keep an argument
+  
   {
   ## Read in the data
   ALA.data <- ALA.download.data 
@@ -63,14 +71,26 @@ filter_ALA_data = function(ALA.download.data,
   ALA.data <- ALA.data[(ALA.data$decimalLatitude < domain.mask@extent@ymax),]
   
   ## Filter by location on spatial grid
-  pts<-cbind(ALA.data$decimalLongitude,ALA.data$decimalLatitude)
-  sp <- SpatialPoints(pts)  
-  grd.pts<-extract(domain.mask, sp)
-  ALA.data <- ALA.data[!is.na(grd.pts),]
+  if(!is.null(domain.mask)){
+    pts<-cbind(ALA.data$decimalLongitude,ALA.data$decimalLatitude)
+    sp <- SpatialPoints(pts)  
+    grd.pts<-extract(domain.mask, sp)
+    ALA.data <- ALA.data[!is.na(grd.pts),]
+  }
   
   ## Create cleaned data file for modelling + log file of how it was created
   # select only the data we will/might use later
-  ALA.data <- ALA.data[,c(1,8,10,12:15)] # "occurrenceID", "scientificName", "taxonRank", "year", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters"
+  #ALA.data <- ALA.data[,c(1,8,10,11:15)] # "occurrenceID", "scientificName", "taxonRank", "eventDate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters"
+  if(is.null(select.fields)){
+    select.fields = c("occurrenceID", "scientificName", "taxonRank", "eventDate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters")
+  } else {
+    check_fields = all(select.fields %in% names(amphibs_filt))
+    if(!check_fields){
+      select.fields = c("occurrenceID", "scientificName", "taxonRank", "eventDate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters")
+      warning('Specified select.fields were not found in the dataset - returning default fields instead')
+    }
+  }
+  ALA.data = subset(ALA.data, select = select.fields)
   
   # write the data to file, if an output folder is specified
   if(!is.null(output.folder))

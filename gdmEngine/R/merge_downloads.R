@@ -40,8 +40,7 @@ merge_downloads = function(src,
     no_cores = parallel::detectCores() - 2
     cl = parallel::makeCluster(no_cores)
     clusterExport(cl, list(), envir=environment())
-    clusterExport(cl, list('download_args', 'download_occurrences',
-                           'check_filepath', 'counter', 'outersect', 'unzipper', 'filelist'))
+    #clusterExport(cl, list('unzipper', 'filelist'))
     clusterEvalQ(cl, library(dplyr))  
     clusterEvalQ(cl, library(gdmEngine))  
     cat(paste0('Extracting data from ', length(filelist),

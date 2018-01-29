@@ -21,6 +21,9 @@ aggregate_ALA_data(ALA.filtered.data, domain.mask, agg.radius.ncells = NULL,
 
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
 }
+\value{
+Dataframe. Also writes this dataframe to file if output.folder is specified.
+}
 \description{
 Take filtered occurrence data and group their position to grid cell centres.
 }

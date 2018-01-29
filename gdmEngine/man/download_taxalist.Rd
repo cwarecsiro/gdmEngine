@@ -4,7 +4,8 @@
 \alias{download_taxalist}
 \title{Download occurrences for a list of taxa from the ALA}
 \usage{
-download_taxalist(specieslist, dst = NULL, parallel = FALSE, ...)
+download_taxalist(specieslist, dst = NULL, parallel = FALSE,
+  background = FALSE, ...)
 }
 \arguments{
 \item{specieslist}{(vector) Vector of taxonomic names to search for.}
@@ -12,6 +13,8 @@ download_taxalist(specieslist, dst = NULL, parallel = FALSE, ...)
 \item{dst}{(string) Optional dstination filepath to write data to. If missing, tempdir is used.}
 
 \item{parallel}{(boolean) Split list across multiple CPUs (all available -2). Default FALSE.}
+
+\item{background}{(boolean) Runs function in background freeing up the gui.}
 
 \item{...}{Additional named arguments to pass to gdmEngine::download_ala which is called internally.}
 }
@@ -22,6 +25,6 @@ std.output
 Takes a vector of taxonomic names and searches the ALA for these. Can save the data and/or load to memory.
 }
 \examples{
-download_specieslist(c('spp1', 'spp2'), 'tempdir()'C:/Users/xyx, read = FALSE)
+download_taxalist(c('spp1', 'spp2'), 'tempdir()'C:/Users/xyx, read = FALSE)
 
 }

@@ -97,27 +97,20 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
                                   environment.stk = env.stk,
                                   output.folder = data.processing.folder)
 
-
-
-## SPLIT DATA FOR CROSS-VALIDATION (TRAINING AND TESTING SETS) ---------------------------##
-train.indices <- sample(seq_len(nrow(Site.Env.Data)), size = floor(train.proportion * nrow(Site.Env.Data)))
-Train.Site.Env.Data <- Site.Env.Data[train.indices, ]
-Test.Site.Env.Data <- Site.Env.Data[-train.indices, ]
-
-## SUBSAMPLE SITE-PAIRS ------------------------------------------------------------------##
-# Random .... (or alternative)
-Pairs.Table.Train <- sitepair_sample_random(site.env.data = Train.Site.Env.Data,
-                                            n.pairs.target = n.pairs.model)
-Pairs.Table.Test <- sitepair_sample_random(site.env.data = Test.Site.Env.Data,
-                                           n.pairs.target = n.pairs.test)
-
-## CALCULATE DISSIMILARITIES -------------------------------------------------------------##
-Pairs.Table.Train <- calculate_dissimilarities(pairs.table = Pairs.Table.Train, 
-                                               composition.data = Selected.records)
-Pairs.Table.Test <- calculate_dissimilarities(pairs.table = Pairs.Table.Test, 
-                                               composition.data = Selected.records)
-
 ## DERIVE A GDM --------------------------------------------------------------------------##
+Final.GDM <- gdm_builder(site.env.data = Site.Env.Data, 
+                        composition.data = Selected.records ,
+                        geo=TRUE,
+                        train.proportion = 0.8,
+                        n.pairs.train = n.pairs.model,
+                        n.pairs.test = n.pairs.test,
+                        n.crossvalid.tests = 4,
+                        correlation.threshold = 0.7,
+                        selection.metric = 'RMSE',
+                        Indiv.Dev.Explained.Min = 1.0,
+                        n.predictors.min = 8,
+                        output.folder = data.processing.folder,       
+                        output.name = "gdm_builder_FinMod") 
 
 
 

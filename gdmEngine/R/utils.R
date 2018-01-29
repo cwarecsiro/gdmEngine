@@ -1,4 +1,3 @@
-
 #'@title Simple counter to monitor a loop
 #'
 #'@description Counter that doesn't clog the console but enables progress to be monitored

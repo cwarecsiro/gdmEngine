@@ -5,8 +5,8 @@
 \title{Filter downloaded ALA data}
 \usage{
 filter_ALA_data(ALA.download.data, output.folder = NULL,
-  output.name = "filtered_data", domain.mask, earliest.year = 1970,
-  spatial.uncertainty.m = 2000, verbose = TRUE)
+  output.name = "filtered_data", domain.mask = NULL, earliest.year = 1970,
+  spatial.uncertainty.m = 2000, select.fields = NULL, verbose = TRUE)
 }
 \arguments{
 \item{ALA.download.data}{(dataframe) A dataframe holding the downloaded ALA data.}
