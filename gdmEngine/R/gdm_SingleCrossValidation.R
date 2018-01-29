@@ -12,7 +12,8 @@
 #'
 #'@examples output = gdm_SingleCrossValidation(My.training.table, My.testing.table, geo=TRUE)
 #'
-#'@importFrom gdm gdm predict.gdm
+#'@importFrom gdm gdm
+#'@importFrom gdm predict.gdm
 #'
 #'@export
 gdm_SingleCrossValidation=function(GDM_Table_Training_In, 

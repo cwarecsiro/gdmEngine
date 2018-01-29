@@ -6,3 +6,4 @@ Description: Functions used to develop GDMs
 Author: mok010
 Maintainer: Chris Ware <chris.ware@csiro.au>
 SystemRequirements: git with shell distribution
+RoxygenNote: 6.0.1

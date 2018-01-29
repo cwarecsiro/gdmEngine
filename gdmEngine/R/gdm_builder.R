@@ -23,7 +23,8 @@
 #'
 #'@importFrom reshape2 dcast
 #'@importFrom betapart beta.pair
-#'@importFrom gdm gdm gdm.predict
+#'@importFrom gdm gdm
+#'@importFrom gdm predict.gdm
 #'@importFrom raster pointDistance
 #'
 #'@export
