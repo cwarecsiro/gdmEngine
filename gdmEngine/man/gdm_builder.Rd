@@ -20,7 +20,7 @@ gdm_builder(site.env.data, composition.data, geo = TRUE,
 
 \item{train.proportion}{(float) The proportion of sites in 'site.env.data' to use in training the GDM, with the remaining proportion used to test the model. (default = 0.8)}
 
-\item{n.pairs.train}{(integer) The number of site-pairs to use in training the GDM. If not specified, the default is to use 10% of the total number of pairs possible from the training sites. (default = NULL)}
+\item{n.pairs.train}{(integer) The number of site-pairs to use in training the GDM. If not specified, the default is to use 10 percent of the total number of pairs possible from the training sites. (default = NULL)}
 
 \item{n.pairs.test}{(integer) The number of site-pairs to use in testing the GDM. If not specified, the default is to use the same ratio of site-pairs to availabel sites as was used to train the model. (default = NULL)}
 

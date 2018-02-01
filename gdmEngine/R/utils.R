@@ -75,3 +75,20 @@ check_filepath = function(filepath){
     return(paste0(filepath, '/'))
   }
 }
+
+
+#'@title Three parameter logistic function
+#
+#'@description A three parameter logistic function for use in sampling [ y = a+(1-a)/(1+((x/b)^(c))) ]
+#'@param x (float) The x-value being assessed
+#'@param a (float) Parameter specifying the minimum y-value
+#'@param b (float) Parameter specifying the x-value at curve inflection point
+#'@param c (float) Parameter specifying the slope of the curve (i.e. steepness of the decay) 
+#'@returns float (the y-value)
+#'@examples my.y = decay.curve(x=12, a=0.01, b=10, c=3)
+#'@export
+decay.curve=function(x, a, b, c)
+{
+  y = a + (1-a)/(1+((x/b)^(c)))
+  return(y)
+} # end decay.curve

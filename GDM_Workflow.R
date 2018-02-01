@@ -97,6 +97,10 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
                                   environment.stk = env.stk,
                                   output.folder = data.processing.folder)
 
+##TEMP##
+Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2017-12-14.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-01-05.csv")
+
 ## DERIVE A GDM --------------------------------------------------------------------------##
 Final.GDM <- gdm_builder(site.env.data = Site.Env.Data, 
                         composition.data = Selected.records ,
@@ -113,4 +117,27 @@ Final.GDM <- gdm_builder(site.env.data = Site.Env.Data,
                         output.name = "gdm_builder_FinMod") 
 
 
+## ADITIONAL STUFF ##---------------------------------------------------------------------##
+#Random sample
+Pairs.Table.Rnd <- sitepair_sample_random(site.env.data = Site.Env.Data,
+                                          n.pairs.target = n.pairs.model)
+#Geographic distance based sample
+Pairs.Table.Geo <- sitepair_sample_geographic(site.env.data = Site.Env.Data,
+                           n.pairs.target = n.pairs.model,
+                           a.used=0.05, 
+                           b.used=10, 
+                           c.used=3, 
+                           a.dpair=0.05, 
+                           b.dpair=1000000, 
+                           c.dpair=3)
 
+# Environmental distance based sample
+Pairs.Table.Env <- sitepair_sample_environment(site.env.data = Site.Env.Data,
+                                               n.pairs.target = n.pairs.model,
+                                               env.colnames = c('PTA','TXX'),
+                                               a.used=0.05, 
+                                               b.used=10, 
+                                               c.used=3, 
+                                               a.epair=0.05, 
+                                               b.epair=1, 
+                                               c.epair=1)

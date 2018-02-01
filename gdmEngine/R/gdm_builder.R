@@ -6,7 +6,7 @@
 #'@param composition.data (dataframe) A dataframe holding the final species composition data: the records of all species in all grid cells to be used for modelling.
 #'@param geo (boolean) Whether geographic distance should be considered as a predictor when deriving the GDM. (default = TRUE)
 #'@param train.proportion (float) The proportion of sites in 'site.env.data' to use in training the GDM, with the remaining proportion used to test the model. (default = 0.8)
-#'@param n.pairs.train (integer) The number of site-pairs to use in training the GDM. If not specified, the default is to use 10% of the total number of pairs possible from the training sites. (default = NULL)
+#'@param n.pairs.train (integer) The number of site-pairs to use in training the GDM. If not specified, the default is to use 10 percent of the total number of pairs possible from the training sites. (default = NULL)
 #'@param n.pairs.test (integer) The number of site-pairs to use in testing the GDM. If not specified, the default is to use the same ratio of site-pairs to availabel sites as was used to train the model. (default = NULL)
 #'@param n.crossvalid.tests (integer) The number of cross-validation sets to use in deriving the GDM. (default = 10)
 #'@param correlation.threshold (float) The maximum correlation (Pearson's R) permitted between candidate predictor variables, as derived from the sites in 'site.env.data'. (default = 0.7)

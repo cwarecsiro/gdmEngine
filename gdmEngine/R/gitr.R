@@ -20,6 +20,8 @@
 #' 
 #' @examples gitr.config()
 #' 
+#' @importFrom assertthat assert_that
+#' 
 #' @export			 
 gitr.config = function(...){
   
