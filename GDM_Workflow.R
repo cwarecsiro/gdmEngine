@@ -18,6 +18,7 @@ library(data.table)
 library(magrittr)
 library(plyr)
 library(assertthat)
+#library(spatstat)
 
 ## ESTABLISH KEY INPUTS ------------------------------------------------------------------##
 # Read in a spatial raster specifying the domain and resolution to be modelled

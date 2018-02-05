@@ -50,7 +50,7 @@ sitepair_sample_density=function(site.env.data,
   # Calculate the density of sites around each point, to use as a weighting
   sites.window <- owin(xrange=c(domain.mask@extent@xmin,domain.mask@extent@xmax),yrange=c(domain.mask@extent@ymin,domain.mask@extent@ymax))
   sites.points <- ppp(x=site.env.data$decimalLongitude, y=site.env.data$decimalLatitude, window=sites.window)
-  sites.density <- density.ppp(site.points, sigma=sigma.spair, at="points", leaveoneout=FALSE, positive=TRUE, verbose=TRUE)
+  sites.density <- density.ppp(sites.points, sigma=sigma.spair, at="points", leaveoneout=FALSE, positive=TRUE, verbose=TRUE)
 #plot(x=site.env.data$decimalLongitude, y=site.env.data$decimalLatitude, cex=10/sites.density)
   b.spair<-mean(sites.density)*b.spair.factor
   SiteDensity.Wt<-decay.curve(sites.density, a.spair, b.spair, c.spair)
