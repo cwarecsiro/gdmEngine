@@ -6,8 +6,8 @@
 \usage{
 sitepair_sample_environment(site.env.data, n.pairs.target, env.colnames,
   dist.method = "euclidean", n.pairs.sample = NULL, a.used = 0.05,
-  b.used = NULL, c.used = 3, a.epair = 0.05, b.epair = NULL,
-  c.epair = 1, output.folder = NULL, output.name = "site_pairs_data_env",
+  b.used.factor = 2, c.used = 3, a.epair = 0.05, b.epair.factor = 1,
+  c.epair = 3, output.folder = NULL, output.name = "site_pairs_data_env",
   verbose = FALSE)
 }
 \arguments{
@@ -23,15 +23,15 @@ sitepair_sample_environment(site.env.data, n.pairs.target, env.colnames,
 
 \item{a.used}{(float) The decay curve parameter (minimum y-value) for the number of times each site is used in selected pairs (default = 0.05)}
 
-\item{b.used}{(float) The decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs (default = 2 x the total number of sites in 'site.env.data')}
+\item{b.used.factor}{(float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs. This factor is multiplied by the ratio of n.pairs.target:n.sites in site.env.data to obtain the b.used parameter (default = 2)}
 
-\item{c.used}{(float) The decay curve parameter (slope of the curve) for the number of times each site is used in selected pairs (default = 3)}
+\item{c.used}{(float) The decay curve parameter (slope of the curve) for the number of times each site is used in selected pairs. (default = 3)}
 
 \item{a.epair}{(float) The decay curve parameter (minimum y-value) for the distance between sites in a pair (default = 0.05)}
 
-\item{b.epair}{(float) The decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair (default = half the maximum distance between sites)}
+\item{b.epair.factor}{(float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair. This factor is multiplied by the mean environmental distance to obtain the b.epair parameter (default = 1)}
 
-\item{c.epair}{(float) The decay curve parameter (slope of the curve) for the distance between sites in a pair (default = 3)}
+\item{c.epair}{(float) The decay curve parameter (slope of the curve) for the distance between sites in a pair.  (default = 3)}
 
 \item{output.folder}{(string) A folder to save the outputs to. If none specified, no file is written.}
 

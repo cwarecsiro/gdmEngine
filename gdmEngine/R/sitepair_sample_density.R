@@ -1,39 +1,43 @@
-#'@title Geographic based site-pair sampler
+#'@title Sample-density based site-pair sampler
 #'
-#'@description Sample site-pairs based on the geographic distance between sites. 
+#'@description Sample site-pairs based on the number of nearby sites with data. 
 #'
 #'@param site.env.data (dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data.
 #'@param n.pairs.target (integer) The number of site-pairs to select.
 #'@param n.pairs.sample (integer) The number of pairs to assess simultaneously as part of the sampling process
+#'@param domain.mask (raster layer) A raster layer specifying the analysis domain
 #'@param a.used (float) The decay curve parameter (minimum y-value) for the number of times each site is used in selected pairs (default = 0.05)
 #'@param b.used.factor (float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs. This factor is multiplied by the ratio of n.pairs.target:n.sites in site.env.data to obtain the b.used parameter (default = 2)
 #'@param c.used (float) The decay curve parameter (slope of the curve) for the number of times each site is used in selected pairs. (default = 3) 
-#'@param a.dpair (float) The decay curve parameter (minimum y-value) for the distance between sites in a pair (default = 0.05)
-#'@param b.dpair.factor (float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair. This factor is multiplied by the mean pairwise distance to obtain the b.dpairparameter. (default = 0.5)
-#'@param c.dpair (float) The decay curve parameter (slope of the curve) for the distance between sites in a pair (default = 3)
+#'@param sigma.spair (float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = 0.5)
+#'@param a.spair (float) The decay curve parameter (minimum y-value) for the number of sites within the neighbourhood radius (default = 0.05)
+#'@param b.spair.factor (float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the density of other sites around each site. This factor is multiplied by the mean density of sites to obtain the b.spair parameter. (default = 1.0
+#'@param c.spair (float) The decay curve parameter (slope of the curve) for the number of sites within the neighbourhood radius (default = 3)
 #'@param output.folder (string) A folder to save the outputs to. If none specified, no file is written.
-#'@param output.name (string) A name to use in saving the outputs. Default: 'site_pairs_data_geo'.
+#'@param output.name (string) A name to use in saving the outputs. Default: 'site_pairs_data_dens'.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
 #'@returns Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated.
 #'
-#'@examples output = sitepair_sample_geographic(My.site.env.data, n.pairs.target=10000)
+#'@examples output = sitepair_sample_density(My.site.env.data, n.pairs.target=10000, domain.mask=My.mask)
 #'
 #'@importFrom matrixStats rowMins rowMaxs
-#'@importFrom raster pointDistance
+#'@importFrom spatstat owin ppp density.ppp
 #'
 #'@export
-sitepair_sample_geographic=function(site.env.data,
+sitepair_sample_density=function(site.env.data,
                                     n.pairs.target,
                                     n.pairs.sample=NULL, 
+                                    domain.mask,
                                     a.used=0.05, 
                                     b.used.factor=2, 
                                     c.used=3, 
-                                    a.dpair=0.05, 
-                                    b.dpair.factor=0.5, 
-                                    c.dpair=3, 
+                                    sigma.spair=0.5,
+                                    a.spair=0.05, 
+                                    b.spair.factor=1.0, 
+                                    c.spair=1, 
                                     output.folder = NULL,       
-                                    output.name = "site_pairs_data_geo",  
+                                    output.name = "site_pairs_data_dens",  
                                     verbose=FALSE)
 {
   ## Establish the working parameters ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
@@ -41,20 +45,23 @@ sitepair_sample_geographic=function(site.env.data,
   if(is.null(n.pairs.sample))
     {
     n.pairs.sample<-floor(n.pairs.target/10)
-    }
+    }# end if is.null(n.pairs.sample)
   b.used<-(n.pairs.target/nrow(site.env.data))*b.used.factor
-  # To specify geo dist sampling function parameter 'b', take a sample
-  vals <- sample.int(nrow(site.env.data), (n.pairs.sample*2), replace=TRUE)
-  ij.pairs<-cbind(vals[c(1:n.pairs.sample)], vals[c((n.pairs.sample+1):(n.pairs.sample*2))])         
-  pairs.distance <- round(pointDistance(p1=site.env.data[ij.pairs[,1],c(3:4)], p2=site.env.data[ij.pairs[,2],c(3:4)], lonlat=T), 0)
-  b.dpair<-mean(pairs.distance)*b.dpair.factor
+  # Calculate the density of sites around each point, to use as a weighting
+  sites.window <- owin(xrange=c(domain.mask@extent@xmin,domain.mask@extent@xmax),yrange=c(domain.mask@extent@ymin,domain.mask@extent@ymax))
+  sites.points <- ppp(x=site.env.data$decimalLongitude, y=site.env.data$decimalLatitude, window=sites.window)
+  sites.density <- density.ppp(site.points, sigma=sigma.spair, at="points", leaveoneout=FALSE, positive=TRUE, verbose=TRUE)
+#plot(x=site.env.data$decimalLongitude, y=site.env.data$decimalLatitude, cex=10/sites.density)
+  b.spair<-mean(sites.density)*b.spair.factor
+  SiteDensity.Wt<-decay.curve(sites.density, a.spair, b.spair, c.spair)
   # Create a table to catch the row indices for the pairs selected for modelling
   train.pairs<-matrix(c(-3,-2,-1,0), nrow=2, ncol=2)
   colnames(train.pairs)<-c("temp.i", "temp.j")
   # Set up the site weighting table (site.ID, Dist2NSW.Wt, ntimes.used, PairUse.Wt)
   train.plot.weight.table <- data.frame("site.ID" = site.env.data$xy, 
                                         "ntimes.used" = 0, 
-                                        "PairUse.Wt" = decay.curve(0, a.used, b.used, c.used))
+                                        "PairUse.Wt" = decay.curve(0, a.used, b.used, c.used),
+                                        "SiteDensity.Wt" = SiteDensity.Wt)
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   
   ## Implement the sampling code, looping over sets of candidate pairs, sampling those,  and continuing until the
@@ -78,13 +85,9 @@ sitepair_sample_geographic=function(site.env.data,
     ij.pairs<-ij.temp[c((nrow(train.pairs)+1):nrow(ij.temp)),]
     # note how many unique sample pairs we've selected
     n.pairs.selected<-nrow(ij.pairs)
-    # calculate the geographic distance (in metres) between sites in the pairs
-    pairs.distance <- round(pointDistance(p1=site.env.data[ij.pairs[,1],c(3:4)], p2=site.env.data[ij.pairs[,2],c(3:4)], lonlat=T), 0)
-    # determine the weight for each pair, based on the distance between sites
-    PairDist.Wt <- decay.curve(pairs.distance, a.dpair, b.dpair, c.dpair)
     # And finally, calculate the total weight for each pair, combining the distance to NSW weights, 
     # the ntimes used weights, and the distance between sites in the pair weight
-    Site.Pair.Prob <- PairDist.Wt * train.plot.weight.table$PairUse.Wt[ij.pairs[,1]] * train.plot.weight.table$PairUse.Wt[ij.pairs[,2]]
+    Site.Pair.Prob <- train.plot.weight.table$PairUse.Wt[ij.pairs[,1]] * train.plot.weight.table$PairUse.Wt[ij.pairs[,2]] * train.plot.weight.table$SiteDensity.Wt[ij.pairs[,1]] * train.plot.weight.table$SiteDensity.Wt[ij.pairs[,2]]
     # Use these probabilities to randomly select site-pairs
     Pair.Sample <- rbinom(n=length(Site.Pair.Prob), size=1, prob=Site.Pair.Prob)
     selected.ij.pairs <- ij.pairs[Pair.Sample>0,]
@@ -106,10 +109,10 @@ sitepair_sample_geographic=function(site.env.data,
       n.excess <- nrow(train.pairs) - n.pairs.target 
       # Randomly select pairs to drop & remove them from the selected list
       if(n.excess > 0)
-        {
+      {
         drop.indices <- sample(seq_len(n.excess), size = n.excess, replace = FALSE)
         train.pairs<-train.pairs[-drop.indices,]
-        }# end if n.excess > 0
+      }# end if n.excess > 0
       # And break out of the loop
       break()
       }# end if nrow(train.pairs) >= (n.pairs.target + 2)
@@ -134,6 +137,6 @@ sitepair_sample_geographic=function(site.env.data,
   # return the selected pairs
   return(Pairs.table)
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
-
+  
 }# end sitepair_sample_geographic
 ##-------------------------------------------------------------------------------------------------------------##

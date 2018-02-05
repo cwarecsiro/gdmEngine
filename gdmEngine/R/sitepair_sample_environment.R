@@ -8,11 +8,11 @@
 #'@param dist.method (character) Not used yet - only Euclidean distance applied
 #'@param n.pairs.sample (integer) The number of pairs to assess simultaneously as part of the sampling process
 #'@param a.used (float) The decay curve parameter (minimum y-value) for the number of times each site is used in selected pairs (default = 0.05)
-#'@param b.used (float) The decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs (default = 2 x the total number of sites in 'site.env.data')
-#'@param c.used (float) The decay curve parameter (slope of the curve) for the number of times each site is used in selected pairs (default = 3) 
+#'@param b.used.factor (float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs. This factor is multiplied by the ratio of n.pairs.target:n.sites in site.env.data to obtain the b.used parameter (default = 2)
+#'@param c.used (float) The decay curve parameter (slope of the curve) for the number of times each site is used in selected pairs. (default = 3) 
 #'@param a.epair (float) The decay curve parameter (minimum y-value) for the distance between sites in a pair (default = 0.05)
-#'@param b.epair (float) The decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair (default = half the maximum distance between sites)
-#'@param c.epair (float) The decay curve parameter (slope of the curve) for the distance between sites in a pair (default = 3)
+#'@param b.epair.factor (float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair. This factor is multiplied by the mean environmental distance to obtain the b.epair parameter (default = 1)
+#'@param c.epair (float) The decay curve parameter (slope of the curve) for the distance between sites in a pair.  (default = 3)
 #'@param output.folder (string) A folder to save the outputs to. If none specified, no file is written.
 #'@param output.name (string) A name to use in saving the outputs. Default: 'site_pairs_data_geo'.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
@@ -30,11 +30,11 @@ sitepair_sample_environment=function(site.env.data,
                                      dist.method="euclidean",
                                      n.pairs.sample=NULL, 
                                      a.used=0.05, 
-                                     b.used=NULL, 
+                                     b.used.factor=2, 
                                      c.used=3, 
                                      a.epair=0.05, 
-                                     b.epair=NULL, 
-                                     c.epair=1, 
+                                     b.epair.factor=1, 
+                                     c.epair=3, 
                                      output.folder = NULL,       
                                      output.name = "site_pairs_data_env",  
                                      verbose=FALSE)
@@ -42,17 +42,11 @@ sitepair_sample_environment=function(site.env.data,
   ## Establish the working parameters ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   n.pairs.total <- ((nrow(site.env.data)^2)-nrow(site.env.data))/2
   if(is.null(n.pairs.sample))
-  {
+    {
     n.pairs.sample<-floor(n.pairs.target/10)
-  }
-  if(is.null(b.used)) # If not specified, use twice the number of sites as the inflection point of the sampling function
-  {
-    b.used<-2*floor(n.pairs.target/nrow(site.env.data))
-  }  
-  if(is.null(b.epair)) # If not specified, use half the maximum env distance 
-  {
-    b.epair<-1.0
-  }  
+    }
+  b.used<-(n.pairs.target/nrow(site.env.data))*b.used.factor
+  c.used<-(n.pairs.target/nrow(site.env.data))*c.used.factor
   # Create a table to catch the row indices for the pairs selected for modelling
   train.pairs<-matrix(c(-3,-2,-1,0), nrow=2, ncol=2)
   colnames(train.pairs)<-c("temp.i", "temp.j")
@@ -73,6 +67,12 @@ sitepair_sample_environment=function(site.env.data,
   # Generate a new matrix with standardised values (mean = 0, variance=1) for the selected environment variables
   std.site.env.vars<-as.matrix(site.env.data[,env.cols])
   std.site.env.vars<-scale(std.site.env.vars)
+  # Make a single sample of sitepairs in order to establish default subsampling parameters
+  vals <- sample.int(nrow(site.env.data), (n.pairs.sample*2), replace=TRUE)
+  ij.pairs<-cbind(vals[c(1:n.pairs.sample)], vals[c((n.pairs.sample+1):(n.pairs.sample*2))])   
+  pairs.distance <- PairsDist(std.site.env.vars, ij.pairs)
+  b.epair<-mean(pairs.distance)*b.epair.factor
+
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   
   ## Implement the sampling code, looping over sets of candidate pairs, sampling those,  and continuing until the

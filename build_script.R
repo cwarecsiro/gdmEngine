@@ -13,6 +13,7 @@
 
 library(devtools)
 library(roxygen2)
+library(Rcpp)
 
 
 update_build = function(){

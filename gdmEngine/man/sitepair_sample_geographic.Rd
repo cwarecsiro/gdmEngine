@@ -5,9 +5,10 @@
 \title{Geographic based site-pair sampler}
 \usage{
 sitepair_sample_geographic(site.env.data, n.pairs.target,
-  n.pairs.sample = NULL, a.used = 0.05, b.used = NULL, c.used = 3,
-  a.dpair = 0.05, b.dpair = NULL, c.dpair = 3, output.folder = NULL,
-  output.name = "site_pairs_data_geo", verbose = FALSE)
+  n.pairs.sample = NULL, a.used = 0.05, b.used.factor = 2, c.used = 3,
+  a.dpair = 0.05, b.dpair.factor = 0.5, c.dpair = 3,
+  output.folder = NULL, output.name = "site_pairs_data_geo",
+  verbose = FALSE)
 }
 \arguments{
 \item{site.env.data}{(dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data.}
@@ -18,13 +19,13 @@ sitepair_sample_geographic(site.env.data, n.pairs.target,
 
 \item{a.used}{(float) The decay curve parameter (minimum y-value) for the number of times each site is used in selected pairs (default = 0.05)}
 
-\item{b.used}{(float) The decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs (default = 2 x the total number of sites in 'site.env.data')}
+\item{b.used.factor}{(float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs. This factor is multiplied by the ratio of n.pairs.target:n.sites in site.env.data to obtain the b.used parameter (default = 2)}
 
-\item{c.used}{(float) The decay curve parameter (slope of the curve) for the number of times each site is used in selected pairs (default = 3)}
+\item{c.used}{(float) The decay curve parameter (slope of the curve) for the number of times each site is used in selected pairs. (default = 3)}
 
 \item{a.dpair}{(float) The decay curve parameter (minimum y-value) for the distance between sites in a pair (default = 0.05)}
 
-\item{b.dpair}{(float) The decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair (default = half the maximum distance between sites)}
+\item{b.dpair.factor}{(float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair. This factor is multiplied by the mean pairwise distance to obtain the b.dpairparameter. (default = 0.5)}
 
 \item{c.dpair}{(float) The decay curve parameter (slope of the curve) for the distance between sites in a pair (default = 3)}
 

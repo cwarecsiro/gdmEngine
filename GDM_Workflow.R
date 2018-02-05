@@ -125,19 +125,29 @@ Pairs.Table.Rnd <- sitepair_sample_random(site.env.data = Site.Env.Data,
 Pairs.Table.Geo <- sitepair_sample_geographic(site.env.data = Site.Env.Data,
                            n.pairs.target = n.pairs.model,
                            a.used=0.05, 
-                           b.used=10, 
+                           b.used.factor=2, 
                            c.used=3, 
                            a.dpair=0.05, 
-                           b.dpair=1000000, 
+                           b.dpair.factor=2, 
                            c.dpair=3)
 
 # Environmental distance based sample
 Pairs.Table.Env <- sitepair_sample_environment(site.env.data = Site.Env.Data,
                                                n.pairs.target = n.pairs.model,
                                                env.colnames = c('PTA','TXX'),
-                                               a.used=0.05, 
-                                               b.used=10, 
+                                               b.used.factor=2, 
                                                c.used=3, 
-                                               a.epair=0.05, 
-                                               b.epair=1, 
-                                               c.epair=1)
+                                               b.epair.factor=1, 
+                                               c.epair=3)
+
+# Neighbourhood site-density based sample (weighted towards less sampled areas)
+Pairs.Table.Dens <- sitepair_sample_density(site.env.data = Site.Env.Data,
+                                            n.pairs.target = n.pairs.model,
+                                            domain.mask = Aus.domain.mask,
+                                            a.used=0.05, 
+                                            b.used.factor=2, 
+                                            c.used=3, 
+                                            sigma.spair=0.5,
+                                            a.spair=0.05, 
+                                            b.spair.factor=1.0, 
+                                            c.spair=1)
