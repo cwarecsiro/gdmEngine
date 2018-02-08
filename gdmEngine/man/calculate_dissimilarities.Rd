@@ -4,7 +4,8 @@
 \alias{calculate_dissimilarities}
 \title{Calculate dissimilarities}
 \usage{
-calculate_dissimilarities(pairs.table, composition.data, output.folder = NULL,
+calculate_dissimilarities(pairs.table = Pairs.Table.Dens,
+  composition.data = Selected.records, output.folder = NULL,
   output.name = "pairs_table_dissim", verbose = TRUE)
 }
 \arguments{

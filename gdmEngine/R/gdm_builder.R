@@ -46,6 +46,7 @@ gdm_builder <- function(site.env.data,
   ## NOTE - THIS FUNCTION ESSENTIALLY ASSUMES YOU ARE DOING SOME SITE-PAIR SUBSAMPLING. REQUIRES RE-CODING TO
   ## DEAL WITH CASES WHERE THERE IS NO SITE-PAIR SUBSAMPLING
   
+  ptm <- proc.time()
   ## SETUP ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
   # Determine how many sites we are using for the training and testing sets
   n.sites.train <- floor(train.proportion * nrow(site.env.data))
@@ -73,7 +74,9 @@ gdm_builder <- function(site.env.data,
     }else{
     test.col<-2 # RMSE
     } # end if !selection.metric...
+  proc.time() - ptm
   
+  ptm <- proc.time()
   ## CREATE CROSS_VALIDATION SETS ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##  
   # Store the site-pair data in a list
   train.lst <- list()
@@ -122,7 +125,9 @@ gdm_builder <- function(site.env.data,
     test.lst.rnd[[test.name.rnd]] <- Pairs.Table.Test.Rnd
     } # end for i.test
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
+  proc.time() - ptm
   
+  ptm <- proc.time()
   ## Fit a GDM to each variable independently ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   # Create the output catcher
   ind.var.test.stats.sampairs <- matrix(0, nrow = (n.vars+1), ncol=4)
@@ -169,7 +174,9 @@ gdm_builder <- function(site.env.data,
   # Now calculate the means
   ind.var.test.stats.sampairs <- ind.var.test.stats.sampairs / n.crossvalid.tests    
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
+  proc.time() - ptm
   
+  ptm <- proc.time()
   ## Select candidate variables for modelling~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   # First assess correlation between variables
   var.cor<-cor(site.env.data[,c((n.cols.start+1):ncol(site.env.data))], use="pairwise.complete.obs",method="pearson")
@@ -215,9 +222,10 @@ gdm_builder <- function(site.env.data,
       geo<-FALSE
       } # end if(ind.var.test.stats.sampairs...
     }# end if(geo) 
-  
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
-
+  proc.time() - ptm
+  
+  ptm <- proc.time()
   ## Now run a Backward elimination variable selection routine based ~~~~~~~~~~~~~~~##
   ## on performance under cross-validation. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   in.vars <- in.var.lst
@@ -358,7 +366,9 @@ gdm_builder <- function(site.env.data,
       }# end if n.preds>n.predictors.min
     }# end for i.drp
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##  
-
+  proc.time() - ptm
+  
+  ptm <- proc.time()  
   ## Now we have a final set of predictors, fit a full model sampling site-pairs from
   ## the full set of sites ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   # Set up catching matrices for the model parameters
@@ -412,6 +422,7 @@ gdm_builder <- function(site.env.data,
   Final.mod$coefficients<-colMeans(coefficients.set)
   Final.mod$knots<-colMeans(knots.set)
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~## 
+  proc.time() - ptm
   
   ## Now format and return outputs of the model builder ~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   # Create an output list

@@ -1,6 +1,6 @@
 #'@title Sample-density based site-pair sampler
 #'
-#'@description Sample site-pairs based on the number of nearby sites with data. 
+#'@description Sample site-pairs based on the number of nearby sites with composition data. 
 #'
 #'@param site.env.data (dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data.
 #'@param n.pairs.target (integer) The number of site-pairs to select.

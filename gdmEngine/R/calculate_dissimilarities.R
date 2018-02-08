@@ -12,62 +12,43 @@
 #'
 #'@examples output = calculate_dissimilarities(My.pairs.table, My.composition.data, output.folder = 'C:/Users/processed_data', output.name = 'My.sitepair.data')
 #'
-#'@importFrom reshape2 dcast
-#'@importFrom betapart beta.pair
-#'
 #'@export
-calculate_dissimilarities <- function(pairs.table, 
-                                      composition.data,
-                                      output.folder = NULL,       
-                                      output.name = "pairs_table_dissim",  
-                                      verbose=TRUE) 
-  {
-    # Calculate obs number of species shared betwen all the pairs
-    # Process a specified number of pairs at a time
-    n.pairs.proc <- 40
-    n.procs <- ceiling(nrow(pairs.table) / n.pairs.proc)
-    # Add 'xy' site IDs to the composition data and the pairs table
-    composition.data$Site.ID <- paste(composition.data$decimalLongitude, composition.data$decimalLatitude, sep = '_')
-    pairs.table$s1.site.ID <- paste(pairs.table$s1.xCoord, pairs.table$s1.yCoord, sep = '_')
-    pairs.table$s2.site.ID <- paste(pairs.table$s2.xCoord, pairs.table$s2.yCoord, sep = '_')
-    # Create a list to catch the dissimilarities
-    distance <- NULL    
-    for(i.proc in 1:n.procs)
-      {
-      # set the start and end of the processing zone
-      i.start.row <- ((i.proc - 1) * n.pairs.proc) + 1
-      i.end.row <- (i.proc * n.pairs.proc)
-      if(i.end.row > nrow(pairs.table))
-        {i.end.row <-  nrow(pairs.table)}
-      # Trim the composition table to only include sites in the selected pairs
-      sites.proc <- c(as.character(pairs.table$s1.site.ID[c(i.start.row:i.end.row)]), as.character(pairs.table$s2.site.ID[c(i.start.row:i.end.row)]))
-      sites.proc <- unique(sites.proc)
-      composition.table.proc <- composition.data[as.character(composition.data$Site.ID) %in% sites.proc, ]
-      composition.table.proc <- unique(composition.table.proc)
-      # Convert to sites x spp table
-      present <- rep(1, times=nrow(composition.table.proc))
-      composition.table.proc <- cbind(composition.table.proc, present)
-      composition.mat <- dcast(composition.table.proc, Site.ID ~ scientificName, sum, value.var='present')
-      row.names(composition.mat) <- composition.mat[,1]
-      composition.mat <- composition.mat[,-1]
-      # Calculate compositional dissimilaities using the betapart package
-      composition.dis <- beta.pair(composition.mat, index.family="sorensen")
-      dissimilarity.data <- composition.dis$beta.sor
-      # Convert dissimilarities to a matrix
-      dissimilarity.data <- as.matrix(dissimilarity.data)
-      # Get the dissimilarities for our site-pairs of interest from the dissimilarity matrix
-      pairs.table.names <- as.matrix(pairs.table[c(i.start.row:i.end.row),c(7,8)])
-      mat.row <- match(pairs.table.names[,1],rownames(dissimilarity.data))
-      mat.col <- match(pairs.table.names[,2],colnames(dissimilarity.data))
-      dissim.lst <- dissimilarity.data[cbind(mat.row,mat.col)]
-      # Now join these dissimilarities to our running list
-      distance <- c(distance, dissim.lst)
-      } # end for i.proc
-
+calculate_dissimilarities <- function(pairs.table=Pairs.Table.Dens, 
+                                            composition.data=Selected.records,
+                                            output.folder = NULL,       
+                                            output.name = "pairs_table_dissim",  
+                                            verbose=TRUE) 
+{
+  # First indexify the sites and species in composition.data
+  composition.data$Site.ID <- as.factor(paste(composition.data$decimalLongitude, composition.data$decimalLatitude, sep = '_'))
+  composition.data.site.indices<-levels(composition.data$Site.ID)
+  composition.data.spp.indices<-levels(composition.data$scientificName)
+  composition.data$site.index <- match(composition.data$Site.ID, composition.data.site.indices)  
+  composition.data$spp.index <- match(composition.data$scientificName, composition.data.spp.indices)
+  site.spp.index <- as.matrix(composition.data[,c(5,6)]) 
+  
+  
+  # Then get the index for each site in the pairs.table
+  pairs.table$s1.site.ID <- paste(pairs.table$s1.xCoord, pairs.table$s1.yCoord, sep = '_')
+  pairs.table$s2.site.ID <- paste(pairs.table$s2.xCoord, pairs.table$s2.yCoord, sep = '_')
+  pairs.table$S1.index <- match(pairs.table$s1.site.ID, composition.data.site.indices)
+  pairs.table$S2.index <- match(pairs.table$s2.site.ID, composition.data.site.indices)
+  pairs.site.index <- as.matrix(pairs.table[,c(9,10)])
+  
+  # Determine the richness of each site 
+  site.richness <- tabulate(composition.data$site.index)
+  max.richness <- as.integer(max(site.richness))
+  
+  # Now run some rcpp code to format the data & calculate dissimilarities for the selected pairs
+  distance <- PairsDissim(site.spp.index, 
+                          pairs.site.index,
+                          site.richness,
+                          max.richness)
+  
   # create a new dataframe to return, with the scaled dissimilarities
-  pairs.table.new <- pairs.table[,-c(7,8)] # If we want to remove the xy site names
+  pairs.table.new <- pairs.table[,-c(7:10)] # If we want to remove the xy site names
   pairs.table.new$distance <- distance
-
+  
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
   # Now write out the data to file (if specified) and return the aggregated records
   # write the data to file, if an output folder is specified
@@ -101,20 +82,77 @@ calculate_dissimilarities <- function(pairs.table,
   
   # write some feedback to the terminal
   if(verbose)
-    {
+  {
     msg1 = 'Returned object is a dataframe.'
     msg2 = paste('Dissimilarities have been calculated for ', nrow(pairs.table.new), ' site-pairs.')
     msg3 = paste(((sum(pairs.table.new$distance < 1)/nrow(pairs.table.new))*100) , '% of site-pairs have non-complete dissimilarity.')
     if(!is.null(output.folder)){
       msg4 = paste('These data have been also been written to ', out.path)
       cat(paste(msg1, msg2, msg3, msg4, sep = '\n'))      
-      }else{
+    }else{
       cat(paste(msg1, msg2, msg3, sep = '\n'))
-      }
-    }# end if verbose
+    }
+  }# end if verbose
   
   # Return the freshly filled site-pair table  
   return(pairs.table.new)
-    
-  } # end Scale.Dissimilarity.NSW.BBA() function
   
+} # end calculate_dissimilarities_sparse
+  
+
+
+##-------------------------------------------------------------------------------------------------------------##
+#'@title Compositional dissimilarity calculation for specified pairs of sites
+#'
+#'@description Calculate the dissimilarity between specified pairs of sites. 
+#'
+#'@param site_spp (matrix) A matrix of the indices for species (col2) occurring in each site (col1), with each row an occurrence
+#'@param pair_rows (matrix) A matrix of the site index for site 1 (col 1) and site 2 (col 2) in each pair of sites (rows)
+#'@param site_rich (vector) A vector giving the total number of species in each site (element)
+#'@param max_richness (integer)
+#'
+#'@returns Vector, the Sorensen dissimilarity between the specified pairs.
+#'
+#'@examples output = PairsDissim(site.spp, ij.pairs, site.rich, max.rich)
+#'@importFrom Rcpp cppFunction
+#'
+#'@export
+cppFunction('NumericVector PairsDissim(IntegerMatrix site_spp, IntegerMatrix pair_rows, IntegerVector site_rich, int max_richness) {
+            
+//Establish variables
+  int n_sites = site_rich.size();
+  int n_pairs = pair_rows.nrow();
+  int n_records = site_spp.nrow();  
+  IntegerMatrix comp(n_sites,max_richness);        
+  IntegerVector upto_index(n_sites);
+  NumericVector out(n_pairs);
+
+
+// First format the composition data
+  for(int i_site=0; i_site < n_sites; i_site++) {
+    upto_index[i_site] = 0;
+    }
+  for(int i_rec = 0; i_rec < n_records; i_rec++) {
+    int site_index = site_spp(i_rec,0) - 1;
+    comp(site_index, upto_index[site_index]) = site_spp(i_rec,1);
+    upto_index[site_index] += 1;
+    }
+
+// Now for each pair of sites, calculate compositional dissimilarity & return it to the output vector
+  for(int i = 0; i < n_pairs; i++) {
+    int site_one_index = pair_rows(i,0) - 1;
+    int site_two_index = pair_rows(i,1) - 1;
+    float n_spp_common = 0;
+    for(int i_spp_one=0; i_spp_one<site_rich[site_one_index]; i_spp_one++){
+      for(int i_spp_two=0; i_spp_two<site_rich[site_two_index]; i_spp_two++){
+        if(comp(site_one_index,i_spp_one) == comp(site_two_index,i_spp_two)){
+          n_spp_common += 1;
+          }
+        }      
+      }  
+    float sum_rich = site_rich[site_one_index] + site_rich[site_two_index];
+    out[i] = (1 - ((2 * n_spp_common) / (sum_rich)));
+    }
+  return out;
+  }')
+##-------------------------------------------------------------------------------------------------------------##

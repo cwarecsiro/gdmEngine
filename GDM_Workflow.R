@@ -103,20 +103,21 @@ Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/a
 Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-01-05.csv")
 
 ## DERIVE A GDM --------------------------------------------------------------------------##
+ptm <- proc.time()
 Final.GDM <- gdm_builder(site.env.data = Site.Env.Data, 
                         composition.data = Selected.records ,
                         geo=TRUE,
                         train.proportion = 0.8,
                         n.pairs.train = n.pairs.model,
                         n.pairs.test = n.pairs.test,
-                        n.crossvalid.tests = 4,
+                        n.crossvalid.tests = 10,
                         correlation.threshold = 0.7,
                         selection.metric = 'RMSE',
                         Indiv.Dev.Explained.Min = 1.0,
                         n.predictors.min = 8,
                         output.folder = data.processing.folder,       
                         output.name = "gdm_builder_FinMod") 
-
+proc.time() - ptm
 
 ## ADITIONAL STUFF ##---------------------------------------------------------------------##
 #Random sample
@@ -152,3 +153,5 @@ Pairs.Table.Dens <- sitepair_sample_density(site.env.data = Site.Env.Data,
                                             a.spair=0.05, 
                                             b.spair.factor=1.0, 
                                             c.spair=1)
+
+

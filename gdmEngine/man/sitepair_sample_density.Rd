@@ -40,7 +40,7 @@ sitepair_sample_density(site.env.data, n.pairs.target, n.pairs.sample = NULL,
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
 }
 \description{
-Sample site-pairs based on the number of nearby sites with data.
+Sample site-pairs based on the number of nearby sites with composition data.
 }
 \examples{
 output = sitepair_sample_density(My.site.env.data, n.pairs.target=10000, domain.mask=My.mask)
