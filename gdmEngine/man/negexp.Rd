@@ -6,6 +6,9 @@
 \usage{
 negexp()
 }
+\value{
+GLM link.
+}
 \description{
 A negative exponential link function for GLM.
 }

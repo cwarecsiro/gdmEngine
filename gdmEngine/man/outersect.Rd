@@ -17,6 +17,9 @@ vector
 \description{
 Returns objects not common among two vectors. The opposite to intersect.
 }
+\note{
+https://www.r-bloggers.com/outersect-the-opposite-of-rs-intersect-function/
+}
 \examples{
 outersect(LETTERS[1:10], LETTERS[5:20])
 }

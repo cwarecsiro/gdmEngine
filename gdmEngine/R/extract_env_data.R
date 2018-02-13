@@ -8,7 +8,7 @@
 #'@param output.name (string), A name to use in saving the outputs. Default: 'filtered_data'.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
-#'@returns Dataframe.
+#'@return Dataframe.
 #'
 #'@examples output = extract_env_data(My.composition.data, My.env.stk, output.folder = 'C:/Users/processed_data', output.name = My.filtered.ALA.data, domain.mask = Aust.ras)
 #'

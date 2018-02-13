@@ -9,6 +9,9 @@ check_filepath(filepath)
 \arguments{
 \item{filepath}{(string)}
 }
+\value{
+string (filepath with trailing forwardslash)
+}
 \description{
 Adds trailing forwardslash to filepath if not present so that the filepath can be added to for writing.
 }

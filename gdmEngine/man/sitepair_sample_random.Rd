@@ -18,6 +18,9 @@ sitepair_sample_random(site.env.data, n.pairs.target, output.folder = NULL,
 
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
 }
+\value{
+Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated.
+}
 \description{
 Sample site-pairs randomly.
 }

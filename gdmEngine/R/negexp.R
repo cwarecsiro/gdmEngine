@@ -2,7 +2,7 @@
 #'
 #'@description A negative exponential link function for GLM.
 #'
-#'@returns GLM link.
+#'@return GLM link.
 #'
 #'@examples vv <- negexp()
 #'

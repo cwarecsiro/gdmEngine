@@ -27,8 +27,10 @@ update_build = function(){
                   'Description: Functions used to develop GDMs',
                   paste('Author:', unname(Sys.info()['user'])),
                   'Maintainer: Chris Ware <chris.ware@csiro.au>',
-                  'SystemRequirements: git with shell distribution'
+                  'SystemRequirements: git with shell distribution',
                   #paste('Authors@R:', unname(Sys.info()['user']))
+                  'Imports: Rcpp (>= 0.11.4)',
+                  'LinkingTo: Rcpp'
   )
   sink(paste(pkg_root, 'DESCRIPTION', sep = '/'))
   cat(DESCRIPTION, sep = '\n')
@@ -38,7 +40,7 @@ update_build = function(){
   setwd(pkg_root)
   document()
   build()
-  install()
+  install(quick=TRUE)
 }
 
 get_latest = function(){

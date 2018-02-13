@@ -4,8 +4,7 @@
 \alias{calculate_dissimilarities}
 \title{Calculate dissimilarities}
 \usage{
-calculate_dissimilarities(pairs.table = Pairs.Table.Dens,
-  composition.data = Selected.records, output.folder = NULL,
+calculate_dissimilarities(pairs.table, composition.data, output.folder = NULL,
   output.name = "pairs_table_dissim", verbose = TRUE)
 }
 \arguments{
@@ -18,6 +17,9 @@ calculate_dissimilarities(pairs.table = Pairs.Table.Dens,
 \item{output.name}{(string) A name to use in saving the outputs. Default: 'pairs_table_dissim'.}
 
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
+}
+\value{
+Dataframe.
 }
 \description{
 Calculates the compositional dissimilarity between all specified site-pairs. Fills the dissimilarities in the input dataframe 'pairs.table'. Note this uses an approach that trades processing time for memory efficiency, so it can handle very large numbers of site pairs on any machine.

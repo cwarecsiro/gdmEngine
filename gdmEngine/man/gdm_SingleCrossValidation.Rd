@@ -18,6 +18,9 @@ gdm_SingleCrossValidation(GDM_Table_Training_In, GDM_Table_Testing_In,
 
 \item{knots}{(vector) An optional vector of knots in units of the predictor variables to be used in the fitting process.}
 }
+\value{
+List, providing cross-validation statistics.
+}
 \description{
 Undertake a cross-validation assessment of a GDM, using a single training and testing dataset.
 }

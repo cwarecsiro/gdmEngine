@@ -33,7 +33,7 @@ counter = function(msg = 'Doing loop ', vec = NULL, iterable = NULL){
 #'@return vector
 #'@examples outersect(LETTERS[1:10], LETTERS[5:20])
 #'@export
-#'@notes https://www.r-bloggers.com/outersect-the-opposite-of-rs-intersect-function/
+#'@note https://www.r-bloggers.com/outersect-the-opposite-of-rs-intersect-function/
 outersect = function(x, y) {
   sort(c(setdiff(x, y), setdiff(y, x)))
 }
@@ -44,7 +44,7 @@ outersect = function(x, y) {
 #'@description Unzips file and handles exceptions. 
 #'@param fn (string) Filepath to .zip archive.
 #'@param memory_only (boolean) If TRUE (default) will delete unzipped data once read into memory
-#'@returns data.frame
+#'@return data.frame
 #'@examples output = unzipper('C:/Users/species_x.zip')
 #'@export
 unzipper = function(fn, memory_only = TRUE){
@@ -62,7 +62,7 @@ unzipper = function(fn, memory_only = TRUE){
 #
 #'@description Adds trailing forwardslash to filepath if not present so that the filepath can be added to for writing.
 #'@param filepath (string) 
-#'@returns string (filepath with trailing forwardslash)
+#'@return string (filepath with trailing forwardslash)
 #'@examples fn = checkfilepath('C:/Users')
 #'@export
 check_filepath = function(filepath){
@@ -84,7 +84,7 @@ check_filepath = function(filepath){
 #'@param a (float) Parameter specifying the minimum y-value
 #'@param b (float) Parameter specifying the x-value at curve inflection point
 #'@param c (float) Parameter specifying the slope of the curve (i.e. steepness of the decay) 
-#'@returns float (the y-value)
+#'@return float (the y-value)
 #'@examples my.y = decay.curve(x=12, a=0.01, b=10, c=3)
 #'@export
 decay.curve=function(x, a, b, c)

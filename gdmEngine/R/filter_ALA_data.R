@@ -10,7 +10,7 @@
 #'@param spatial.uncertainty.m (float) The distance (m) for spatial uncertainty below which data will be retained. Default: 2000.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
-#'@returns Dataframe.
+#'@return Dataframe.
 #'
 #'@examples output = filter_ALA_data(My.ALA.data, output.folder = 'C:/Users/processed_data', output.name = My.filtered.ALA.data, domain.mask = Aust.ras)
 #'

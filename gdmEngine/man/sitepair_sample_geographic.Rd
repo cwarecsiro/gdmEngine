@@ -35,6 +35,9 @@ sitepair_sample_geographic(site.env.data, n.pairs.target,
 
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
 }
+\value{
+Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated.
+}
 \description{
 Sample site-pairs based on the geographic distance between sites.
 }

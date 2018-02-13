@@ -39,6 +39,9 @@ sitepair_sample_density(site.env.data, n.pairs.target, n.pairs.sample = NULL,
 
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
 }
+\value{
+Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated.
+}
 \description{
 Sample site-pairs based on the number of nearby sites with composition data.
 }

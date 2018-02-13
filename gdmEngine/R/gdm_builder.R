@@ -17,7 +17,7 @@
 #'@param output.name (string) A name to use in saving the outputs. (default = 'gdm_builder_output')
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
-#'@returns List, including GDM model object and cross validation stats.
+#'@return List, including GDM model object and cross validation stats.
 #'
 #'@examples output = gdm_builder(My.site.env.data, My.composition.data, output.folder = 'C:/Users/processed_data', output.name = 'My.sitepair.data')
 #'
@@ -46,7 +46,6 @@ gdm_builder <- function(site.env.data,
   ## NOTE - THIS FUNCTION ESSENTIALLY ASSUMES YOU ARE DOING SOME SITE-PAIR SUBSAMPLING. REQUIRES RE-CODING TO
   ## DEAL WITH CASES WHERE THERE IS NO SITE-PAIR SUBSAMPLING
   
-  ptm <- proc.time()
   ## SETUP ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
   # Determine how many sites we are using for the training and testing sets
   n.sites.train <- floor(train.proportion * nrow(site.env.data))
@@ -74,8 +73,7 @@ gdm_builder <- function(site.env.data,
     }else{
     test.col<-2 # RMSE
     } # end if !selection.metric...
-  proc.time() - ptm
-  
+
   ptm <- proc.time()
   ## CREATE CROSS_VALIDATION SETS ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##  
   # Store the site-pair data in a list
@@ -226,15 +224,10 @@ gdm_builder <- function(site.env.data,
   proc.time() - ptm
   
   ptm <- proc.time()
-  ## Now run a Backward elimination variable selection routine based ~~~~~~~~~~~~~~~##
-  ## on performance under cross-validation. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
+##NEW  ## Now run a Backward elimination variable selection routine based ~~~~~~~~~~~~~~~##
+  ## on performance under cross-validation. ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   in.vars <- in.var.lst
-  final.mod.MAE.set <- rep(0, times=n.crossvalid.tests)
-  final.mod.RMSE.set <- rep(0, times=n.crossvalid.tests)
-  final.mod.equRMSE.set <- rep(0, times=n.crossvalid.tests)
-  final.mod.MAE.rnd.set <- rep(0, times=n.crossvalid.tests)
-  final.mod.RMSE.rnd.set <- rep(0, times=n.crossvalid.tests)
-  final.mod.equRMSE.rnd.set <-rep(0, times=n.crossvalid.tests)
+  in.vars.in <- rep(1,times=length(in.vars))
   # get the starting number of predictors
   if(geo){
     n.preds <- length(in.vars) + 1
@@ -245,126 +238,191 @@ gdm_builder <- function(site.env.data,
   if(n.preds > n.predictors.min)
     {  
     drop.sequence <-c(n.preds:n.predictors.min)
-  }else{
+    }else{
     drop.sequence <- n.preds 
     }
+  # Set up GDM input tables for each of the cross-validation sets#####################
+  var.names <- c(colnames(site.env.data[,c(n.cols.start + in.vars)])) 
+  for(i.test in 1:n.crossvalid.tests)  
+    {
+    # Grab the test and train site-pair data 
+    Pairs.Table.Train <- train.lst[[i.test]]
+    Pairs.Table.Test <- test.lst[[i.test]]
+    Pairs.Table.Test.Rnd <- test.lst.rnd[[i.test]]
+    # Format these dataframes into GDM input tables
+    Training.table.In <- Pairs.Table.Train[,c(1:6)]
+    Testing.table.In <- Pairs.Table.Test[,c(1:6)]
+    Testing.Rnd.table.In <- Pairs.Table.Test.Rnd[,c(1:6)]
+    # Prepare predictor variables table
+    Training.GDM.input.vars <- matrix(0, nrow=nrow(Training.table.In), ncol=(length(in.vars)*2))
+    Testing.GDM.input.vars <- matrix(0, nrow=nrow(Testing.table.In), ncol=(length(in.vars)*2))
+    Testing.Rnd.GDM.input.vars <- matrix(0, nrow=nrow(Testing.Rnd.table.In), ncol=(length(in.vars)*2)) 
+    colnames(Training.GDM.input.vars) <- c(paste0("s1.",var.names),paste0("s2.",var.names))
+    colnames(Testing.GDM.input.vars) <- c(paste0("s1.",var.names),paste0("s2.",var.names))
+    colnames(Testing.Rnd.GDM.input.vars) <- c(paste0("s1.",var.names),paste0("s2.",var.names))
+    # find the row indices in env.data for the sites in the pairs table
+    s1.row.indices.train <- match(as.character(Pairs.Table.Train$s1.site.ID), as.character(site.env.data$xy))
+    s2.row.indices.train <- match(as.character(Pairs.Table.Train$s2.site.ID), as.character(site.env.data$xy))    
+    s1.row.indices.test <- match(as.character(Pairs.Table.Test$s1.site.ID), as.character(site.env.data$xy))
+    s2.row.indices.test <- match(as.character(Pairs.Table.Test$s2.site.ID), as.character(site.env.data$xy))    
+    s1.row.indices.test.rnd <- match(as.character(Pairs.Table.Test.Rnd$s1.site.ID), as.character(site.env.data$xy))
+    s2.row.indices.test.rnd <- match(as.character(Pairs.Table.Test.Rnd$s2.site.ID), as.character(site.env.data$xy))
+    # catch the env data for both sites in the pair
+    for(i.var in 1:length(in.vars))
+      {
+      # TRAINING
+      Training.GDM.input.vars[,i.var] <- site.env.data[s1.row.indices.train, (n.cols.start+in.vars[i.var])]
+      Training.GDM.input.vars[,(length(in.vars)+i.var)] <- site.env.data[s2.row.indices.train, (n.cols.start+in.vars[i.var])]
+      # TESTING
+      Testing.GDM.input.vars[,i.var] <- site.env.data[s1.row.indices.test, (n.cols.start+in.vars[i.var])]
+      Testing.GDM.input.vars[,(length(in.vars)+i.var)] <- site.env.data[s2.row.indices.test, (n.cols.start+in.vars[i.var])]
+      # RANDOM TESTING
+      Testing.Rnd.GDM.input.vars[,i.var] <- site.env.data[s1.row.indices.test.rnd, (n.cols.start+in.vars[i.var])]
+      Testing.Rnd.GDM.input.vars[,(length(in.vars)+i.var)] <- site.env.data[s2.row.indices.test.rnd, (n.cols.start+in.vars[i.var])]
+      } # end for i.var
+    # Join the variables to the site-pair table
+    Training.table.In <- cbind(Training.table.In, Training.GDM.input.vars)
+    Testing.table.In <- cbind(Testing.table.In, Testing.GDM.input.vars)
+    Testing.Rnd.table.In <- cbind(Testing.Rnd.table.In, Testing.Rnd.GDM.input.vars)
+    ## PUT THE TEST AND TRAINING TABLES IN THE LISTS ## This replaces the first 6 cols with the full GDM tables
+    train.name <- paste('PairsTableTrain_',i.test, sep='')
+    test.name <- paste('PairsTableTest_',i.test, sep='')
+    test.name.rnd <- paste('PairsTableTestRnd_',i.test, sep='')
+    train.lst[[train.name]] <- Training.table.In
+    test.lst[[test.name]] <- Testing.table.In
+    test.lst.rnd[[test.name.rnd]] <- Testing.Rnd.table.In
+  }# end for i.test
+  ####### DATA IS PREPPED, NOW BACKWARD VAR SELECTION
+  # Set up the output catcher for the backward elimination
+  if(geo){
+    drop.names <- c(var.names,"Geographic")
+    }else{
+    drop.names <- c(var.names)
+    }# end else geo
+  drop.stats.D2 <- matrix(nrow=length(drop.names),ncol=length(drop.sequence),dimnames=list(drop.names,paste0(drop.sequence,"_variables")) )
+  drop.stats.RMSE <- matrix(nrow=length(drop.names),ncol=length(drop.sequence),dimnames=list(drop.names,paste0(drop.sequence,"_variables")) )
+  drop.stats.eRMSE <- matrix(nrow=length(drop.names),ncol=length(drop.sequence),dimnames=list(drop.names,paste0(drop.sequence,"_variables")) )
   # Loop backwards, dropping the worst predictor
-  #for(i.drp in n.preds:n.predictors.min)
+  out.col<-1
   for(i.drp in drop.sequence) 
     {
-    var.names <- c(colnames(site.env.data[,c(n.cols.start + in.vars)])) 
-    # Set up the output catcher
-    drop.var.test.stats <- matrix(0, nrow=n.preds, ncol=3)
-    colnames(drop.var.test.stats) <- c("deviance.explained", "Root.Mean.Squre.Error", "Equalised.RMSE")
-    if(geo){
-      row.names(drop.var.test.stats)<- c(paste0("drop.",var.names),"drop.Geographic")
-      }else{
-      row.names(drop.var.test.stats)<- c(paste0("drop.",var.names))
-      }# end else geo
+    var.index.vars.in <- which(in.vars.in > 0)
+    n.vars.in <- sum(in.vars.in)
+    in.vars.cols <- c(1:6, (6+var.index.vars.in), (6+n.vars.in+var.index.vars.in) )
+    drop.stats.D2[var.index.vars.in,out.col] <- 0
+    drop.stats.RMSE[var.index.vars.in,out.col] <- 0  
+    drop.stats.eRMSE[var.index.vars.in,out.col] <- 0
+    if(geo)
+      {
+      drop.stats.D2[nrow(drop.stats.D2),out.col] <- 0
+      drop.stats.RMSE[nrow(drop.stats.RMSE),out.col] <- 0
+      drop.stats.eRMSE[nrow(drop.stats.eRMSE),out.col] <- 0
+      }#end if geo
     # Loop through the cross-validation data sets
     for(i.test in 1:n.crossvalid.tests)  
       {
       # Grab the test and train site-pair data 
-      Pairs.Table.Train <- train.lst[[i.test]]
-      Pairs.Table.Test <- test.lst[[i.test]]
-      # Format these dataframes into GDM input tables
-      Training.table.In <- Pairs.Table.Train[,c(1:6)]
-      Testing.table.In <- Pairs.Table.Test[,c(1:6)]
-      # Prepare predictor variables table
-      Training.GDM.input.vars <- matrix(0, nrow=nrow(Training.table.In), ncol=(length(in.vars)*2))
-      Testing.GDM.input.vars <- matrix(0, nrow=nrow(Testing.table.In), ncol=(length(in.vars)*2))
-      colnames(Training.GDM.input.vars) <- c(paste0("s1.",var.names),paste0("s2.",var.names))
-      colnames(Testing.GDM.input.vars) <- c(paste0("s1.",var.names),paste0("s2.",var.names))
-      # catch the env data for both sites in the pair
-      for(i.var in 1:length(in.vars))
-        {
-        # TRAINING
-        Training.GDM.input.vars[,i.var] <- site.env.data[match(as.character(Pairs.Table.Train$s1.site.ID), as.character(site.env.data$xy)), (n.cols.start+in.vars[i.var])]
-        Training.GDM.input.vars[,(length(in.vars)+i.var)] <- site.env.data[match(as.character(Pairs.Table.Train$s2.site.ID), as.character(site.env.data$xy)), (n.cols.start+in.vars[i.var])]
-        # TESTING
-        Testing.GDM.input.vars[,i.var] <- site.env.data[match(as.character(Pairs.Table.Test$s1.site.ID), as.character(site.env.data$xy)), (n.cols.start+in.vars[i.var])]
-        Testing.GDM.input.vars[,(length(in.vars)+i.var)] <- site.env.data[match(as.character(Pairs.Table.Test$s2.site.ID), as.character(site.env.data$xy)), (n.cols.start+in.vars[i.var])]
-        } # end for i.var
-      # Join the variables to the site-pair table
-      Training.table.In <- cbind(Training.table.In, Training.GDM.input.vars)
-      Testing.table.In <- cbind(Testing.table.In, Testing.GDM.input.vars)
+      Training.table.In <- train.lst[[i.test]]
+      Testing.table.In <- test.lst[[i.test]]
+      # Remove previously omitted variables
+      Training.table.In <- Training.table.In[,in.vars.cols]
+      Testing.table.In <- Testing.table.In[,in.vars.cols] 
       # remove the rows with no data
       Training.table.In<-Training.table.In[complete.cases(Training.table.In),]
       Testing.table.In<-Testing.table.In[complete.cases(Testing.table.In),]
       # Drop each variable, and see how the error changes
-      for(i.var in 1:length(in.vars))
+      for(i.var in 1:n.vars.in)
         {
         #drop i.var
-        p.Training.table.In <- Training.table.In[,-c((6+i.var),(6+length(in.vars)+i.var))]
-        p.Testing.table.In <- Testing.table.In[,-c((6+i.var),(6+length(in.vars)+i.var))]
+        p.Training.table.In <- Training.table.In[,-c((6+i.var),(6+n.vars.in+i.var))]
+        p.Testing.table.In <- Testing.table.In[,-c((6+i.var),(6+n.vars.in+i.var))]
         # Test the reduced model against the testing data
         validation.results <- gdm_SingleCrossValidation(p.Training.table.In, 
-                                                          p.Testing.table.In,
-                                                          geo=geo)
-        drop.var.test.stats[i.var,1] <- drop.var.test.stats[i.var,1] + validation.results$Deviance.Explained
-        drop.var.test.stats[i.var,2] <- drop.var.test.stats[i.var,2] + validation.results$Root.Mean.Squre.Error
-        drop.var.test.stats[i.var,3] <- drop.var.test.stats[i.var,3] + validation.results$Equalised.RMSE
+                                                        p.Testing.table.In,
+                                                        geo=geo)
+        drop.stats.D2[var.index.vars.in[i.var],out.col] <- drop.stats.D2[var.index.vars.in[i.var],out.col] + validation.results$Deviance.Explained
+        drop.stats.RMSE[var.index.vars.in[i.var],out.col] <- drop.stats.RMSE[var.index.vars.in[i.var],out.col] + validation.results$Root.Mean.Squre.Error
+        drop.stats.eRMSE[var.index.vars.in[i.var],out.col] <- drop.stats.eRMSE[var.index.vars.in[i.var],out.col] + validation.results$Equalised.RMSE
         } #end for i.var
       # If geographic distance is still in, drop it to see the effect
       if(geo)
         {
         validation.results <- gdm_SingleCrossValidation(Training.table.In, 
-                                                          Testing.table.In,
-                                                          geo=FALSE)
-        drop.var.test.stats[n.preds,1] <- drop.var.test.stats[n.preds,1] + validation.results$Deviance.Explained
-        drop.var.test.stats[n.preds,2] <- drop.var.test.stats[n.preds,2] + validation.results$Root.Mean.Squre.Error
-        drop.var.test.stats[n.preds,3] <- drop.var.test.stats[n.preds,3] + validation.results$Equalised.RMSE
+                                                        Testing.table.In,
+                                                        geo=FALSE)
+        drop.stats.D2[nrow(drop.stats.D2),out.col] <- drop.stats.D2[nrow(drop.stats.D2),out.col] + validation.results$Deviance.Explained
+        drop.stats.RMSE[nrow(drop.stats.RMSE),out.col] <- drop.stats.RMSE[nrow(drop.stats.RMSE),out.col] + validation.results$Root.Mean.Squre.Error
+        drop.stats.eRMSE[nrow(drop.stats.eRMSE),out.col] <- drop.stats.eRMSE[nrow(drop.stats.eRMSE),out.col] + validation.results$Equalised.RMSE
         }#end if(geo)
-      # If this is the final variable set, also fit a model to the full set of variables (for cross-valid stats)
-      if(n.preds <= n.predictors.min) # -- FINAL -- FINAL -- FINAL -- FINAL --
-        {
-        # For the applied sub-sampling scheme
-        validation.results.smp<- gdm_SingleCrossValidation(Training.table.In, 
-                                                             Testing.table.In,
-                                                             geo=geo)
-        final.mod.MAE.set[i.test] <- validation.results.smp$Mean.Absolute.Error
-        final.mod.RMSE.set[i.test] <- validation.results.smp$Root.Mean.Squre.Error
-        final.mod.equRMSE.set[i.test] <- validation.results.smp$Equalised.RMSE
-        # For a completely random sample
-        Pairs.Table.Test <- test.lst.rnd[[i.test]]
-        Testing.table.In <- Pairs.Table.Test[,c(1:6)]
-        Testing.GDM.input.vars <- matrix(0, nrow=nrow(Testing.table.In), ncol=(length(in.vars)*2))
-        colnames(Testing.GDM.input.vars) <- c(paste0("s1.",var.names),paste0("s2.",var.names))
-        for(i.var in 1:length(in.vars))
-          {
-          Testing.GDM.input.vars[,i.var] <- site.env.data[match(as.character(Pairs.Table.Test$s1.site.ID), as.character(site.env.data$xy)), (n.cols.start+in.vars[i.var])]
-          Testing.GDM.input.vars[,(length(in.vars)+i.var)] <- site.env.data[match(as.character(Pairs.Table.Test$s2.site.ID), as.character(site.env.data$xy)), (n.cols.start+in.vars[i.var])]
-          } # end for i.var
-        Testing.table.In <- cbind(Testing.table.In, Testing.GDM.input.vars)
-        Testing.table.In<-Testing.table.In[complete.cases(Testing.table.In),]
-        validation.results.rnd<- gdm_SingleCrossValidation(Training.table.In, 
-                                                             Testing.table.In,
-                                                             geo=geo)
-        final.mod.MAE.rnd.set[i.test] <- validation.results.rnd$Mean.Absolute.Error
-        final.mod.RMSE.rnd.set[i.test] <- validation.results.rnd$Root.Mean.Squre.Error
-        final.mod.equRMSE.rnd.set[i.test] <- validation.results.rnd$Equalised.RMSE
-        } #end if length(in.vars) == n.predictors.min # -- FINAL -- FINAL -- FINAL -- 
-      } # end for each i.test
+    } # end for each i.test
     # Now average the results across cross-validation sets
-    drop.var.test.stats <- drop.var.test.stats / n.crossvalid.tests
+    drop.stats.D2[!is.na(drop.stats.D2[,out.col]),out.col] <- drop.stats.D2[!is.na(drop.stats.D2[,out.col]),out.col] / n.crossvalid.tests
+    drop.stats.RMSE[!is.na(drop.stats.RMSE[,out.col]),out.col] <- drop.stats.RMSE[!is.na(drop.stats.RMSE[,out.col]),out.col] / n.crossvalid.tests
+    drop.stats.eRMSE[!is.na(drop.stats.eRMSE[,out.col]),out.col] <- drop.stats.eRMSE[!is.na(drop.stats.eRMSE[,out.col]),out.col] / n.crossvalid.tests
     # Work out which variable to drop, and drop it
     if(n.preds>n.predictors.min)
       {
+      if(test.col == 2)
+        {drop.var <- which.min(drop.stats.RMSE[,out.col])}
+      if(test.col == 3)
+        {drop.var <- which.min(drop.stats.eRMSE[,out.col])}
       if(geo){
-        drop.var <- which.min(drop.var.test.stats[,test.col])
         if(drop.var<n.preds){ # then we are dropping an env predictor
-          in.vars<-in.vars[-(which.min(drop.var.test.stats[,test.col]))]
+          in.vars.in[drop.var] <- 0
           n.preds<-n.preds-1
         }else{ # then we must be dropping geo
           geo<-FALSE
           n.preds<-n.preds-1
-          }
+        }
       }else{
-        in.vars<-in.vars[-(which.min(drop.var.test.stats[,test.col]))]
+        in.vars.in[drop.var] <- 0
         n.preds<-n.preds-1
-        } # end else
-      }# end if n.preds>n.predictors.min
-    }# end for i.drp
+      } # end else
+    }# end if n.preds>n.predictors.min
+    out.col<-out.col+1
+  }# end for i.drp
+  ###################################################################################
+  ## Now we have a final model, run cross-validation with randaom test set         ##
+  if(n.preds <= n.predictors.min) # -- FINAL -- FINAL -- FINAL -- FINAL --
+    {
+    # Create a catcher for the final model
+    final.mod.MAE.set <- rep(0, times=n.crossvalid.tests)
+    final.mod.RMSE.set <- rep(0, times=n.crossvalid.tests)
+    final.mod.equRMSE.set <- rep(0, times=n.crossvalid.tests)
+    final.mod.MAE.rnd.set <- rep(0, times=n.crossvalid.tests)
+    final.mod.RMSE.rnd.set <- rep(0, times=n.crossvalid.tests)
+    final.mod.equRMSE.rnd.set <-rep(0, times=n.crossvalid.tests)
+    for(i.test in 1:n.crossvalid.tests)  
+      {
+      # Grab the test and train site-pair data 
+      Training.table.In <- train.lst[[i.test]]
+      Testing.table.In <- test.lst[[i.test]]      
+      Testing.Rnd.table.In <- test.lst.rnd[[i.test]]
+      # Remove previously omitted variables
+      Training.table.In <- Training.table.In[,in.vars.cols]
+      Testing.table.In <- Testing.table.In[,in.vars.cols] 
+      Testing.Rnd.table.In <- Testing.Rnd.table.In[,in.vars.cols] 
+      # remove the rows with no data
+      Training.table.In<-Training.table.In[complete.cases(Training.table.In),]
+      Testing.table.In<-Testing.table.In[complete.cases(Testing.table.In),]
+      Testing.Rnd.table.In<-Testing.Rnd.table.In[complete.cases(Testing.Rnd.table.In),]
+      # For the applied sub-sampling scheme
+      validation.results.smp<- gdm_SingleCrossValidation(Training.table.In, 
+                                                         Testing.table.In,
+                                                         geo=geo)
+      final.mod.MAE.set[i.test] <- validation.results.smp$Mean.Absolute.Error
+      final.mod.RMSE.set[i.test] <- validation.results.smp$Root.Mean.Squre.Error
+      final.mod.equRMSE.set[i.test] <- validation.results.smp$Equalised.RMSE
+      # For a purely random sample
+      validation.results.rnd<- gdm_SingleCrossValidation(Training.table.In, 
+                                                         Testing.Rnd.table.In,
+                                                         geo=geo)
+      final.mod.MAE.rnd.set[i.test] <- validation.results.rnd$Mean.Absolute.Error
+      final.mod.RMSE.rnd.set[i.test] <- validation.results.rnd$Root.Mean.Squre.Error
+      final.mod.equRMSE.rnd.set[i.test] <- validation.results.rnd$Equalised.RMSE
+      } # end for each i.test
+   } # end if n.preds <= n.predictors.min  
+  ###################################################################################
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##  
   proc.time() - ptm
   
@@ -372,6 +430,8 @@ gdm_builder <- function(site.env.data,
   ## Now we have a final set of predictors, fit a full model sampling site-pairs from
   ## the full set of sites ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   # Set up catching matrices for the model parameters
+  in.vars <- in.vars[which(in.vars.in > 0)]
+  var.names <- var.names[which(in.vars.in > 0)]
   n.params<-n.preds*3 # ASSUMING 3 KNOTS PER VARIABLE AT THE MOMENT
   intercept.set<-rep(0, times=n.crossvalid.tests)
   deviance.explained.set <- rep(0, times=n.crossvalid.tests)
@@ -383,11 +443,11 @@ gdm_builder <- function(site.env.data,
     ## SUBSAMPLE SITE-PAIRS  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  ##
     # Random .... (or alternative)
     Pairs.Table.Train <- sitepair_sample_random(site.env.data = site.env.data,
-                                                n.pairs.target = n.pairs.train)
+                                                n.pairs.target = n.pairs.train) # Time consuming
     ##  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  ##
     Pairs.Table.Train <- calculate_dissimilarities(pairs.table = Pairs.Table.Train, 
                                                    composition.data = composition.data,
-                                                   verbose=FALSE) # Time consuming
+                                                   verbose=FALSE) 
     Pairs.Table.Train$s1.site.ID <- paste(Pairs.Table.Train$s1.xCoord, Pairs.Table.Train$s1.yCoord, sep = '_')
     Pairs.Table.Train$s2.site.ID <- paste(Pairs.Table.Train$s2.xCoord, Pairs.Table.Train$s2.yCoord, sep = '_')
     # Format these dataframes into GDM input tables
@@ -427,6 +487,9 @@ gdm_builder <- function(site.env.data,
   ## Now format and return outputs of the model builder ~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   # Create an output list
   GDM_Builder_results = list(Inputs = match.call(),
+                             Backward.Elim.D2 = drop.stats.D2,
+                             Backward.Elim.RMSE = drop.stats.RMSE, 
+                             Backward.Elim.eRMSE = drop.stats.eRMSE, 
                              Predictors = Final.mod$predictors,
                              Deviance.Explained = deviance.explained.set,
                              Intercept = intercept.set,
@@ -437,6 +500,7 @@ gdm_builder <- function(site.env.data,
                              rnd.Root.Mean.Squre.Error = final.mod.RMSE.rnd.set,
                              rnd.Equalised.RMSE = final.mod.equRMSE.rnd.set,
                              Mean.Final.GDM = Final.mod)
+
   ## Write the output list to file if specified ##
   if(!is.null(output.folder))
     {

@@ -17,7 +17,7 @@
 #'@param output.name (string) A name to use in saving the outputs. Default: 'site_pairs_data_dens'.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
-#'@returns Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated.
+#'@return Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated.
 #'
 #'@examples output = sitepair_sample_density(My.site.env.data, n.pairs.target=10000, domain.mask=My.mask)
 #'

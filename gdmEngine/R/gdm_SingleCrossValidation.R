@@ -8,7 +8,7 @@
 #'@param splines (vector) An optional vector of the number of I-spline basis functions to be used for each predictor in fitting the model.
 #'@param knots (vector) An optional vector of knots in units of the predictor variables to be used in the fitting process. 
 #'
-#'@returns List, providing cross-validation statistics.
+#'@return List, providing cross-validation statistics.
 #'
 #'@examples output = gdm_SingleCrossValidation(My.training.table, My.testing.table, geo=TRUE)
 #'

@@ -31,6 +31,9 @@ select_gridcells_composition(ALA.aggregated.data, domain.mask,
 
 \item{agg.radius.ncells}{(float) A spatial radius, specified as number of grid cells, over which to aggregate records. If NULL, no radial aggregation is performed. Default: NULL.}
 }
+\value{
+Dataframe. Also writes this dataframe to file if output.folder is specified.
+}
 \description{
 Select grid cells with sufficient records for modelling composition.
 }

@@ -13,7 +13,7 @@
 #'@param output.name (string), A name to use in saving the outputs. Default: 'selected_gridcell_composition'.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
-#'@returns Dataframe. Also writes this dataframe to file if output.folder is specified. 
+#'@return Dataframe. Also writes this dataframe to file if output.folder is specified. 
 #'
 #'@examples output = aggregate_data(my.data, my.raster)
 #'

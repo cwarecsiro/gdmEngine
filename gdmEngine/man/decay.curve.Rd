@@ -15,6 +15,9 @@ decay.curve(x, a, b, c)
 
 \item{c}{(float) Parameter specifying the slope of the curve (i.e. steepness of the decay)}
 }
+\value{
+float (the y-value)
+}
 \description{
 A three parameter logistic function for use in sampling [ y = a+(1-a)/(1+((x/b)^(c))) ]
 }

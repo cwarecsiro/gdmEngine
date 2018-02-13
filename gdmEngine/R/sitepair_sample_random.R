@@ -8,7 +8,7 @@
 #'@param output.name (string) A name to use in saving the outputs. Default: 'pairs_table_dissim'.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
-#'@returns Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated.
+#'@return Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated.
 #'
 #'@examples output = sitepair_sample_random(My.site.env.data, n.pairs.target=10000, output.folder = 'C:/Users/processed_data', output.name = 'My.sitepair.data')
 #'

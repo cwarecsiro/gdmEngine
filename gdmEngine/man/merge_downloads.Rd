@@ -20,6 +20,10 @@ merge_downloads(src, output.folder = NULL, output.name = "merged_taxa_data",
 
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
 }
+\value{
+List. $data is a data.frame with the combined records. $log is a data.frame with the taxa names searched, 
+records returned, and any errors.
+}
 \description{
 Unzip and load CSV files downloaded from the ALA.
 }

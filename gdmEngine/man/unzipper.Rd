@@ -11,6 +11,9 @@ unzipper(fn, memory_only = TRUE)
 
 \item{memory_only}{(boolean) If TRUE (default) will delete unzipped data once read into memory}
 }
+\value{
+data.frame
+}
 \description{
 Unzips file and handles exceptions.
 }

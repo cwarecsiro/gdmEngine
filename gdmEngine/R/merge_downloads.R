@@ -9,7 +9,7 @@
 #'@param parallel (boolean) If TRUE (default) will use all CPU (-2) available to load data.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
-#'@returns List. $data is a data.frame with the combined records. $log is a data.frame with the taxa names searched, 
+#'@return List. $data is a data.frame with the combined records. $log is a data.frame with the taxa names searched, 
 #'records returned, and any errors.
 #'
 #'@examples output = merge_downloads('C:/Users/raw_files')

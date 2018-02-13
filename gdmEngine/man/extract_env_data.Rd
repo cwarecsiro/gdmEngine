@@ -18,6 +18,9 @@ extract_env_data(ALA.composition.data, environment.stk, output.folder = NULL,
 
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
 }
+\value{
+Dataframe.
+}
 \description{
 Extracts environmental data for specified locations, from a set of specified spatial grids. Returns a dataframe (site x env).
 }

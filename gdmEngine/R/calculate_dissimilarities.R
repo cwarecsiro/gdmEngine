@@ -8,16 +8,18 @@
 #'@param output.name (string) A name to use in saving the outputs. Default: 'pairs_table_dissim'.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
-#'@returns Dataframe.
+#'@return Dataframe.
 #'
 #'@examples output = calculate_dissimilarities(My.pairs.table, My.composition.data, output.folder = 'C:/Users/processed_data', output.name = 'My.sitepair.data')
 #'
-#'@export
-calculate_dissimilarities <- function(pairs.table=Pairs.Table.Dens, 
-                                            composition.data=Selected.records,
-                                            output.folder = NULL,       
-                                            output.name = "pairs_table_dissim",  
-                                            verbose=TRUE) 
+#'@importFrom Rcpp evalCpp
+#'@useDynLib gdmEngine
+#'@export 
+calculate_dissimilarities <- function(pairs.table, 
+                                      composition.data,
+                                      output.folder = NULL,       
+                                      output.name = "pairs_table_dissim",  
+                                      verbose=TRUE) 
 {
   # First indexify the sites and species in composition.data
   composition.data$Site.ID <- as.factor(paste(composition.data$decimalLongitude, composition.data$decimalLatitude, sep = '_'))
@@ -26,7 +28,6 @@ calculate_dissimilarities <- function(pairs.table=Pairs.Table.Dens,
   composition.data$site.index <- match(composition.data$Site.ID, composition.data.site.indices)  
   composition.data$spp.index <- match(composition.data$scientificName, composition.data.spp.indices)
   site.spp.index <- as.matrix(composition.data[,c(5,6)]) 
-  
   
   # Then get the index for each site in the pairs.table
   pairs.table$s1.site.ID <- paste(pairs.table$s1.xCoord, pairs.table$s1.yCoord, sep = '_')
@@ -97,62 +98,58 @@ calculate_dissimilarities <- function(pairs.table=Pairs.Table.Dens,
   # Return the freshly filled site-pair table  
   return(pairs.table.new)
   
-} # end calculate_dissimilarities_sparse
+} # end calculate_dissimilarities
   
 
-
 ##-------------------------------------------------------------------------------------------------------------##
-#'@title Compositional dissimilarity calculation for specified pairs of sites
-#'
-#'@description Calculate the dissimilarity between specified pairs of sites. 
-#'
-#'@param site_spp (matrix) A matrix of the indices for species (col2) occurring in each site (col1), with each row an occurrence
-#'@param pair_rows (matrix) A matrix of the site index for site 1 (col 1) and site 2 (col 2) in each pair of sites (rows)
-#'@param site_rich (vector) A vector giving the total number of species in each site (element)
-#'@param max_richness (integer)
-#'
-#'@returns Vector, the Sorensen dissimilarity between the specified pairs.
-#'
-#'@examples output = PairsDissim(site.spp, ij.pairs, site.rich, max.rich)
-#'@importFrom Rcpp cppFunction
-#'
-#'@export
-cppFunction('NumericVector PairsDissim(IntegerMatrix site_spp, IntegerMatrix pair_rows, IntegerVector site_rich, int max_richness) {
-            
-//Establish variables
-  int n_sites = site_rich.size();
-  int n_pairs = pair_rows.nrow();
-  int n_records = site_spp.nrow();  
-  IntegerMatrix comp(n_sites,max_richness);        
-  IntegerVector upto_index(n_sites);
-  NumericVector out(n_pairs);
-
-
-// First format the composition data
-  for(int i_site=0; i_site < n_sites; i_site++) {
-    upto_index[i_site] = 0;
-    }
-  for(int i_rec = 0; i_rec < n_records; i_rec++) {
-    int site_index = site_spp(i_rec,0) - 1;
-    comp(site_index, upto_index[site_index]) = site_spp(i_rec,1);
-    upto_index[site_index] += 1;
-    }
-
-// Now for each pair of sites, calculate compositional dissimilarity & return it to the output vector
-  for(int i = 0; i < n_pairs; i++) {
-    int site_one_index = pair_rows(i,0) - 1;
-    int site_two_index = pair_rows(i,1) - 1;
-    float n_spp_common = 0;
-    for(int i_spp_one=0; i_spp_one<site_rich[site_one_index]; i_spp_one++){
-      for(int i_spp_two=0; i_spp_two<site_rich[site_two_index]; i_spp_two++){
-        if(comp(site_one_index,i_spp_one) == comp(site_two_index,i_spp_two)){
-          n_spp_common += 1;
-          }
-        }      
-      }  
-    float sum_rich = site_rich[site_one_index] + site_rich[site_two_index];
-    out[i] = (1 - ((2 * n_spp_common) / (sum_rich)));
-    }
-  return out;
-  }')
-##-------------------------------------------------------------------------------------------------------------##
+# #'@title Compositional dissimilarity calculation for specified pairs of sites
+# #'
+# #'@description Calculate the dissimilarity between specified pairs of sites. 
+# #'
+# #'@param site_spp (matrix) A matrix of the indices for species (col2) occurring in each site (col1), with each row an occurrence
+# #'@param pair_rows (matrix) A matrix of the site index for site 1 (col 1) and site 2 (col 2) in each pair of sites (rows)
+# #'@param site_rich (vector) A vector giving the total number of species in each site (element)
+# #'@param max_richness (integer)
+# #'
+# #'@returns Vector, the Sorensen dissimilarity between the specified pairs.
+# #'
+# #'@examples output = PairsDissim(site.spp, ij.pairs, site.rich, max.rich)
+# #'@importFrom Rcpp cppFunction
+# #'
+# #'@export
+# cppFunction('NumericVector PairsDissim(IntegerMatrix site_spp, IntegerMatrix pair_rows, IntegerVector site_rich, int max_richness) {
+#             
+#   int n_sites = site_rich.size();
+#   int n_pairs = pair_rows.nrow();
+#   int n_records = site_spp.nrow();  
+#   IntegerMatrix comp(n_sites,max_richness);        
+#   IntegerVector upto_index(n_sites);
+#   NumericVector out(n_pairs);
+# 
+# 
+#   for(int i_site=0; i_site < n_sites; i_site++) {
+#     upto_index[i_site] = 0;
+#     }
+#   for(int i_rec = 0; i_rec < n_records; i_rec++) {
+#     int site_index = site_spp(i_rec,0) - 1;
+#     comp(site_index, upto_index[site_index]) = site_spp(i_rec,1);
+#     upto_index[site_index] += 1;
+#     }
+# 
+#   for(int i = 0; i < n_pairs; i++) {
+#     int site_one_index = pair_rows(i,0) - 1;
+#     int site_two_index = pair_rows(i,1) - 1;
+#     float n_spp_common = 0;
+#     for(int i_spp_one=0; i_spp_one<site_rich[site_one_index]; i_spp_one++){
+#       for(int i_spp_two=0; i_spp_two<site_rich[site_two_index]; i_spp_two++){
+#         if(comp(site_one_index,i_spp_one) == comp(site_two_index,i_spp_two)){
+#           n_spp_common += 1;
+#           }
+#         }      
+#       }  
+#     float sum_rich = site_rich[site_one_index] + site_rich[site_two_index];
+#     out[i] = (1 - ((2 * n_spp_common) / (sum_rich)));
+#     }
+#   return out;
+#   }')
+# ##-------------------------------------------------------------------------------------------------------------##

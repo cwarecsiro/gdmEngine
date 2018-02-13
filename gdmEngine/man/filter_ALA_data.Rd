@@ -23,6 +23,9 @@ filter_ALA_data(ALA.download.data, output.folder = NULL,
 
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
 }
+\value{
+Dataframe.
+}
 \description{
 Filters data downloaded from the ALA, producing a refined dataset.
 }

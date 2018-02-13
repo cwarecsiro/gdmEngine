@@ -40,6 +40,9 @@ gdm_builder(site.env.data, composition.data, geo = TRUE,
 
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
 }
+\value{
+List, including GDM model object and cross validation stats.
+}
 \description{
 Derive a GDM for a dataset, including automated variable selection based on cross-validation predictive performance. Produces a final GDM object (average parameters across site-pair samples) and associated cross-validation test metrics.
 }

@@ -15,9 +15,9 @@ library(raster)
 library(gdmEngine)
 library(data.table)
 #library(dplyr)
-library(magrittr)
-library(plyr)
-library(assertthat)
+#library(magrittr)
+#library(plyr)
+#library(assertthat)
 #library(spatstat)
 
 ## ESTABLISH KEY INPUTS ------------------------------------------------------------------##
