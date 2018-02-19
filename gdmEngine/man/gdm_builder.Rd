@@ -7,9 +7,11 @@
 gdm_builder(site.env.data, composition.data, geo = TRUE,
   train.proportion = 0.8, n.pairs.train = NULL, n.pairs.test = NULL,
   n.crossvalid.tests = 10, correlation.threshold = 0.7,
-  selection.metric = "RMSE", Indiv.Dev.Explained.Min = 1,
-  n.predictors.min = 8, output.folder = NULL,
-  output.name = "gdm_builder_output", verbose = TRUE)
+  selection.metric = "RMSE", sample.method = "random",
+  Indiv.Dev.Explained.Min = 1, n.predictors.min = 8, b.used.factor = 2,
+  b.dpair.factor = 0.5, b.epair.factor = 1, sigma.spair = 0.5,
+  spair.factor = 1, domain.mask = NULL, output.folder = NULL,
+  output.name = "gdm_builder_output", verbose = TRUE, ...)
 }
 \arguments{
 \item{site.env.data}{(dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data.}
@@ -28,7 +30,9 @@ gdm_builder(site.env.data, composition.data, geo = TRUE,
 
 \item{correlation.threshold}{(float) The maximum correlation (Pearson's R) permitted between candidate predictor variables, as derived from the sites in 'site.env.data'. (default = 0.7)}
 
-\item{selection.metric}{(float) The model test metric to use in backward elimination of variables for model selection. Options are 'RMSE' or 'equalised RMSE'. (default = 'RMSE')}
+\item{selection.metric}{(string) The model test metric to use in backward elimination of variables for model selection. Options are 'RMSE' or 'equalised RMSE'. (default = 'RMSE')}
+
+\item{sample.method}{(string) The site-pair sample method to use. Options are 'random', 'geodist' (geographic distance), 'envdist' (environmental distance), 'geodens' (geographic density). (default = 'random')}
 
 \item{Indiv.Dev.Explained.Min}{(float) The minimum amount of deviance explained when potential predictors are assessed individually. (default = 1.0)}
 

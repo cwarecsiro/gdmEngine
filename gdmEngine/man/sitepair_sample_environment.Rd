@@ -4,11 +4,11 @@
 \alias{sitepair_sample_environment}
 \title{Environment based site-pair sampler}
 \usage{
-sitepair_sample_environment(site.env.data, n.pairs.target, env.colnames,
-  dist.method = "euclidean", n.pairs.sample = NULL, a.used = 0.05,
-  b.used.factor = 2, c.used = 3, a.epair = 0.05, b.epair.factor = 1,
-  c.epair = 3, output.folder = NULL, output.name = "site_pairs_data_env",
-  verbose = FALSE)
+sitepair_sample_environment(site.env.data, n.pairs.target,
+  env.colnames = c("PTA", "TXX"), dist.method = "euclidean",
+  n.pairs.sample = NULL, a.used = 0.05, b.used.factor = 2, c.used = 3,
+  a.epair = 0.05, b.epair.factor = 1, c.epair = 3, output.folder = NULL,
+  output.name = "site_pairs_data_env", verbose = FALSE)
 }
 \arguments{
 \item{site.env.data}{(dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data.}

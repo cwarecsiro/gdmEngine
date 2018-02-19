@@ -10,7 +10,8 @@
 #'@param n.pairs.test (integer) The number of site-pairs to use in testing the GDM. If not specified, the default is to use the same ratio of site-pairs to availabel sites as was used to train the model. (default = NULL)
 #'@param n.crossvalid.tests (integer) The number of cross-validation sets to use in deriving the GDM. (default = 10)
 #'@param correlation.threshold (float) The maximum correlation (Pearson's R) permitted between candidate predictor variables, as derived from the sites in 'site.env.data'. (default = 0.7)
-#'@param selection.metric (float) The model test metric to use in backward elimination of variables for model selection. Options are 'RMSE' or 'equalised RMSE'. (default = 'RMSE')
+#'@param selection.metric (string) The model test metric to use in backward elimination of variables for model selection. Options are 'RMSE' or 'equalised RMSE'. (default = 'RMSE')
+#'@param sample.method (string) The site-pair sample method to use. Options are 'random', 'geodist' (geographic distance), 'envdist' (environmental distance), 'geodens' (geographic density). (default = 'random')
 #'@param Indiv.Dev.Explained.Min (float) The minimum amount of deviance explained when potential predictors are assessed individually. (default = 1.0)
 #'@param n.predictors.min (integer) The target (or minimum) number of predictor variables in the final model. (default = 8)
 #'@param output.folder (string) A folder to save the outputs to. If none specified, no file is written.
@@ -37,14 +38,23 @@ gdm_builder <- function(site.env.data,
                         n.crossvalid.tests = 10,
                         correlation.threshold = 0.7,
                         selection.metric = 'RMSE',
+                        sample.method = 'random',
                         Indiv.Dev.Explained.Min = 1.0,
                         n.predictors.min = 8,
+                        b.used.factor=2,
+                        b.dpair.factor=0.5,
+                        b.epair.factor=1,
+                        sigma.spair=0.5,
+                        spair.factor=1,
+                        domain.mask=NULL,
                         output.folder = NULL,       
                         output.name = "gdm_builder_output",  
-                        verbose=TRUE) 
+                        verbose=TRUE,
+                        ...) 
 {
   ## NOTE - THIS FUNCTION ESSENTIALLY ASSUMES YOU ARE DOING SOME SITE-PAIR SUBSAMPLING. REQUIRES RE-CODING TO
   ## DEAL WITH CASES WHERE THERE IS NO SITE-PAIR SUBSAMPLING
+  start.time <- proc.time()
   
   ## SETUP ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
   # Determine how many sites we are using for the training and testing sets
@@ -87,16 +97,55 @@ gdm_builder <- function(site.env.data,
     train.indices <- sample(seq_len(nrow(site.env.data)), size = n.sites.train)
     Train.Site.Env.Data <- site.env.data[train.indices, ]
     Test.Site.Env.Data <- site.env.data[-train.indices, ]
-    ## SUBSAMPLE SITE-PAIRS   *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  ##
-    # Random .... (or alternative)
-    Pairs.Table.Train <- sitepair_sample_random(site.env.data = Train.Site.Env.Data,
+    ## SUBSAMPLE SITE-PAIRS   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *  ##
+    if(sample.method == 'random')
+      {
+      Pairs.Table.Train <- sitepair_sample_random(site.env.data = Train.Site.Env.Data,
                                                 n.pairs.target = n.pairs.train)
-    Pairs.Table.Test <- sitepair_sample_random(site.env.data = Test.Site.Env.Data,
+      Pairs.Table.Test <- sitepair_sample_random(site.env.data = Test.Site.Env.Data,
                                                n.pairs.target = n.pairs.test)
+      }#end if sample.method == 'random'
+    if(sample.method == 'geodist')
+      {
+      Pairs.Table.Train <- sitepair_sample_geographic(site.env.data = Train.Site.Env.Data,
+                                 n.pairs.target = n.pairs.train,
+                                 b.used.factor=b.used.factor,
+                                 b.dpair.factor=b.dpair.factor)
+      Pairs.Table.Test <- sitepair_sample_geographic(site.env.data = Test.Site.Env.Data,
+                                 n.pairs.target = n.pairs.test,
+                                 b.used.factor=b.used.factor,
+                                 b.dpair.factor=b.dpair.factor)
+      }#end if sample.method == 'geodist'
+    if(sample.method == 'envdist')
+      {
+      Pairs.Table.Train <- sitepair_sample_environment(site.env.data = Train.Site.Env.Data,
+                                                      n.pairs.target = n.pairs.train,
+                                                      b.used.factor=b.used.factor,
+                                                      b.epair.factor=b.epair.factor)
+      Pairs.Table.Test <- sitepair_sample_environment(site.env.data = Test.Site.Env.Data,
+                                                     n.pairs.target = n.pairs.test,
+                                                     b.used.factor=b.used.factor,
+                                                     b.epair.factor=b.epair.factor)
+      }#end if sample.method == 'envdist'
+    if(sample.method == 'geodens')
+      {
+      Pairs.Table.Train <- sitepair_sample_density(site.env.data = Train.Site.Env.Data,
+                                                   n.pairs.target = n.pairs.train,
+                                                   domain.mask=domain.mask,
+                                                   b.used.factor=b.used.factor,
+                                                   sigma.spair=sigma.spair,
+                                                   spair.factor=spair.factor)
+      Pairs.Table.Test <- sitepair_sample_density(site.env.data = Test.Site.Env.Data,
+                                                  n.pairs.target = n.pairs.test,
+                                                  domain.mask=domain.mask,
+                                                  b.used.factor=b.used.factor,
+                                                  sigma.spair=sigma.spair,
+                                                  spair.factor=spair.factor)
+      }#end if sample.method == 'geodens'
     # And always have a purely random set of site-pairs for model testing as well
     Pairs.Table.Test.Rnd <- sitepair_sample_random(site.env.data = Test.Site.Env.Data,
                                                    n.pairs.target = n.pairs.test)
-    ##  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  ##
+    ##  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ##
     ## CALCULATE DISSIMILARITIES ##
     Pairs.Table.Train <- calculate_dissimilarities(pairs.table = Pairs.Table.Train, 
                                                    composition.data = composition.data,
@@ -382,7 +431,7 @@ gdm_builder <- function(site.env.data,
     out.col<-out.col+1
   }# end for i.drp
   ###################################################################################
-  ## Now we have a final model, run cross-validation with randaom test set         ##
+  ## Now we have a final model, run cross-validation with random test set         ##
   if(n.preds <= n.predictors.min) # -- FINAL -- FINAL -- FINAL -- FINAL --
     {
     # Create a catcher for the final model
@@ -437,13 +486,39 @@ gdm_builder <- function(site.env.data,
   deviance.explained.set <- rep(0, times=n.crossvalid.tests)
   coefficients.set<-matrix(0, nrow=n.crossvalid.tests, ncol=n.params)
   knots.set<-matrix(0, nrow=n.crossvalid.tests, ncol=n.params)
+  final.mod.dissimilarity<-matrix(0, nrow=n.crossvalid.tests, ncol=6, dimnames=list(paste0("sample",c(1:n.crossvalid.tests)),c("Min.","1st Qu.","Median","Mean","3rd Qu.","Max.")))
   # Loop through the samples of site pairs, fit GDMs, catch statistics
   for(i.test in 1:n.crossvalid.tests)
     { 
     ## SUBSAMPLE SITE-PAIRS  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  ##
-    # Random .... (or alternative)
-    Pairs.Table.Train <- sitepair_sample_random(site.env.data = site.env.data,
-                                                n.pairs.target = n.pairs.train) # Time consuming
+    if(sample.method == 'random')
+      {
+      Pairs.Table.Train <- sitepair_sample_random(site.env.data = site.env.data,
+                                                  n.pairs.target = n.pairs.train)
+      }#end if sample.method == 'random'
+    if(sample.method == 'geodist')
+    {
+      Pairs.Table.Train <- sitepair_sample_geographic(site.env.data = site.env.data,
+                                                      n.pairs.target = n.pairs.train,
+                                                      b.used.factor=b.used.factor,
+                                                      b.dpair.factor=b.dpair.factor)
+    }#end if sample.method == 'geodist'
+    if(sample.method == 'envdist')
+    {
+      Pairs.Table.Train <- sitepair_sample_environment(site.env.data = site.env.data,
+                                                       n.pairs.target = n.pairs.train,
+                                                       b.used.factor=b.used.factor,
+                                                       b.epair.factor=b.epair.factor)
+      }#end if sample.method == 'envdist'
+    if(sample.method == 'geodens')
+    {
+      Pairs.Table.Train <- sitepair_sample_density(site.env.data = site.env.data,
+                                                   n.pairs.target = n.pairs.train,
+                                                   domain.mask=domain.mask,
+                                                   b.used.factor=b.used.factor,
+                                                   sigma.spair=sigma.spair,
+                                                   spair.factor=spair.factor)
+    }#end if sample.method == 'geodens'
     ##  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  ##
     Pairs.Table.Train <- calculate_dissimilarities(pairs.table = Pairs.Table.Train, 
                                                    composition.data = composition.data,
@@ -475,6 +550,7 @@ gdm_builder <- function(site.env.data,
     deviance.explained.set[i.test] <- Final.mod$explained
     coefficients.set[i.test,] <- Final.mod$coefficients
     knots.set[i.test,] <- Final.mod$knots
+    final.mod.dissimilarity[i.test,]<-summary(Training.table.In$distance)
     } # end for i.test
   #replace the final model object data with the mean values across models
   Final.mod$intercept<-mean(intercept.set)
@@ -483,10 +559,12 @@ gdm_builder <- function(site.env.data,
   Final.mod$knots<-colMeans(knots.set)
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~## 
   proc.time() - ptm
+  r.time <- proc.time() - start.time
   
   ## Now format and return outputs of the model builder ~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
   # Create an output list
   GDM_Builder_results = list(Inputs = match.call(),
+                             ProcessingTime = r.time,
                              Backward.Elim.D2 = drop.stats.D2,
                              Backward.Elim.RMSE = drop.stats.RMSE, 
                              Backward.Elim.eRMSE = drop.stats.eRMSE, 
@@ -499,6 +577,7 @@ gdm_builder <- function(site.env.data,
                              rnd.Mean.Absolute.Error = final.mod.MAE.rnd.set,
                              rnd.Root.Mean.Squre.Error = final.mod.RMSE.rnd.set,
                              rnd.Equalised.RMSE = final.mod.equRMSE.rnd.set,
+                             dissimilarity.summary = final.mod.dissimilarity,
                              Mean.Final.GDM = Final.mod)
 
   ## Write the output list to file if specified ##

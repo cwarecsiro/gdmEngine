@@ -28,7 +28,7 @@
 #'@export
 sitepair_sample_environment=function(site.env.data,
                                      n.pairs.target,
-                                     env.colnames,
+                                     env.colnames=c('PTA','TXX'),
                                      dist.method="euclidean",
                                      n.pairs.sample=NULL, 
                                      a.used=0.05, 
@@ -48,7 +48,6 @@ sitepair_sample_environment=function(site.env.data,
     n.pairs.sample<-floor(n.pairs.target/10)
     }
   b.used<-(n.pairs.target/nrow(site.env.data))*b.used.factor
-  c.used<-(n.pairs.target/nrow(site.env.data))*c.used.factor
   # Create a table to catch the row indices for the pairs selected for modelling
   train.pairs<-matrix(c(-3,-2,-1,0), nrow=2, ncol=2)
   colnames(train.pairs)<-c("temp.i", "temp.j")
