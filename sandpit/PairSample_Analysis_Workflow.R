@@ -101,8 +101,9 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
 ##TEMP##
 Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2017-12-14.csv")
 Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-01-05.csv")
+# correct the predictor data causing gdm to fall over
+Site.Env.Data$WDX[which(Site.Env.Data$WDX>800)]<-max(Site.Env.Data$WDX[Site.Env.Data$WDX<800])
 ##ENDTEMP##
-
 
 # Now create a parameter table listing the possible combinations 
 parameter.tbl <- expand.grid(p.sample.method=c('random','geodist','envdist','geodens'),
@@ -132,6 +133,7 @@ parameter.tbl<-parameter.tbl[order(parameter.tbl$p.sample.method),]
 parameter.tbl$run.name<-paste0("Amph_",parameter.tbl$p.sample.method,"_",c(1:nrow(parameter.tbl)))
 # Now run all the parameter combinations
 analysis.out.folder<-"//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleTesting"
+write.csv(parameter.tbl,paste0(analysis.out.folder,"/Amph_parameters.csv"),row.names = FALSE)
 for(i.run in 1:nrow(parameter.tbl))
   {
   ptm <- proc.time()
@@ -157,10 +159,10 @@ for(i.run in 1:nrow(parameter.tbl))
 # Or for parallel implementation...
 library(foreach)
 library(doParallel)
-cl<-makeCluster(14) #setup parallel backend to use 10 processors
+cl<-makeCluster(10) #setup parallel backend to use 10 processors
 registerDoParallel(cl) 
 # run the parallel loop over parameter combinations
-foreach(i.run=1:nrow(parameter.tbl)) %dopar% {
+foreach(i.run=1:nrow(parameter.tbl), .packages='gdmEngine') %dopar% {
   This.GDM <- gdm_builder(site.env.data = Site.Env.Data, 
                           composition.data = Selected.records,
                           geo=parameter.tbl$p.geo[i.run],
