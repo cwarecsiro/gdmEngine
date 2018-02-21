@@ -162,7 +162,8 @@ library(doParallel)
 cl<-makeCluster(10) #setup parallel backend to use 10 processors
 registerDoParallel(cl) 
 # run the parallel loop over parameter combinations
-foreach(i.run=1:nrow(parameter.tbl), .packages='gdmEngine') %dopar% {
+#foreach(i.run=1:nrow(parameter.tbl), .packages='gdmEngine') %dopar% {
+foreach(i.run=1:100, .packages='gdmEngine') %dopar% {
   This.GDM <- gdm_builder(site.env.data = Site.Env.Data, 
                           composition.data = Selected.records,
                           geo=parameter.tbl$p.geo[i.run],

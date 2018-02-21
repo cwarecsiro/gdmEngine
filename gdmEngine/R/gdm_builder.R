@@ -357,7 +357,7 @@ gdm_builder <- function(site.env.data,
     {
     var.index.vars.in <- which(in.vars.in > 0)
     n.vars.in <- sum(in.vars.in)
-    in.vars.cols <- c(1:6, (6+var.index.vars.in), (6+n.vars.in+var.index.vars.in) )
+    in.vars.cols <- c(1:6, (6+var.index.vars.in), (6+length(in.vars.in)+var.index.vars.in) )
     drop.stats.D2[var.index.vars.in,out.col] <- 0
     drop.stats.RMSE[var.index.vars.in,out.col] <- 0  
     drop.stats.eRMSE[var.index.vars.in,out.col] <- 0
