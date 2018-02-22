@@ -134,13 +134,13 @@ gdm_builder <- function(site.env.data,
                                                    domain.mask=domain.mask,
                                                    b.used.factor=b.used.factor,
                                                    sigma.spair=sigma.spair,
-                                                   spair.factor=spair.factor)
+                                                   b.spair.factor=spair.factor)
       Pairs.Table.Test <- sitepair_sample_density(site.env.data = Test.Site.Env.Data,
                                                   n.pairs.target = n.pairs.test,
                                                   domain.mask=domain.mask,
                                                   b.used.factor=b.used.factor,
                                                   sigma.spair=sigma.spair,
-                                                  spair.factor=spair.factor)
+                                                  b.spair.factor=spair.factor)
       }#end if sample.method == 'geodens'
     # And always have a purely random set of site-pairs for model testing as well
     Pairs.Table.Test.Rnd <- sitepair_sample_random(site.env.data = Test.Site.Env.Data,
@@ -517,7 +517,7 @@ gdm_builder <- function(site.env.data,
                                                    domain.mask=domain.mask,
                                                    b.used.factor=b.used.factor,
                                                    sigma.spair=sigma.spair,
-                                                   spair.factor=spair.factor)
+                                                   b.spair.factor=spair.factor)
     }#end if sample.method == 'geodens'
     ##  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  ##
     Pairs.Table.Train <- calculate_dissimilarities(pairs.table = Pairs.Table.Train, 
@@ -577,7 +577,7 @@ gdm_builder <- function(site.env.data,
                                                            'b.dpair.factor',
                                                            'b.epair.factor',
                                                            'sigma.spair',
-                                                           'spair.factor',
+                                                           'b.spair.factor',
                                                            'output.folder',       
                                                            'output.name')),
                                    value=as.character(c(geo,
