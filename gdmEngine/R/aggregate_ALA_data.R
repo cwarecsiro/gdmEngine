@@ -14,6 +14,7 @@
 #'@examples output = aggregate_data(my.data, my.raster)
 #'
 #'@importFrom raster raster
+#'@importFrom plyr count
 #'
 #'@export
 aggregate_ALA_data = function(ALA.filtered.data,
@@ -51,7 +52,7 @@ aggregate_ALA_data = function(ALA.filtered.data,
     ALA.filtered.data$xy <- paste(ALA.filtered.data$decimalLongitude, ALA.filtered.data$decimalLatitude, sep = '_')
   
     # Create a new data frame with the number of records in each grid cell
-    nrec <- count(ALA.filtered.data$xy)
+    nrec <- plyr::count(ALA.filtered.data$xy)
     colnames(nrec)<- c("xy","n.records")
     nrec$xy <- as.character(nrec$xy)
     ll <- strsplit(nrec[,1], '_')
@@ -118,6 +119,15 @@ aggregate_ALA_data = function(ALA.filtered.data,
     ALA.filtered.data <- ALA.filtered.data.agg[,-which(names(ALA.filtered.data.agg) %in% c("xy"))]
     } # end if !is.null(agg.radius.ncells)
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##
+  
+  ## Filter again to ensure all locations are on the spatial grid #NEW Mar18
+  if(!is.null(domain.mask)){
+    pts<-cbind(ALA.filtered.data$decimalLongitude,ALA.filtered.data$decimalLatitude)
+    sp <- SpatialPoints(pts)  
+    grd.pts<-extract(domain.mask, sp)
+    ALA.filtered.data <- ALA.filtered.data[!is.na(grd.pts),]
+  } # end if !is.null(domain.mask)
+  
   
   # Get the number of grid cells that the data has been aggregated to
   cells.location <- ALA.filtered.data[,which(names(ALA.filtered.data) %in% c("decimalLongitude", "decimalLatitude"))]

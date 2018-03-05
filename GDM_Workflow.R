@@ -14,8 +14,8 @@ library(ALA4R)
 library(raster)
 library(gdmEngine)
 library(data.table)
-#library(dplyr)
-#library(magrittr)
+library(dplyr)
+library(magrittr)
 #library(plyr)
 #library(assertthat)
 #library(spatstat)
@@ -31,10 +31,11 @@ location.uncertainty.limit = 2000
 # Specify Environmental layers
 climate.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/1990", full.names=TRUE, pattern = ".flt")
 terrain.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/LAND", full.names=TRUE, pattern = ".flt")
-env.files <- c(climate.files, terrain.files)
+soil.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_HCAS_work/HCAS2.0/HCAS2.0a/ENV/SOIL/TOP", full.names=TRUE, pattern = ".flt")
+env.files <- c(climate.files, terrain.files, soil.files)
 env.files <- env.files[(substr(env.files, nchar(env.files)-3, nchar(env.files)) == ".flt")] # to remove some arcmap filenames
-env.files <- env.files[-c(20,21,32,35,36,38,39,40,43,44,45,46)] # remove grids we don't want to assess in the modelling
-env.stk <- stack(env.files)
+env.files <- env.files[-c(26,29,30,32,33,34,37,38,39,40)] # remove grids we don't want to assess in the modelling
+env.stk <- stack(env.files, quick=TRUE) #env.stk <- stack(env.files)
 
 # PLANTS INPUTS
 species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/APC_and_Orchid_SpeciesNames.csv"
@@ -43,6 +44,15 @@ species.names <- as.character(species.names[,1])
 species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants"
 species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/raw_files"
 data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants"
+agg.cell.rad <- 2.25
+min.rich.limit <- 10
+max.rich.limit <- 400
+min.rich.rad <- 200
+min.rich.proportion <- 0.25
+n.pairs.model <- 100000
+train.proportion <- 0.8
+n.pairs.test <- 20000
+
 
 # AMPHIBIANS INPUTS
 species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/amphibians/AFD-20171211T130458.csv"
@@ -99,22 +109,23 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
                                   output.folder = data.processing.folder)
 
 ##TEMP##
-Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2017-12-14.csv")
-Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-01-05.csv")
+#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
+Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-01.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-03-02.csv")
+
 
 ## DERIVE A GDM --------------------------------------------------------------------------##
 ptm <- proc.time()
 Final.GDM <- gdm_builder(site.env.data = Site.Env.Data, 
                         composition.data = Selected.records ,
                         geo=TRUE,
-                        train.proportion = 0.8,
                         n.pairs.train = n.pairs.model,
                         n.pairs.test = n.pairs.test,
-                        n.crossvalid.tests = 10,
-                        correlation.threshold = 0.7,
                         selection.metric = 'RMSE',
+                        sample.method = 'random',
                         Indiv.Dev.Explained.Min = 1.0,
-                        n.predictors.min = 8,
+                        n.predictors.min = 10,
                         output.folder = data.processing.folder,       
                         output.name = "gdm_builder_FinMod") 
 proc.time() - ptm

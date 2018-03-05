@@ -14,6 +14,9 @@
 #'
 #'@examples output = merge_downloads('C:/Users/raw_files')
 #'
+#'@importFrom magrittr %>%
+#'@importFrom parallel detectCores makeCluster clusterExport clusterEvalQ parLapply stopCluster
+#'
 #'@export
 merge_downloads = function(src, 
                            output.folder = NULL,       
@@ -102,7 +105,7 @@ merge_downloads = function(src,
     writeLines("###",con = fileConn)
     writeLines("### ALA data filtration log file ",con = fileConn)
     writeLines("###",con = fileConn)
-    writeLines(paste0("### Created ",Sys.time()," using the filter_ALA_data() function."),con = fileConn)
+    writeLines(paste0("### Created ",Sys.time()," using the merge_downloads() function."),con = fileConn)
     writeLines("###",con = fileConn)
     writeLines("#######################################################################",con = fileConn)
     writeLines("",con = fileConn)

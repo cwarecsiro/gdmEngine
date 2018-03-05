@@ -47,7 +47,7 @@ select_gridcells_composition = function(ALA.aggregated.data,
     agg.check$select[agg.check$richness < min.richness.threshold] <- 0
     }#end if !is.null(min.richness.threshold) 
 
-  # If we're applying a minimum richness threshold, remove those cells
+  # If we're applying a maximum richness threshold, remove those cells
   if(!is.null(max.richness.threshold))
     {
     agg.check$select[agg.check$richness > max.richness.threshold] <- 0

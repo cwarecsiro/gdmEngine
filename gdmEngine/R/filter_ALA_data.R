@@ -82,15 +82,16 @@ filter_ALA_data = function(ALA.download.data,
   # select only the data we will/might use later
   #ALA.data <- ALA.data[,c(1,8,10,11:15)] # "occurrenceID", "scientificName", "taxonRank", "eventDate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters"
   if(is.null(select.fields)){
-    select.fields = c("occurrenceID", "scientificName", "taxonRank", "eventDate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters")
+    select.fields = c("occurrenceID", "specificEpithet", "taxonRank", "eventDate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters")
   } else {
     check_fields = all(select.fields %in% names(amphibs_filt))
     if(!check_fields){
-      select.fields = c("occurrenceID", "scientificName", "taxonRank", "eventDate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters")
+      select.fields = c("occurrenceID", "specificEpithet", "taxonRank", "eventDate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters")
       warning('Specified select.fields were not found in the dataset - returning default fields instead')
     }
   }
   ALA.data = subset(ALA.data, select = select.fields)
+  colnames(ALA.data)[2]='scientificName' ## changing 'specificEpithet' to 'scientificName' for convenience (later functions assume 'scientificName') 
   
   # write the data to file, if an output folder is specified
   if(!is.null(output.folder))

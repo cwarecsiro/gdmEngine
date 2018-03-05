@@ -44,13 +44,6 @@ Largely a hack of the ALA4R function 'occurrences'
 \note{
 strips away much of the functionality of the ALA4R function
 }
-\examples{
-download_occurrences(taxon="genus:Wandella", wkt="POLYGON((112.0+44.0,154.0+44.0,154.0+9.0,112.0+9.0,112.0+44.0))", 
-method = "offline",email="karel.mokany@csiro.au", download_reason_id="7", verbose = TRUE)
-
-nameNotSupplied',
-decimalLatLongCalculationFromVerbatimFailed',
-}
 \seealso{
 ALA4R
 }

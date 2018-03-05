@@ -83,7 +83,10 @@ gdm_builder <- function(site.env.data,
     }else{
     test.col<-2 # RMSE
     } # end if !selection.metric...
-
+  # ensure specis names are a factor in composition.data
+  if(!is.factor(composition.data$scientificName))
+    {composition.data$scientificName<-as.factor(composition.data$scientificName)}
+  
   ptm <- proc.time()
   ## CREATE CROSS_VALIDATION SETS ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##  
   # Store the site-pair data in a list
