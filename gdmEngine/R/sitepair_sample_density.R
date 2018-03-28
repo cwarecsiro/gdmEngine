@@ -77,6 +77,8 @@ sitepair_sample_density=function(site.env.data,
     temp.i<-rowMins(ij.pairs)
     temp.j<-rowMaxs(ij.pairs)
     ij.pairs<-cbind(temp.i,temp.j)
+    # remove any pairs composed of the same site
+    ij.pairs <- ij.pairs[(ij.pairs[,1] != ij.pairs[,2]),]
     # omit duplicate site pairs within this sample (note: we wouldn't do this step under a bootstrapping approach)
     ij.pairs<-unique(ij.pairs)
     # and omit site pairs that have already been selected

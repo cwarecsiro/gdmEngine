@@ -38,9 +38,14 @@ gdm_SingleCrossValidation=function(GDM_Table_Training_In,
   # now predict the dissimilarity for the test sites (pairs)
   pred.test <- predict(train.mod,
                        GDM_Table_Testing)
-  
+  # and fit a gdm to the test data to get the null deviance
+  test.mod <- gdm(GDM_Table_Testing[,c(1:6)], geo=TRUE)
   # reset the warnings
   options(warn = oldw)
+  
+  # NEW - calculate deviance explained for the test data
+  test.data.gdm.deviance <- calculate_gdm_deviance(pred.test, GDM_Table_Testing$distance)
+  test.D2 <- ((test.mod$nulldeviance - test.data.gdm.deviance) / test.mod$nulldeviance)*100
   
   # calculate an array of test statistics using observed & predicted dissimilarities in the
   # testing data
@@ -80,6 +85,7 @@ gdm_SingleCrossValidation=function(GDM_Table_Training_In,
   equ.RMSE<-mean(obs.value.err[,3], na.rm=TRUE)
   # write the outputs of the function
   list(Deviance.Explained = train.mod$explained,
+       Test.Deviance.Explained = test.D2,
        Mean.Error = ME,
        Mean.Absolute.Error = MAE,
        Root.Mean.Squre.Error = RMSE,

@@ -10,6 +10,7 @@
 
 
 # Load libraries
+library(gdmEngine)
 library(ALA4R)
 library(raster)
 library(gdmEngine)
@@ -31,7 +32,8 @@ location.uncertainty.limit = 2000
 # Specify Environmental layers
 climate.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/1990", full.names=TRUE, pattern = ".flt")
 terrain.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/LAND", full.names=TRUE, pattern = ".flt")
-soil.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_HCAS_work/HCAS2.0/HCAS2.0a/ENV/SOIL/TOP", full.names=TRUE, pattern = ".flt")
+#soil.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_HCAS_work/HCAS2.0/HCAS2.0a/ENV/SOIL/TOP", full.names=TRUE, pattern = ".flt")
+soil.files <- list.files(path = "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/env/SOIL/TOP", full.names=TRUE, pattern = ".flt")
 env.files <- c(climate.files, terrain.files, soil.files)
 env.files <- env.files[(substr(env.files, nchar(env.files)-3, nchar(env.files)) == ".flt")] # to remove some arcmap filenames
 env.files <- env.files[-c(26,29,30,32,33,34,37,38,39,40)] # remove grids we don't want to assess in the modelling
@@ -71,6 +73,42 @@ n.pairs.model <- 100000
 train.proportion <- 0.8
 n.pairs.test <- 20000
 
+# LAND SNAIL INPUTS
+species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails/AusLandSnails_ALASpeciesList_9Mar18.csv"
+species.names <- read.csv(species.names.file)
+species.names <- species.names$Species.Name
+species.names <- unique(species.names)
+species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails"
+species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails/raw_files"
+data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails"
+agg.cell.rad <- 2.25
+min.rich.limit <- 2
+max.rich.limit <- 50
+min.rich.rad <- 50
+min.rich.proportion <- 0.25
+n.pairs.model <- 50000
+train.proportion <- 0.8
+n.pairs.test <- 10000
+
+
+# REPTILE INPUTS
+species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/AFD-20171211T113438.csv"
+species.names <- read.csv(species.names.file)
+species.names <- paste(species.names$GENUS, species.names$SPECIES)
+species.names <- unique(species.names)
+species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles"
+species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/raw_files"
+data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles"
+agg.cell.rad <- 2.25
+min.rich.limit <- 3
+max.rich.limit <- 50
+min.rich.rad <- 200
+min.rich.proportion <- 0.25
+n.pairs.model <- 100000
+train.proportion <- 0.8
+n.pairs.test <- 20000
+
+
 ## DOWNLOAD BIOLOGICAL DATA FROM ALA -----------------------------------------------------##
 # Download the species records from ALA
 download_taxalist(specieslist = species.names,
@@ -109,10 +147,18 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
                                   output.folder = data.processing.folder)
 
 ##TEMP##
-#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
-#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
-Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-01.csv")
-Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-03-02.csv")
+#AMPHIBIANS -------
+Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
+#VASCULAR PLANTS -------
+#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-03-07.csv")
+#LAND SNAILS -------
+#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/selected_gridcell_composition_2018-03-09.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/site_env_data_2018-03-09.csv")
+#Reptiles ---------
+Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/selected_gridcell_composition_2018-03-15.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/site_env_data_2018-03-15.csv")
 
 
 ## DERIVE A GDM --------------------------------------------------------------------------##
@@ -122,15 +168,15 @@ Final.GDM <- gdm_builder(site.env.data = Site.Env.Data,
                         geo=TRUE,
                         n.pairs.train = n.pairs.model,
                         n.pairs.test = n.pairs.test,
-                        selection.metric = 'RMSE',
+                        selection.metric = 'D2',
                         sample.method = 'random',
                         Indiv.Dev.Explained.Min = 1.0,
-                        n.predictors.min = 10,
+                        n.predictors.min = 16,
                         output.folder = data.processing.folder,       
                         output.name = "gdm_builder_FinMod") 
 proc.time() - ptm
 
-## ADITIONAL STUFF ##---------------------------------------------------------------------##
+## ADITIONAL STUFF ##-----------------------???----------------------------------------------##
 #Random sample
 Pairs.Table.Rnd <- sitepair_sample_random(site.env.data = Site.Env.Data,
                                           n.pairs.target = n.pairs.model)

@@ -61,6 +61,40 @@ n.pairs.model <- 100000
 train.proportion <- 0.8
 n.pairs.test <- 20000
 
+# LAND SNAIL INPUTS
+species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails/AusLandSnails_ALASpeciesList_9Mar18.csv"
+species.names <- read.csv(species.names.file)
+species.names <- species.names$Species.Name
+species.names <- unique(species.names)
+species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails"
+species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails/raw_files"
+data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails"
+agg.cell.rad <- 2.25
+min.rich.limit <- 2
+max.rich.limit <- 50
+min.rich.rad <- 50
+min.rich.proportion <- 0.25
+n.pairs.model <- 50000
+train.proportion <- 0.8
+n.pairs.test <- 10000
+
+
+# REPTILE INPUTS
+species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/AFD-20171211T113438.csv"
+species.names <- read.csv(species.names.file)
+species.names <- paste(species.names$GENUS, species.names$SPECIES)
+species.names <- unique(species.names)
+species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles"
+species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/raw_files"
+data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles"
+agg.cell.rad <- 2.25
+min.rich.limit <- 3
+max.rich.limit <- 50
+min.rich.rad <- 200
+min.rich.proportion <- 0.25
+n.pairs.model <- 100000
+train.proportion <- 0.8
+
 ## DOWNLOAD BIOLOGICAL DATA FROM ALA -----------------------------------------------------##
 # Download the species records from ALA
 download_taxalist(specieslist = species.names,
@@ -99,10 +133,18 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
                                   output.folder = data.processing.folder)
 
 ##TEMP##
-Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2017-12-14.csv")
-Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-01-05.csv")
-# correct the predictor data causing gdm to fall over
-Site.Env.Data$WDX[which(Site.Env.Data$WDX>800)]<-max(Site.Env.Data$WDX[Site.Env.Data$WDX<800])
+#AMPHIBIANS -------
+#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
+#VASCULAR PLANTS -------
+#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-03-07.csv")
+#LAND SNAILS -------
+#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/selected_gridcell_composition_2018-03-09.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/site_env_data_2018-03-09.csv")
+#Reptiles ---------
+Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/selected_gridcell_composition_2018-03-15.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/site_env_data_2018-03-15.csv")
 ##ENDTEMP##
 
 ## NOW RUN THE SITEPAIR SAMPLING PARAMETER ASSESSMENT ------------------------------------##
@@ -133,8 +175,8 @@ parameter.tbl<-unique(parameter.tbl)
 parameter.tbl<-parameter.tbl[order(parameter.tbl$p.sample.method),]
 parameter.tbl$run.name<-paste0("Amph_",parameter.tbl$p.sample.method,"_",c(1:nrow(parameter.tbl)))
 # Now run all the parameter combinations
-analysis.out.folder<-"//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleTesting"
-write.csv(parameter.tbl,paste0(analysis.out.folder,"/Amph_parameters.csv"),row.names = FALSE)
+analysis.out.folder<-"//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/SitePairSampleTesting"
+write.csv(parameter.tbl,paste0(analysis.out.folder,"/reptile_parameters.csv"),row.names = FALSE)
 # for(i.run in 1:nrow(parameter.tbl))
 #   {
 #   ptm <- proc.time()
@@ -161,16 +203,16 @@ write.csv(parameter.tbl,paste0(analysis.out.folder,"/Amph_parameters.csv"),row.n
 # Or for parallel implementation...
 library(foreach)
 library(doParallel)
-cl<-makeCluster(10) #setup parallel backend to use 10 processors
+cl<-makeCluster(12) #setup parallel backend to use 10 processors
 registerDoParallel(cl) 
 # run the parallel loop over parameter combinations
-foreach(i.run=191:nrow(parameter.tbl), .packages='gdmEngine') %dopar% {
+foreach(i.run=1:nrow(parameter.tbl), .packages='gdmEngine') %dopar% {
   This.GDM <- gdm_builder(site.env.data = Site.Env.Data, 
                           composition.data = Selected.records,
                           geo=parameter.tbl$p.geo[i.run],
                           n.pairs.train = parameter.tbl$p.n.pairs.train[i.run],
                           n.pairs.test = parameter.tbl$p.n.pairs.test[i.run],
-                          correlation.threshold = 0.75,
+                          correlation.threshold = 0.7,
                           selection.metric = parameter.tbl$p.selection.metric[i.run],
                           sample.method=parameter.tbl$p.sample.method[i.run],
                           Indiv.Dev.Explained.Min = parameter.tbl$p.Indiv.Dev.Explained.Min[i.run],
@@ -188,10 +230,10 @@ stopCluster(cl)
 
 ## SUMMARISE THE RESULTS FROM THE SITEPAIR SAMPLING ASSESSMENT ---------------------------##
 # Specify the folder where the output files are held
-analysis.out.folder<-"//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleTesting"
+analysis.out.folder<-"//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/SitePairSampleTesting"
 analysis.out.files<-as.character(list.files(analysis.out.folder))
 # Read in the parameter table
-parameter.tbl <- read.csv(paste0(analysis.out.folder,"/Amph_parameters.csv"))
+parameter.tbl <- read.csv(paste0(analysis.out.folder,"/reptile_parameters.csv"))
 # Create a table to catch the summary data
 results.tbl <- data.frame(ProcTime = as.numeric(rep(NA,times=nrow(parameter.tbl))),
                           nvars.FinalMod = as.numeric(rep(NA,times=nrow(parameter.tbl))),
@@ -232,127 +274,146 @@ for(i.run in 1:nrow(parameter.tbl))
     }# end if !is.na(f.name)
   } # end for i.run
 parameter.results.tbl <- cbind(parameter.tbl, results.tbl) 
-write.csv(parameter.results.tbl, paste0(analysis.out.folder,"/Amph_parameters_results.csv"), row.names = FALSE)
+write.csv(parameter.results.tbl, paste0(analysis.out.folder,"/reptile_parameters_results.csv"), row.names = FALSE)
 
 
 ## Plot results ###############################################
-# for p.b.used
-png(paste0(analysis.out.folder,"/Figures/p_b_used_factor_geodist_sample.png"),height=500,width=500)
-boxplot(rnd.Mn.RMSE ~ p.b.used.factor, 
-        data=parameter.results.tbl[parameter.results.tbl$p.sample.method=='geodist',], 
-        xlab='p.b.used.factor', ylab='rnd.Mn.RMSE', main='geodist sample')
-dev.off()
-png(paste0(analysis.out.folder,"/Figures/p_b_used_factor_envdist_sample.png"),height=500,width=500)
-boxplot(rnd.Mn.RMSE ~ p.b.used.factor, 
-        data=parameter.results.tbl[parameter.results.tbl$p.sample.method=='envdist',], 
-        xlab='p.b.used.factor', ylab='rnd.Mn.RMSE', main='envdist sample')
-dev.off()
-png(paste0(analysis.out.folder,"/Figures/p_b_used_factor_geodens_sample.png"),height=500,width=500)
-boxplot(rnd.Mn.RMSE ~ p.b.used.factor, 
-        data=parameter.results.tbl[parameter.results.tbl$p.sample.method=='geodens',], 
-        xlab='p.b.used.factor', ylab='rnd.Mn.RMSE', main='geodens sample')
-dev.off()
-png(paste0(analysis.out.folder,"/Figures/p_b_used_factor_random_sample.png"),height=500,width=500)
-boxplot(rnd.Mn.RMSE ~ p.b.used.factor, 
-        data=parameter.results.tbl[parameter.results.tbl$p.sample.method=='random',], 
-        xlab='p.b.used.factor', ylab='rnd.Mn.RMSE', main='random sample')
-dev.off()
+library(ggplot2)
+parameter.results.tbl<-read.csv('//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleTesting/amph_parameters_results.csv')
+figures.out.folder<-"//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleTesting/Figures"
+# convert factors to factors
+parameter.results.tbl$p.geo<-as.factor(parameter.results.tbl$p.geo)
+parameter.results.tbl$p.n.predictors.min<-as.factor(parameter.results.tbl$p.n.predictors.min)
+parameter.results.tbl$p.n.pairs.train<-as.factor(parameter.results.tbl$p.n.pairs.train)
+parameter.results.tbl$p.b.used.factor<-as.factor(parameter.results.tbl$p.b.used.factor)
+parameter.results.tbl$p.b.dpair.factor<-as.factor(parameter.results.tbl$p.b.dpair.factor)
+parameter.results.tbl$p.b.epair.factor<-as.factor(parameter.results.tbl$p.b.epair.factor)
+parameter.results.tbl$p.sigma.spair<-as.factor(parameter.results.tbl$p.sigma.spair)
+parameter.results.tbl$p.b.spair.factor<-as.factor(parameter.results.tbl$p.b.spair.factor)
 
+## for p.geo
+png(paste0(figures.out.folder,"/p_geo_rndMnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.geo, y=rnd.Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_geo_rndMneRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.geo, y=rnd.Mn.eRMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_geo_MnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.geo, y=Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_geo_rndMnMAE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.geo, y=rnd.Mn.MAE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_geo_MnMAE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.geo, y=Mn.MAE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+## for p.n.pairs.train
+png(paste0(figures.out.folder,"/p_nPairsTrain_d2FinMod.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.n.pairs.train, y=D2.FinalMod, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_nPairsTrain_rndMnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.n.pairs.train, y=rnd.Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_nPairsTrain_rndMneRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.n.pairs.train, y=rnd.Mn.eRMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_nPairsTrain_MnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.n.pairs.train, y=Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_nPairsTrain_rndMnMAE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.n.pairs.train, y=rnd.Mn.MAE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_nPairsTrain_MnMAE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.n.pairs.train, y=Mn.MAE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+## for p.b.used
+png(paste0(figures.out.folder,"/p_bUsedFactor_rndMnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.b.used.factor, y=rnd.Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_bUsedFactor_rndMneRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.b.used.factor, y=rnd.Mn.eRMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_bUsedFactor_MnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl, aes(x=p.b.used.factor, y=Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+## for p.b.dpair.factor with geo.dist method
+png(paste0(figures.out.folder,"/p_bdPairFactor_GeoDist_rndMnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl[!is.na(parameter.results.tbl$p.b.dpair.factor),], aes(x=p.b.dpair.factor, y=rnd.Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_bdPairFactor_GeoDist_rndMneRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl[!is.na(parameter.results.tbl$p.b.dpair.factor),], aes(x=p.b.dpair.factor, y=rnd.Mn.eRMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_bdPairFactor_GeoDist_MnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl[!is.na(parameter.results.tbl$p.b.dpair.factor),], aes(x=p.b.dpair.factor, y=Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+## for p.b.epair.factor with env dist method
+png(paste0(figures.out.folder,"/p_bePairFactor_EnvDist_rndMnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl[!is.na(parameter.results.tbl$p.b.epair.factor),], aes(x=p.b.epair.factor, y=rnd.Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_bePairFactor_EnvDist_rndMneRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl[!is.na(parameter.results.tbl$p.b.epair.factor),], aes(x=p.b.epair.factor, y=rnd.Mn.eRMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_bePairFactor_EnvDist_MnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl[!is.na(parameter.results.tbl$p.b.epair.factor),], aes(x=p.b.epair.factor, y=Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.sample.method)
+dev.off()#___
+## for p.sigma.spair & p.b.spair.factor with geo.dens method
+png(paste0(figures.out.folder,"/p_sPairSigma_GeoDens_rndMnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl[!is.na(parameter.results.tbl$p.sigma.spair),], aes(x=p.sigma.spair, y=rnd.Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.b.spair.factor)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_sPairSigma_GeoDens_rndMneRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl[!is.na(parameter.results.tbl$p.sigma.spair),], aes(x=p.sigma.spair, y=rnd.Mn.eRMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.b.spair.factor)
+dev.off()#___
+png(paste0(figures.out.folder,"/p_sPairSigma_GeoDens_MnRMSE.png"),height=500,width=500)
+ggplot(parameter.results.tbl[!is.na(parameter.results.tbl$p.sigma.spair),], aes(x=p.sigma.spair, y=Mn.RMSE, fill=p.n.predictors.min)) +
+  geom_boxplot() +
+  facet_grid(. ~ p.b.spair.factor)
+dev.off()#___
 
-
-
-
-
-
-# create factor names for'b.used.factor' parameter
-fnames.b.used <- paste0(parameter.results.tbl$p.sample.method,
-                        parameter.results.tbl$p.geo,
-                        parameter.results.tbl$p.n.predictors.min,
-                        parameter.results.tbl$p.n.pairs.train,
-                        #parameter.results.tbl$p.b.used.factor,
-                        parameter.results.tbl$p.b.dpair.factor,	
-                        parameter.results.tbl$p.b.epair.factor,	
-                        parameter.results.tbl$p.sigma.spair,	
-                        parameter.results.tbl$p.b.spair.factor)
-out.b.used <- data.frame(fnames.b.used,
-                         p.sample.method=parameter.results.tbl$p.sample.method,
-                         p.n.predictors.min=parameter.results.tbl$p.n.predictors.min,
-                         p.b.used.factor=parameter.results.tbl$p.b.used.factor,
-                         rnd.Mn.RMSE=parameter.results.tbl$rnd.Mn.RMSE)
-ggplot(out.b.used[out.b.used$p.sample.method=='geodist',], aes(x=p.b.used.factor, y=rnd.Mn.RMSE, colour=fnames.b.used)) + geom_line()
-boxplot(rnd.Mn.RMSE ~ p.b.used.factor, data=out.b.used[out.b.used$p.sample.method=='geodist',], xlab='p.b.used.factor', ylab='rnd.Mn.RMSE')
-
-plot(p.b.used.factor,rnd.Mn.RMSE,data=out.b.used)
-
-#Rand Samp
-plot(x=parameter.results.tbl$p.b.used.factor[parameter.results.tbl$p.sample.method=='random'],
-     y=parameter.results.tbl$rnd.Mn.RMSE[parameter.results.tbl$p.sample.method=='random'], col=parameter.results.tbl$)
-
-plot(x=p.b.used.factor[p.sample.method=='random'], y=rnd.Mn.RMSE[p.sample.method=='random'], data=parameter.results.tbl)
-
-
-boxplot(rnd.Mn.RMSE ~ p.sample.method, data=parameter.results.tbl, ylab='rnd.Mn.RMSE')
-boxplot(rnd.Mn.eRMSE ~ p.sample.method, data=parameter.results.tbl, ylab='rnd.Mn.eRMSE') 
-boxplot(rnd.Mn.MAE ~ p.sample.method, data=parameter.results.tbl, ylab='rnd.Mn.MAE') 
-boxplot(D2.FinalMod ~ p.sample.method, data=parameter.results.tbl, ylab='D2.FinalMod') 
-
-  
-  
-  
-  
-  
-  
-
-
-
-
-
-
-
-
-
-
-
-##NOT USED##################################################################################
-## DERIVE A GDM --------------------------------------------------------------------------##
-ptm <- proc.time()
-Final.GDM <- gdm_builder(site.env.data = Site.Env.Data, 
-                        composition.data = Selected.records ,
-                        geo=TRUE,
-                        n.pairs.train = n.pairs.model,
-                        n.pairs.test = n.pairs.test,
-                        selection.metric = 'RMSE',
-                        Indiv.Dev.Explained.Min = 1.0,
-                        n.predictors.min = 8,
-                        output.folder = data.processing.folder,       
-                        output.name = "gdm_builder_FinMod") 
-proc.time() - ptm
-
-## ADITIONAL STUFF ##---------------------------------------------------------------------##
-#Random sample
-Pairs.Table.Rnd <- sitepair_sample_random(site.env.data = Site.Env.Data,
-                                          n.pairs.target = n.pairs.model)
-#Geographic distance based sample
-Pairs.Table.Geo <- sitepair_sample_geographic(site.env.data = Site.Env.Data,
-                           n.pairs.target = n.pairs.model,
-                           a.used=0.05, 
-                           b.used.factor=2, 
-                           c.used=3, 
-                           a.dpair=0.05, 
-                           b.dpair.factor=2, 
-                           c.dpair=3)
-
-# Environmental distance based sample
-♦# Neighbourhood site-density based sample (weighted towards less sampled areas)
-Pairs.Table.Dens <- sitepair_sample_density(site.env.data = Site.Env.Data,
-                                            n.pairs.target = n.pairs.model,
-                                            domain.mask = Aus.domain.mask,
-                                            a.used=0.05, 
-                                            b.used.factor=2, 
-                                            c.used=3, 
-                                            sigma.spair=0.5,
-                                            a.spair=0.05, 
-                                            b.spair.factor=1.0, 
-                                            c.spair=1)
+## End of plotting
+#############################################################
 
 

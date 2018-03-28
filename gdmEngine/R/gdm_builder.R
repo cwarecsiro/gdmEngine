@@ -10,7 +10,7 @@
 #'@param n.pairs.test (integer) The number of site-pairs to use in testing the GDM. If not specified, the default is to use the same ratio of site-pairs to availabel sites as was used to train the model. (default = NULL)
 #'@param n.crossvalid.tests (integer) The number of cross-validation sets to use in deriving the GDM. (default = 10)
 #'@param correlation.threshold (float) The maximum correlation (Pearson's R) permitted between candidate predictor variables, as derived from the sites in 'site.env.data'. (default = 0.7)
-#'@param selection.metric (string) The model test metric to use in backward elimination of variables for model selection. Options are 'RMSE' or 'equalised RMSE'. (default = 'RMSE')
+#'@param selection.metric (string) The model test metric to use in backward elimination of variables for model selection. Options are 'D2' (deviance explained), 'RMSE' (root mean square error), or 'equalised RMSE'. (default = 'D2')
 #'@param sample.method (string) The site-pair sample method to use. Options are 'random', 'geodist' (geographic distance), 'envdist' (environmental distance), 'geodens' (geographic density). (default = 'random')
 #'@param Indiv.Dev.Explained.Min (float) The minimum amount of deviance explained when potential predictors are assessed individually. (default = 1.0)
 #'@param n.predictors.min (integer) The target (or minimum) number of predictor variables in the final model. (default = 8)
@@ -27,6 +27,7 @@
 #'@importFrom gdm gdm
 #'@importFrom gdm predict.gdm
 #'@importFrom raster pointDistance
+#'@importFrom DescTools Gini
 #'
 #'@export
 gdm_builder <- function(site.env.data, 
@@ -37,7 +38,7 @@ gdm_builder <- function(site.env.data,
                         n.pairs.test = NULL,
                         n.crossvalid.tests = 10,
                         correlation.threshold = 0.7,
-                        selection.metric = 'RMSE',
+                        selection.metric = 'D2',
                         sample.method = 'random',
                         Indiv.Dev.Explained.Min = 1.0,
                         n.predictors.min = 8,
@@ -79,7 +80,11 @@ gdm_builder <- function(site.env.data,
   n.vars <- ncol(site.env.data) - n.cols.start 
   # Codify the metric to be used for model selection
   if(!selection.metric=='RMSE'){
-    test.col<-3 # equalised RMSE
+    if(selection.metric=='D2'){
+      test.col<-4 # deviance explained on test data
+      }else{
+      test.col<-3 # equalised RMSE
+      }# end else
     }else{
     test.col<-2 # RMSE
     } # end if !selection.metric...
@@ -183,7 +188,13 @@ gdm_builder <- function(site.env.data,
   ind.var.test.stats.sampairs <- matrix(0, nrow = (n.vars+1), ncol=4)
   row.names(ind.var.test.stats.sampairs)<- c(colnames(site.env.data[,c((n.cols.start+1):ncol(site.env.data))]),"Geographic")
   colnames(ind.var.test.stats.sampairs) <- c("Mean.Absolute.Error", "Root.Mean.Squre.Error", "Equalised.RMSE","Deviance.Explained")
-  # copy this output file for the randomly selected testing pairs [?? Not sure we need to do this at this stage]
+  # Create a copy of site.env.data and remove all outliers (make them NA),  as they blow up GDM in single-variable fitting
+  site.env.data.nout <- site.env.data
+  for(i.var in 1:n.vars)
+    {
+    site.env.data.nout[site.env.data.nout[,(n.cols.start+i.var)] %in% boxplot.stats(site.env.data.nout[,(n.cols.start+i.var)])$out, (n.cols.start+i.var)] <- NA
+    }#end for i.var  
+    
   # Loop through cross-validation sets  
   for(i.test in 1:n.crossvalid.tests)
     { 
@@ -195,12 +206,12 @@ gdm_builder <- function(site.env.data,
       {  
       # Catch the env data for both sites in the pair
       # TRAINING
-      s1.predictor <- site.env.data[match(as.character(Pairs.Table.Train$s1.site.ID), as.character(site.env.data$xy)), (n.cols.start+i.var)]
-      s2.predictor <- site.env.data[match(as.character(Pairs.Table.Train$s2.site.ID), as.character(site.env.data$xy)), (n.cols.start+i.var)]
+      s1.predictor <- site.env.data.nout[match(as.character(Pairs.Table.Train$s1.site.ID), as.character(site.env.data.nout$xy)), (n.cols.start+i.var)]
+      s2.predictor <- site.env.data.nout[match(as.character(Pairs.Table.Train$s2.site.ID), as.character(site.env.data.nout$xy)), (n.cols.start+i.var)]
       Training.table.In <- cbind(Pairs.Table.Train[,c(1:6)], s1.predictor, s2.predictor)
       # TESTING
-      s1.predictor <- site.env.data[match(as.character(Pairs.Table.Test$s1.site.ID), as.character(site.env.data$xy)), (n.cols.start+i.var)]
-      s2.predictor <- site.env.data[match(as.character(Pairs.Table.Test$s2.site.ID), as.character(site.env.data$xy)), (n.cols.start+i.var)]
+      s1.predictor <- site.env.data[match(as.character(Pairs.Table.Test$s1.site.ID), as.character(site.env.data.nout$xy)), (n.cols.start+i.var)]
+      s2.predictor <- site.env.data[match(as.character(Pairs.Table.Test$s2.site.ID), as.character(site.env.data.nout$xy)), (n.cols.start+i.var)]
       Testing.table.In <- cbind(Pairs.Table.Test[,c(1:6)], s1.predictor, s2.predictor)
       # Run the cross-validation - for strategically sampled test data 
       validation.results<- gdm_SingleCrossValidation(Training.table.In, 
@@ -219,7 +230,7 @@ gdm_builder <- function(site.env.data,
     ind.var.test.stats.sampairs[(n.vars+1),1] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),1]) + validation.results$Mean.Absolute.Error
     ind.var.test.stats.sampairs[(n.vars+1),2] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),2]) + validation.results$Root.Mean.Squre.Error
     ind.var.test.stats.sampairs[(n.vars+1),3] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),3]) + validation.results$Equalised.RMSE
-    ind.var.test.stats.sampairs[(n.vars+1),4] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),4]) + validation.results$Deviance.Explained
+    ind.var.test.stats.sampairs[(n.vars+1),4] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),4]) + validation.results$Test.Deviance.Explained
     } # end for i.test  
   # Now calculate the means
   ind.var.test.stats.sampairs <- ind.var.test.stats.sampairs / n.crossvalid.tests    
@@ -392,7 +403,7 @@ gdm_builder <- function(site.env.data,
         validation.results <- gdm_SingleCrossValidation(p.Training.table.In, 
                                                         p.Testing.table.In,
                                                         geo=geo)
-        drop.stats.D2[var.index.vars.in[i.var],out.col] <- drop.stats.D2[var.index.vars.in[i.var],out.col] + validation.results$Deviance.Explained
+        drop.stats.D2[var.index.vars.in[i.var],out.col] <- drop.stats.D2[var.index.vars.in[i.var],out.col] + validation.results$Test.Deviance.Explained
         drop.stats.RMSE[var.index.vars.in[i.var],out.col] <- drop.stats.RMSE[var.index.vars.in[i.var],out.col] + validation.results$Root.Mean.Squre.Error
         drop.stats.eRMSE[var.index.vars.in[i.var],out.col] <- drop.stats.eRMSE[var.index.vars.in[i.var],out.col] + validation.results$Equalised.RMSE
         } #end for i.var
@@ -402,7 +413,7 @@ gdm_builder <- function(site.env.data,
         validation.results <- gdm_SingleCrossValidation(Training.table.In, 
                                                         Testing.table.In,
                                                         geo=FALSE)
-        drop.stats.D2[nrow(drop.stats.D2),out.col] <- drop.stats.D2[nrow(drop.stats.D2),out.col] + validation.results$Deviance.Explained
+        drop.stats.D2[nrow(drop.stats.D2),out.col] <- drop.stats.D2[nrow(drop.stats.D2),out.col] + validation.results$Test.Deviance.Explained
         drop.stats.RMSE[nrow(drop.stats.RMSE),out.col] <- drop.stats.RMSE[nrow(drop.stats.RMSE),out.col] + validation.results$Root.Mean.Squre.Error
         drop.stats.eRMSE[nrow(drop.stats.eRMSE),out.col] <- drop.stats.eRMSE[nrow(drop.stats.eRMSE),out.col] + validation.results$Equalised.RMSE
         }#end if(geo)
@@ -418,6 +429,8 @@ gdm_builder <- function(site.env.data,
         {drop.var <- which.min(drop.stats.RMSE[,out.col])}
       if(test.col == 3)
         {drop.var <- which.min(drop.stats.eRMSE[,out.col])}
+      if(test.col == 4)
+        {drop.var <- which.max(drop.stats.D2[,out.col])}
       if(geo){
         if(drop.var<n.preds){ # then we are dropping an env predictor
           in.vars.in[drop.var] <- 0
@@ -441,9 +454,11 @@ gdm_builder <- function(site.env.data,
     final.mod.MAE.set <- rep(0, times=n.crossvalid.tests)
     final.mod.RMSE.set <- rep(0, times=n.crossvalid.tests)
     final.mod.equRMSE.set <- rep(0, times=n.crossvalid.tests)
+    final.mod.D2.set <- rep(0, times=n.crossvalid.tests)
     final.mod.MAE.rnd.set <- rep(0, times=n.crossvalid.tests)
     final.mod.RMSE.rnd.set <- rep(0, times=n.crossvalid.tests)
     final.mod.equRMSE.rnd.set <-rep(0, times=n.crossvalid.tests)
+    final.mod.D2.rnd.set <- rep(0, times=n.crossvalid.tests)
     for(i.test in 1:n.crossvalid.tests)  
       {
       # Grab the test and train site-pair data 
@@ -465,6 +480,7 @@ gdm_builder <- function(site.env.data,
       final.mod.MAE.set[i.test] <- validation.results.smp$Mean.Absolute.Error
       final.mod.RMSE.set[i.test] <- validation.results.smp$Root.Mean.Squre.Error
       final.mod.equRMSE.set[i.test] <- validation.results.smp$Equalised.RMSE
+      final.mod.D2.set[i.test] <- validation.results.smp$Test.Deviance.Explained
       # For a purely random sample
       validation.results.rnd<- gdm_SingleCrossValidation(Training.table.In, 
                                                          Testing.Rnd.table.In,
@@ -472,6 +488,7 @@ gdm_builder <- function(site.env.data,
       final.mod.MAE.rnd.set[i.test] <- validation.results.rnd$Mean.Absolute.Error
       final.mod.RMSE.rnd.set[i.test] <- validation.results.rnd$Root.Mean.Squre.Error
       final.mod.equRMSE.rnd.set[i.test] <- validation.results.rnd$Equalised.RMSE
+      final.mod.D2.rnd.set[i.test] <- validation.results.rnd$Test.Deviance.Explained
       } # end for each i.test
    } # end if n.preds <= n.predictors.min  
   ###################################################################################
@@ -487,6 +504,7 @@ gdm_builder <- function(site.env.data,
   n.params<-n.preds*3 # ASSUMING 3 KNOTS PER VARIABLE AT THE MOMENT
   intercept.set<-rep(0, times=n.crossvalid.tests)
   deviance.explained.set <- rep(0, times=n.crossvalid.tests)
+  final.mod.obs.dissim.evenness <- rep(0, times=n.crossvalid.tests)
   coefficients.set<-matrix(0, nrow=n.crossvalid.tests, ncol=n.params)
   knots.set<-matrix(0, nrow=n.crossvalid.tests, ncol=n.params)
   final.mod.dissimilarity<-matrix(0, nrow=n.crossvalid.tests, ncol=6, dimnames=list(paste0("sample",c(1:n.crossvalid.tests)),c("Min.","1st Qu.","Median","Mean","3rd Qu.","Max.")))
@@ -554,6 +572,8 @@ gdm_builder <- function(site.env.data,
     coefficients.set[i.test,] <- Final.mod$coefficients
     knots.set[i.test,] <- Final.mod$knots
     final.mod.dissimilarity[i.test,]<-summary(Training.table.In$distance)
+    dissim.hist <- hist(Training.table.In$distance, breaks=seq(from=0, to=1, by=0.025))
+    final.mod.obs.dissim.evenness[i.test] <- 1 - (DescTools::Gini(dissim.hist$counts))
     } # end for i.test
   #replace the final model object data with the mean values across models
   Final.mod$intercept<-mean(intercept.set)
@@ -610,12 +630,15 @@ gdm_builder <- function(site.env.data,
                              Predictors = Final.mod$predictors,
                              Deviance.Explained = deviance.explained.set,
                              Intercept = intercept.set,
+                             Dissimilarities.Evenness = final.mod.obs.dissim.evenness,
                              Mean.Absolute.Error = final.mod.MAE.set,
                              Root.Mean.Squre.Error = final.mod.RMSE.set,
                              Equalised.RMSE = final.mod.equRMSE.set,
+                             Deviance.Exp = final.mod.D2.set,
                              rnd.Mean.Absolute.Error = final.mod.MAE.rnd.set,
                              rnd.Root.Mean.Squre.Error = final.mod.RMSE.rnd.set,
                              rnd.Equalised.RMSE = final.mod.equRMSE.rnd.set,
+                             rnd.Deviance.Exp = final.mod.D2.rnd.set,
                              dissimilarity.summary = final.mod.dissimilarity,
                              Mean.Final.GDM = Final.mod)
 
