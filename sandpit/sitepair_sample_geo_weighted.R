@@ -30,6 +30,7 @@ sitepair_sample_geo_weighted=function(site.env.data,
                                       bandwidth=1, # NEW - bandwidth, in same x/y units as 'domain.mask'
                                       #n.pairs.sample=NULL, 
                                       domain.mask,
+                                      domain.mask.projected, #NEW - the domain raster in projected
                                       #a.used=0.05, 
                                       #b.used.factor=2, 
                                       #c.used=3, 

@@ -7,6 +7,7 @@
 library(raster)
 library(foreach)
 library(doParallel)
+library(sp)
 
 # specify the files
 climate.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/1990", full.names=TRUE, pattern = ".flt")
@@ -33,4 +34,18 @@ foreach(i.ras=32:length(env.files), .packages='raster') %dopar% {
   } # end for i.ras
 stopCluster(cl)
 
+# Just project the extent of a GCS raster to Albers
+Aus.Albers.ext <- projectExtent(domain.mask,
+                                crs=CRS("+init=epsg:3577"))
+
+# Project points in GCS to Albers
+site.pts.gcs <- SpatialPoints(coords=site.env.data[,c(3,4)],
+                              proj4string=domain.mask@crs)
+
+site.pts.pcs <- spTransform(site.pts.gcs,
+                            CRSobj=CRS("+init=epsg:3577"))
+
+# & test back-conversion
+site.pts.pcs.gcs <- spTransform(site.pts.pcs,
+                                CRSobj=domain.mask@crs)
 
