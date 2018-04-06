@@ -19,7 +19,7 @@ sitepair_sample_random(site.env.data, n.pairs.target, output.folder = NULL,
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
 }
 \value{
-Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated.
+Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated. Also includes four extra cols at the end, containing the decimal lat & long of both sites in the pair.
 }
 \description{
 Sample site-pairs randomly.

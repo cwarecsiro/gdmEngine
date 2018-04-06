@@ -9,8 +9,9 @@ gdm_builder(site.env.data, composition.data, geo = TRUE,
   n.crossvalid.tests = 10, correlation.threshold = 0.7,
   selection.metric = "D2", sample.method = "random",
   Indiv.Dev.Explained.Min = 1, n.predictors.min = 8, b.used.factor = 2,
-  b.dpair.factor = 0.5, b.epair.factor = 1, sigma.spair = 0.5,
-  spair.factor = 1, domain.mask = NULL, output.folder = NULL,
+  b.dpair.factor = 0.5, b.epair.factor = 1, sigma.spair = NULL,
+  spair.factor = 1, domain.mask = NULL, pcs.projargs = NULL,
+  bandwidth.geowt = NULL, output.folder = NULL,
   output.name = "gdm_builder_output", verbose = TRUE, ...)
 }
 \arguments{
@@ -37,6 +38,22 @@ gdm_builder(site.env.data, composition.data, geo = TRUE,
 \item{Indiv.Dev.Explained.Min}{(float) The minimum amount of deviance explained when potential predictors are assessed individually. (default = 1.0)}
 
 \item{n.predictors.min}{(integer) The target (or minimum) number of predictor variables in the final model. (default = 8)}
+
+\item{b.used.factor}{(float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs. This factor is multiplied by the ratio of n.pairs.target:n.sites in site.env.data to obtain the b.used parameter (default = 2)}
+
+\item{b.dpair.factor}{(float) For sample method 'geodist'. Multiplier for the decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair. This factor is multiplied by the mean pairwise distance to obtain the b.dpairparameter. (default = 0.5)}
+
+\item{b.epair.factor}{(float) For sample method 'envdist'. Multiplier for the decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair. This factor is multiplied by the mean environmental distance to obtain the b.epair parameter (default = 1)}
+
+\item{sigma.spair}{(float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = NULL, in which case the value is set to 5% of the total x-axis extent of 'domain.mask')}
+
+\item{spair.factor}{(float) For sample method 'geodens'. Multiplier for the decay curve parameter (x-value at curve inflection point) for the density of other sites around each site. This factor is multiplied by the mean density of sites to obtain the b.spair parameter. (default = 1.0)}
+
+\item{domain.mask}{(raster layer) A raster layer specifying the analysis domain}
+
+\item{pcs.projargs}{(character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, for example when 'domain.mask' is in geographic coordinate system. For Australian Albers, pcs.projargs="+init=epsg:3577". (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).}
+
+\item{bandwidth.geowt}{(float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. (default = NULL, in which case bandwidth is 5% of the x-axis extent)}
 
 \item{output.folder}{(string) A folder to save the outputs to. If none specified, no file is written.}
 

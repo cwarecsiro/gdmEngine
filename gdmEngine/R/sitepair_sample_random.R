@@ -8,7 +8,7 @@
 #'@param output.name (string) A name to use in saving the outputs. Default: 'pairs_table_dissim'.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
-#'@return Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated.
+#'@return Dataframe, site-pairs table, being first 6 columns of the GDM input table, with dissimilarities not calculated. Also includes four extra cols at the end, containing the decimal lat & long of both sites in the pair.
 #'
 #'@examples output = sitepair_sample_random(My.site.env.data, n.pairs.target=10000, output.folder = 'C:/Users/processed_data', output.name = 'My.sitepair.data')
 #'
@@ -73,10 +73,14 @@ sitepair_sample_random=function(site.env.data,
   # Prepare the start of a GDM input table for the pairs selected
   Pairs.table <- data.frame(distance	= 0,
                             weights = 1,
-                            s1.xCoord = site.env.data$decimalLongitude[train.pairs[,1]],
-                            s1.yCoord = site.env.data$decimalLatitude[train.pairs[,1]],
-                            s2.xCoord = site.env.data$decimalLongitude[train.pairs[,2]],
-                            s2.yCoord = site.env.data$decimalLatitude[train.pairs[,2]]) 
+                            s1.xCoord = site.env.data$xCoord[train.pairs[,1]],
+                            s1.yCoord = site.env.data$yCoord[train.pairs[,1]],
+                            s2.xCoord = site.env.data$xCoord[train.pairs[,2]],
+                            s2.yCoord = site.env.data$yCoord[train.pairs[,2]],
+                            s1.decimalLongitude = site.env.data$decimalLongitude[train.pairs[,1]],
+                            s1.decimalLatitude = site.env.data$decimalLatitude[train.pairs[,1]],
+                            s2.decimalLongitude = site.env.data$decimalLongitude[train.pairs[,2]],
+                            s2.decimalLatitude = site.env.data$decimalLatitude[train.pairs[,2]]) 
   
   return(Pairs.table)
   

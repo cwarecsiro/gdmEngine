@@ -13,7 +13,6 @@
 library(gdmEngine)
 library(ALA4R)
 library(raster)
-library(gdmEngine)
 library(data.table)
 library(dplyr)
 library(magrittr)
@@ -172,6 +171,8 @@ Final.GDM <- gdm_builder(site.env.data = Site.Env.Data,
                         sample.method = 'random',
                         Indiv.Dev.Explained.Min = 1.0,
                         n.predictors.min = 16,
+                        domain.mask=Aus.domain.mask,
+                        pcs.projargs="+init=epsg:3577",
                         output.folder = data.processing.folder,       
                         output.name = "gdm_builder_FinMod") 
 proc.time() - ptm

@@ -5,9 +5,9 @@
 \title{Sample-density based site-pair sampler}
 \usage{
 sitepair_sample_density(site.env.data, n.pairs.target, n.pairs.sample = NULL,
-  domain.mask, a.used = 0.05, b.used.factor = 2, c.used = 3,
-  sigma.spair = 0.5, a.spair = 0.05, b.spair.factor = 1, c.spair = 1,
-  output.folder = NULL, output.name = "site_pairs_data_dens",
+  domain.mask, pcs.projargs = NULL, a.used = 0.05, b.used.factor = 2,
+  c.used = 3, sigma.spair = NULL, a.spair = 0.05, b.spair.factor = 1,
+  c.spair = 1, output.folder = NULL, output.name = "site_pairs_data_dens",
   verbose = FALSE)
 }
 \arguments{
@@ -19,13 +19,15 @@ sitepair_sample_density(site.env.data, n.pairs.target, n.pairs.sample = NULL,
 
 \item{domain.mask}{(raster layer) A raster layer specifying the analysis domain}
 
+\item{pcs.projargs}{(character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, for example when 'domain.mask' is in geographic coordinate system. (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).}
+
 \item{a.used}{(float) The decay curve parameter (minimum y-value) for the number of times each site is used in selected pairs (default = 0.05)}
 
 \item{b.used.factor}{(float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs. This factor is multiplied by the ratio of n.pairs.target:n.sites in site.env.data to obtain the b.used parameter (default = 2)}
 
 \item{c.used}{(float) The decay curve parameter (slope of the curve) for the number of times each site is used in selected pairs. (default = 3)}
 
-\item{sigma.spair}{(float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = 0.5)}
+\item{sigma.spair}{(float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = NULL, in which case the value is set to 5% of the total x-axis extent of 'domain.mask')}
 
 \item{a.spair}{(float) The decay curve parameter (minimum y-value) for the number of sites within the neighbourhood radius (default = 0.05)}
 

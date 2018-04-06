@@ -6,10 +6,11 @@
 #'@param n.pairs.target (integer) The number of site-pairs to select.
 #'@param n.pairs.sample (integer) The number of pairs to assess simultaneously as part of the sampling process
 #'@param domain.mask (raster layer) A raster layer specifying the analysis domain
+#'@param pcs.projargs (character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, for example when 'domain.mask' is in geographic coordinate system. (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).
 #'@param a.used (float) The decay curve parameter (minimum y-value) for the number of times each site is used in selected pairs (default = 0.05)
 #'@param b.used.factor (float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs. This factor is multiplied by the ratio of n.pairs.target:n.sites in site.env.data to obtain the b.used parameter (default = 2)
 #'@param c.used (float) The decay curve parameter (slope of the curve) for the number of times each site is used in selected pairs. (default = 3) 
-#'@param sigma.spair (float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = 0.5)
+#'@param sigma.spair (float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = NULL, in which case the value is set to 5% of the total x-axis extent of 'domain.mask')
 #'@param a.spair (float) The decay curve parameter (minimum y-value) for the number of sites within the neighbourhood radius (default = 0.05)
 #'@param b.spair.factor (float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the density of other sites around each site. This factor is multiplied by the mean density of sites to obtain the b.spair parameter. (default = 1.0
 #'@param c.spair (float) The decay curve parameter (slope of the curve) for the number of sites within the neighbourhood radius (default = 3)
@@ -23,16 +24,19 @@
 #'
 #'@importFrom matrixStats rowMins rowMaxs
 #'@importFrom spatstat owin ppp density.ppp
+#'@importFrom raster projectExtent
+#'@importFrom sp CRS
 #'
 #'@export
 sitepair_sample_density=function(site.env.data,
                                     n.pairs.target,
                                     n.pairs.sample=NULL, 
                                     domain.mask,
+                                    pcs.projargs=NULL, #for Aus Albers: pcs.projargs="+init=epsg:3577"
                                     a.used=0.05, 
                                     b.used.factor=2, 
                                     c.used=3, 
-                                    sigma.spair=0.5,
+                                    sigma.spair=NULL,
                                     a.spair=0.05, 
                                     b.spair.factor=1.0, 
                                     c.spair=1, 
@@ -48,9 +52,20 @@ sitepair_sample_density=function(site.env.data,
     }# end if is.null(n.pairs.sample)
   b.used<-(n.pairs.target/nrow(site.env.data))*b.used.factor
   # Calculate the density of sites around each point, to use as a weighting
-  sites.window <- owin(xrange=c(domain.mask@extent@xmin,domain.mask@extent@xmax),yrange=c(domain.mask@extent@ymin,domain.mask@extent@ymax))
-  sites.points <- ppp(x=site.env.data$decimalLongitude, y=site.env.data$decimalLatitude, window=sites.window)
-  sites.density <- density.ppp(sites.points, sigma=sigma.spair, at="points", leaveoneout=FALSE, positive=TRUE, verbose=TRUE)
+  if(is.null(pcs.projargs))
+    {
+    sites.window <- spatstat::owin(xrange=c(domain.mask@extent@xmin,domain.mask@extent@xmax),yrange=c(domain.mask@extent@ymin,domain.mask@extent@ymax))
+    if(is.null(sigma.spair))
+      {sigma.spair <- (domain.mask@extent@xmax - domain.mask@extent@xmin)/20}
+    }else{
+    pcs.domain.ext <- raster::projectExtent(domain.mask,
+                                            crs=sp::CRS(pcs.projargs))
+    sites.window <- spatstat::owin(xrange=c(pcs.domain.ext@extent@xmin, pcs.domain.ext@extent@xmax),yrange=c(pcs.domain.ext@extent@ymin, pcs.domain.ext@extent@ymax))
+    if(is.null(sigma.spair))
+      {sigma.spair <- (pcs.domain.ext@extent@xmax - pcs.domain.ext@extent@xmin)/20}  
+    } # end if... else... is.null(pcs.projargs)
+  sites.points <- spatstat::ppp(x=site.env.data$xCoord, y=site.env.data$yCoord, window=sites.window)
+  sites.density <- spatstat::density.ppp(sites.points, sigma=sigma.spair, at="points", leaveoneout=FALSE, positive=TRUE, verbose=TRUE)
 #plot(x=site.env.data$decimalLongitude, y=site.env.data$decimalLatitude, cex=10/sites.density)
   b.spair<-mean(sites.density)*b.spair.factor
   SiteDensity.Wt<-decay.curve(sites.density, a.spair, b.spair, c.spair)
@@ -132,10 +147,14 @@ sitepair_sample_density=function(site.env.data,
   # Prepare the start of a GDM input table for the pairs selected
   Pairs.table <- data.frame(distance	= 0,
                             weights = 1,
-                            s1.xCoord = site.env.data$decimalLongitude[train.pairs[,1]],
-                            s1.yCoord = site.env.data$decimalLatitude[train.pairs[,1]],
-                            s2.xCoord = site.env.data$decimalLongitude[train.pairs[,2]],
-                            s2.yCoord = site.env.data$decimalLatitude[train.pairs[,2]]) 
+                            s1.xCoord = site.env.data$xCoord[train.pairs[,1]],
+                            s1.yCoord = site.env.data$yCoord[train.pairs[,1]],
+                            s2.xCoord = site.env.data$xCoord[train.pairs[,2]],
+                            s2.yCoord = site.env.data$yCoord[train.pairs[,2]],
+                            s1.decimalLongitude = site.env.data$decimalLongitude[train.pairs[,1]],
+                            s1.decimalLatitude = site.env.data$decimalLatitude[train.pairs[,1]],
+                            s2.decimalLongitude = site.env.data$decimalLongitude[train.pairs[,2]],
+                            s2.decimalLatitude = site.env.data$decimalLatitude[train.pairs[,2]]) 
   # return the selected pairs
   return(Pairs.table)
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##

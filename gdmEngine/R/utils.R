@@ -92,3 +92,21 @@ decay.curve=function(x, a, b, c)
   y = a + (1-a)/(1+((x/b)^(c)))
   return(y)
 } # end decay.curve
+
+
+#'@title Distance between two points
+#
+#'@description Calculates the euclidean distance between two points
+#'@param x1 (float) The x-coordinate of the first point
+#'@param y1 (float) The y-coordinate of the first point
+#'@param x2 (float) The x-coordinate of the second point
+#'@param y2 (float) The y-coordinate of the second point
+#'@return (float) The distance between x1,y1 and x2,y2
+#'@examples my.dist = pts.euc.distance(x1=0, y1=0, x2=3, y2=3)
+#'@export
+pts.euc.distance=function(x1, y1, x2, y2)
+{
+  xy.dist = sqrt(((x1-x2)^2)+((y1-y2)^2))
+  return(xy.dist)
+} # end pts.euc.distance
+

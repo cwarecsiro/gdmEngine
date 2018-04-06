@@ -14,6 +14,14 @@
 #'@param sample.method (string) The site-pair sample method to use. Options are 'random', 'geodist' (geographic distance), 'envdist' (environmental distance), 'geodens' (geographic density). (default = 'random')
 #'@param Indiv.Dev.Explained.Min (float) The minimum amount of deviance explained when potential predictors are assessed individually. (default = 1.0)
 #'@param n.predictors.min (integer) The target (or minimum) number of predictor variables in the final model. (default = 8)
+#'@param b.used.factor (float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs. This factor is multiplied by the ratio of n.pairs.target:n.sites in site.env.data to obtain the b.used parameter (default = 2)
+#'@param b.dpair.factor (float) For sample method 'geodist'. Multiplier for the decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair. This factor is multiplied by the mean pairwise distance to obtain the b.dpairparameter. (default = 0.5)
+#'@param b.epair.factor (float) For sample method 'envdist'. Multiplier for the decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair. This factor is multiplied by the mean environmental distance to obtain the b.epair parameter (default = 1)
+#'@param sigma.spair (float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = NULL, in which case the value is set to 5% of the total x-axis extent of 'domain.mask')
+#'@param spair.factor (float) For sample method 'geodens'. Multiplier for the decay curve parameter (x-value at curve inflection point) for the density of other sites around each site. This factor is multiplied by the mean density of sites to obtain the b.spair parameter. (default = 1.0)
+#'@param domain.mask (raster layer) A raster layer specifying the analysis domain
+#'@param pcs.projargs (character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, for example when 'domain.mask' is in geographic coordinate system. For Australian Albers, pcs.projargs="+init=epsg:3577". (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).
+#'@param bandwidth.geowt (float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. (default = NULL, in which case bandwidth is 5% of the x-axis extent)
 #'@param output.folder (string) A folder to save the outputs to. If none specified, no file is written.
 #'@param output.name (string) A name to use in saving the outputs. (default = 'gdm_builder_output')
 #'@param verbose (boolean) Print messages to console. Default TRUE.
@@ -28,6 +36,7 @@
 #'@importFrom gdm predict.gdm
 #'@importFrom raster pointDistance
 #'@importFrom DescTools Gini
+#'@importFrom sp CRS
 #'
 #'@export
 gdm_builder <- function(site.env.data, 
@@ -45,9 +54,11 @@ gdm_builder <- function(site.env.data,
                         b.used.factor=2,
                         b.dpair.factor=0.5,
                         b.epair.factor=1,
-                        sigma.spair=0.5,
+                        sigma.spair=NULL,
                         spair.factor=1,
                         domain.mask=NULL,
+                        pcs.projargs=NULL, 
+                        bandwidth.geowt=NULL,
                         output.folder = NULL,       
                         output.name = "gdm_builder_output",  
                         verbose=TRUE,
@@ -91,7 +102,28 @@ gdm_builder <- function(site.env.data,
   # ensure specis names are a factor in composition.data
   if(!is.factor(composition.data$scientificName))
     {composition.data$scientificName<-as.factor(composition.data$scientificName)}
-  
+#### NEW ####
+  # If we're doing spatial calculations in projected coordinate system, convert x & y
+  # from site.env.data to pcs & add to site.env.data. Otherwise, just duplicate x & y.
+  if(is.null(pcs.projargs))
+    {
+    xCoord <- site.env.data$decimalLongitude
+    yCoord <- site.env.data$decimalLatitude
+    }else{
+    # create a spatial points object from long / lat
+    site.pts.gcs <- sp::SpatialPoints(coords=site.env.data[,c(3,4)],
+                                      proj4string=domain.mask@crs)
+    # project the spatial points into the specified pcs  
+    site.pts.pcs <- sp::spTransform(site.pts.gcs,
+                                    CRSobj=sp::CRS(pcs.projargs))  
+    xCoord <- site.pts.pcs$decimalLongitude
+    yCoord <- site.pts.pcs$decimalLatitude  
+    } # end if... else... is.null(pcs.projargs)
+  # add the x & y to site.env.data
+  site.env.data <- cbind(site.env.data[,c(1:2)], xCoord, yCoord, site.env.data[,c(3:ncol(site.env.data))])
+  n.cols.start <- 6
+#### END NEW ####  
+    
   ptm <- proc.time()
   ## CREATE CROSS_VALIDATION SETS ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##  
   # Store the site-pair data in a list
@@ -116,13 +148,13 @@ gdm_builder <- function(site.env.data,
     if(sample.method == 'geodist')
       {
       Pairs.Table.Train <- sitepair_sample_geographic(site.env.data = Train.Site.Env.Data,
-                                 n.pairs.target = n.pairs.train,
-                                 b.used.factor=b.used.factor,
-                                 b.dpair.factor=b.dpair.factor)
+                                                      n.pairs.target = n.pairs.train,
+                                                      b.used.factor=b.used.factor,
+                                                      b.dpair.factor=b.dpair.factor)
       Pairs.Table.Test <- sitepair_sample_geographic(site.env.data = Test.Site.Env.Data,
-                                 n.pairs.target = n.pairs.test,
-                                 b.used.factor=b.used.factor,
-                                 b.dpair.factor=b.dpair.factor)
+                                                    n.pairs.target = n.pairs.test,
+                                                    b.used.factor=b.used.factor,
+                                                    b.dpair.factor=b.dpair.factor)
       }#end if sample.method == 'geodist'
     if(sample.method == 'envdist')
       {
@@ -140,16 +172,31 @@ gdm_builder <- function(site.env.data,
       Pairs.Table.Train <- sitepair_sample_density(site.env.data = Train.Site.Env.Data,
                                                    n.pairs.target = n.pairs.train,
                                                    domain.mask=domain.mask,
+                                                   pcs.projargs=pcs.projargs,
                                                    b.used.factor=b.used.factor,
                                                    sigma.spair=sigma.spair,
                                                    b.spair.factor=spair.factor)
       Pairs.Table.Test <- sitepair_sample_density(site.env.data = Test.Site.Env.Data,
                                                   n.pairs.target = n.pairs.test,
                                                   domain.mask=domain.mask,
+                                                  pcs.projargs=pcs.projargs,
                                                   b.used.factor=b.used.factor,
                                                   sigma.spair=sigma.spair,
                                                   b.spair.factor=spair.factor)
       }#end if sample.method == 'geodens'
+    if(sample.method == 'geowt')
+      {
+      Pairs.Table.Train <- sitepair_sample_geo_weighted(site.env.data = Train.Site.Env.Data,
+                                                        n.pairs.target = n.pairs.train,
+                                                        bandwidth = bandwidth.geowt, 
+                                                        domain.mask = domain.mask,
+                                                        pcs.projargs = pcs.projargs)    
+      Pairs.Table.Test <- sitepair_sample_geo_weighted(site.env.data = Test.Site.Env.Data,
+                                                        n.pairs.target = n.pairs.test,
+                                                        bandwidth = bandwidth.geowt, 
+                                                        domain.mask = domain.mask,
+                                                        pcs.projargs = pcs.projargs)
+      }# end if(sample.method == 'geowt')
     # And always have a purely random set of site-pairs for model testing as well
     Pairs.Table.Test.Rnd <- sitepair_sample_random(site.env.data = Test.Site.Env.Data,
                                                    n.pairs.target = n.pairs.test)
@@ -165,12 +212,12 @@ gdm_builder <- function(site.env.data,
                                                       composition.data = composition.data,
                                                       verbose=FALSE) # Time consuming
     ## ADD SITE NAMES ##
-    Pairs.Table.Train$s1.site.ID <- paste(Pairs.Table.Train$s1.xCoord, Pairs.Table.Train$s1.yCoord, sep = '_')
-    Pairs.Table.Train$s2.site.ID <- paste(Pairs.Table.Train$s2.xCoord, Pairs.Table.Train$s2.yCoord, sep = '_')
-    Pairs.Table.Test$s1.site.ID <- paste(Pairs.Table.Test$s1.xCoord, Pairs.Table.Test$s1.yCoord, sep = '_')
-    Pairs.Table.Test$s2.site.ID <- paste(Pairs.Table.Test$s2.xCoord, Pairs.Table.Test$s2.yCoord, sep = '_')
-    Pairs.Table.Test.Rnd$s1.site.ID <- paste(Pairs.Table.Test.Rnd$s1.xCoord, Pairs.Table.Test.Rnd$s1.yCoord, sep = '_')
-    Pairs.Table.Test.Rnd$s2.site.ID <- paste(Pairs.Table.Test.Rnd$s2.xCoord, Pairs.Table.Test.Rnd$s2.yCoord, sep = '_')
+    Pairs.Table.Train$s1.site.ID <- paste(Pairs.Table.Train$s1.decimalLongitude, Pairs.Table.Train$s1.decimalLatitude, sep = '_')
+    Pairs.Table.Train$s2.site.ID <- paste(Pairs.Table.Train$s2.decimalLongitude, Pairs.Table.Train$s2.decimalLatitude, sep = '_')
+    Pairs.Table.Test$s1.site.ID <- paste(Pairs.Table.Test$s1.decimalLongitude, Pairs.Table.Test$s1.decimalLatitude, sep = '_')
+    Pairs.Table.Test$s2.site.ID <- paste(Pairs.Table.Test$s2.decimalLongitude, Pairs.Table.Test$s2.decimalLatitude, sep = '_')
+    Pairs.Table.Test.Rnd$s1.site.ID <- paste(Pairs.Table.Test.Rnd$s1.decimalLongitude, Pairs.Table.Test.Rnd$s1.decimalLatitude, sep = '_')
+    Pairs.Table.Test.Rnd$s2.site.ID <- paste(Pairs.Table.Test.Rnd$s2.decimalLongitude, Pairs.Table.Test.Rnd$s2.decimalLatitude, sep = '_')
     ## PUT THE TEST AND TRAINING TABLES IN THE LISTS ##
     train.name <- paste('PairsTableTrain_',i.test, sep='')
     test.name <- paste('PairsTableTest_',i.test, sep='')
@@ -536,16 +583,25 @@ gdm_builder <- function(site.env.data,
       Pairs.Table.Train <- sitepair_sample_density(site.env.data = site.env.data,
                                                    n.pairs.target = n.pairs.train,
                                                    domain.mask=domain.mask,
+                                                   pcs.projargs=pcs.projargs,
                                                    b.used.factor=b.used.factor,
                                                    sigma.spair=sigma.spair,
                                                    b.spair.factor=spair.factor)
     }#end if sample.method == 'geodens'
+    if(sample.method == 'geowt')
+      {
+      Pairs.Table.Train <- sitepair_sample_geo_weighted(site.env.data = site.env.data,
+                                                        n.pairs.target = n.pairs.train,
+                                                        bandwidth = bandwidth.geowt, 
+                                                        domain.mask = domain.mask,
+                                                        pcs.projargs = pcs.projargs)    
+      }# end if(sample.method == 'geowt')
     ##  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  ##
     Pairs.Table.Train <- calculate_dissimilarities(pairs.table = Pairs.Table.Train, 
                                                    composition.data = composition.data,
                                                    verbose=FALSE) 
-    Pairs.Table.Train$s1.site.ID <- paste(Pairs.Table.Train$s1.xCoord, Pairs.Table.Train$s1.yCoord, sep = '_')
-    Pairs.Table.Train$s2.site.ID <- paste(Pairs.Table.Train$s2.xCoord, Pairs.Table.Train$s2.yCoord, sep = '_')
+    Pairs.Table.Train$s1.site.ID <- paste(Pairs.Table.Train$s1.decimalLongitude, Pairs.Table.Train$s1.decimalLatitude, sep = '_')
+    Pairs.Table.Train$s2.site.ID <- paste(Pairs.Table.Train$s2.decimalLongitude, Pairs.Table.Train$s2.decimalLatitude, sep = '_')
     # Format these dataframes into GDM input tables
     Training.table.In <- Pairs.Table.Train[,c(1:6)]
     # Prepare predictor variables table
@@ -572,7 +628,7 @@ gdm_builder <- function(site.env.data,
     coefficients.set[i.test,] <- Final.mod$coefficients
     knots.set[i.test,] <- Final.mod$knots
     final.mod.dissimilarity[i.test,]<-summary(Training.table.In$distance)
-    dissim.hist <- hist(Training.table.In$distance, breaks=seq(from=0, to=1, by=0.025))
+    dissim.hist <- hist(Training.table.In$distance, breaks=seq(from=0, to=1, by=0.025),plot=FALSE)
     final.mod.obs.dissim.evenness[i.test] <- 1 - (DescTools::Gini(dissim.hist$counts))
     } # end for i.test
   #replace the final model object data with the mean values across models

@@ -8,7 +8,7 @@ calculate_dissimilarities(pairs.table, composition.data, output.folder = NULL,
   output.name = "pairs_table_dissim", verbose = TRUE)
 }
 \arguments{
-\item{pairs.table}{(dataframe) A dataframe holding the site-pairs. This is the first six columns of a gdm input table.}
+\item{pairs.table}{(dataframe) A dataframe holding the site-pairs. This is the first six columns of a gdm input table, plus 4 columns hold s1 & s2 long & lat.}
 
 \item{composition.data}{(dataframe) A dataframe holding the final species composition data: the records of all species in all grid cells to be used for modelling.}
 

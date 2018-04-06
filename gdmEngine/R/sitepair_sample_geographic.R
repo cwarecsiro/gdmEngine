@@ -46,12 +46,14 @@ sitepair_sample_geographic=function(site.env.data,
   # To specify geo dist sampling function parameter 'b', take a sample
   vals <- sample.int(nrow(site.env.data), (n.pairs.sample*2), replace=TRUE)
   ij.pairs<-cbind(vals[c(1:n.pairs.sample)], vals[c((n.pairs.sample+1):(n.pairs.sample*2))])         
-  pairs.distance <- round(pointDistance(p1=site.env.data[ij.pairs[,1],c(3:4)], p2=site.env.data[ij.pairs[,2],c(3:4)], lonlat=T), 0)
+  #### NEW ####
+  pairs.distance <- pts.euc.distance(x1=site.env.data[ij.pairs[,1],3], y1=site.env.data[ij.pairs[,1],4], x2=site.env.data[ij.pairs[,2],3], y2=site.env.data[ij.pairs[,2],4])
+  #### OLD ####   pairs.distance <- round(pointDistance(p1=site.env.data[ij.pairs[,1],c(3:4)], p2=site.env.data[ij.pairs[,2],c(3:4)], lonlat=T), 0)
   b.dpair<-mean(pairs.distance)*b.dpair.factor
   # Create a table to catch the row indices for the pairs selected for modelling
   train.pairs<-matrix(c(-3,-2,-1,0), nrow=2, ncol=2)
   colnames(train.pairs)<-c("temp.i", "temp.j")
-  # Set up the site weighting table (site.ID, Dist2NSW.Wt, ntimes.used, PairUse.Wt)
+  # Set up the site weighting table (site.ID, ntimes.used, PairUse.Wt)
   train.plot.weight.table <- data.frame("site.ID" = site.env.data$xy, 
                                         "ntimes.used" = 0, 
                                         "PairUse.Wt" = decay.curve(0, a.used, b.used, c.used))
@@ -79,7 +81,9 @@ sitepair_sample_geographic=function(site.env.data,
     # note how many unique sample pairs we've selected
     n.pairs.selected<-nrow(ij.pairs)
     # calculate the geographic distance (in metres) between sites in the pairs
-    pairs.distance <- round(pointDistance(p1=site.env.data[ij.pairs[,1],c(3:4)], p2=site.env.data[ij.pairs[,2],c(3:4)], lonlat=T), 0)
+    #### NEW ####
+    pairs.distance <- pts.euc.distance(x1=site.env.data[ij.pairs[,1],3], y1=site.env.data[ij.pairs[,1],4], x2=site.env.data[ij.pairs[,2],3], y2=site.env.data[ij.pairs[,2],4])
+    #### OLD ####   pairs.distance <- round(pointDistance(p1=site.env.data[ij.pairs[,1],c(3:4)], p2=site.env.data[ij.pairs[,2],c(3:4)], lonlat=T), 0)
     # determine the weight for each pair, based on the distance between sites
     PairDist.Wt <- decay.curve(pairs.distance, a.dpair, b.dpair, c.dpair)
     # And finally, calculate the total weight for each pair, combining the distance to NSW weights, 
@@ -127,10 +131,14 @@ sitepair_sample_geographic=function(site.env.data,
   # Prepare the start of a GDM input table for the pairs selected
   Pairs.table <- data.frame(distance	= 0,
                             weights = 1,
-                            s1.xCoord = site.env.data$decimalLongitude[train.pairs[,1]],
-                            s1.yCoord = site.env.data$decimalLatitude[train.pairs[,1]],
-                            s2.xCoord = site.env.data$decimalLongitude[train.pairs[,2]],
-                            s2.yCoord = site.env.data$decimalLatitude[train.pairs[,2]]) 
+                            s1.xCoord = site.env.data$xCoord[train.pairs[,1]],
+                            s1.yCoord = site.env.data$yCoord[train.pairs[,1]],
+                            s2.xCoord = site.env.data$xCoord[train.pairs[,2]],
+                            s2.yCoord = site.env.data$yCoord[train.pairs[,2]],
+                            s1.decimalLongitude = site.env.data$decimalLongitude[train.pairs[,1]],
+                            s1.decimalLatitude = site.env.data$decimalLatitude[train.pairs[,1]],
+                            s2.decimalLongitude = site.env.data$decimalLongitude[train.pairs[,2]],
+                            s2.decimalLatitude = site.env.data$decimalLatitude[train.pairs[,2]]) 
   # return the selected pairs
   return(Pairs.table)
   ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##

@@ -2,7 +2,7 @@
 #'
 #'@description Calculates the compositional dissimilarity between all specified site-pairs. Fills the dissimilarities in the input dataframe 'pairs.table'. Note this uses an approach that trades processing time for memory efficiency, so it can handle very large numbers of site pairs on any machine.
 #'
-#'@param pairs.table (dataframe) A dataframe holding the site-pairs. This is the first six columns of a gdm input table.
+#'@param pairs.table (dataframe) A dataframe holding the site-pairs. This is the first six columns of a gdm input table, plus 4 columns hold s1 & s2 long & lat.
 #'@param composition.data (dataframe) A dataframe holding the final species composition data: the records of all species in all grid cells to be used for modelling.
 #'@param output.folder (string) A folder to save the outputs to. If none specified, no file is written.
 #'@param output.name (string) A name to use in saving the outputs. Default: 'pairs_table_dissim'.
@@ -30,11 +30,11 @@ calculate_dissimilarities <- function(pairs.table,
   site.spp.index <- as.matrix(composition.data[,c(5,6)]) 
   
   # Then get the index for each site in the pairs.table
-  pairs.table$s1.site.ID <- paste(pairs.table$s1.xCoord, pairs.table$s1.yCoord, sep = '_')
-  pairs.table$s2.site.ID <- paste(pairs.table$s2.xCoord, pairs.table$s2.yCoord, sep = '_')
+  pairs.table$s1.site.ID <- paste(pairs.table$s1.decimalLongitude, pairs.table$s1.decimalLatitude, sep = '_')
+  pairs.table$s2.site.ID <- paste(pairs.table$s2.decimalLongitude, pairs.table$s2.decimalLatitude, sep = '_')
   pairs.table$S1.index <- match(pairs.table$s1.site.ID, composition.data.site.indices)
   pairs.table$S2.index <- match(pairs.table$s2.site.ID, composition.data.site.indices)
-  pairs.site.index <- as.matrix(pairs.table[,c(9,10)])
+  pairs.site.index <- as.matrix(pairs.table[,c(13,14)])
   
   # Determine the richness of each site 
   site.richness <- tabulate(composition.data$site.index)
@@ -47,7 +47,7 @@ calculate_dissimilarities <- function(pairs.table,
                           max.richness)
   
   # create a new dataframe to return, with the scaled dissimilarities
-  pairs.table.new <- pairs.table[,-c(7:10)] # If we want to remove the xy site names
+  pairs.table.new <- pairs.table[,-c(11:14)] # If we want to remove the xy site names
   pairs.table.new$distance <- distance
   
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
