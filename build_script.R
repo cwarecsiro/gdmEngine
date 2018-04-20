@@ -48,13 +48,13 @@ update_build = function(){
 #system('R CMD INSTALL --library=Z:/users/bitbucket/gdm_workflow/gdmEngine gdmEngine_0.01.tar.gz ')
 
     
-#get_latest = function(){
-#  pkg_root = '//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow'
-#  setwd(pkg_root)
-#  file.copy(paste0('gdmEngine'), .libPaths(), recursive = TRUE)
-#  cat(paste0('gdmEngine copied to ', .libPaths()))
-#  require(gdmEngine)
-#}
+get_latest = function(){
+  pkg_root = '//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow'
+  setwd(pkg_root)
+  file.copy(paste0('gdmEngine'), .libPaths(), recursive = TRUE)
+  cat(paste0('gdmEngine copied to ', .libPaths()))
+  require(gdmEngine)
+}
 
 
 ## root

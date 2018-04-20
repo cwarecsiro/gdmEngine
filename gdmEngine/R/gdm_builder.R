@@ -11,7 +11,7 @@
 #'@param n.crossvalid.tests (integer) The number of cross-validation sets to use in deriving the GDM. (default = 10)
 #'@param correlation.threshold (float) The maximum correlation (Pearson's R) permitted between candidate predictor variables, as derived from the sites in 'site.env.data'. (default = 0.7)
 #'@param selection.metric (string) The model test metric to use in backward elimination of variables for model selection. Options are 'D2' (deviance explained), 'RMSE' (root mean square error), or 'equalised RMSE'. (default = 'D2')
-#'@param sample.method (string) The site-pair sample method to use. Options are 'random', 'geodist' (geographic distance), 'envdist' (environmental distance), 'geodens' (geographic density). (default = 'random')
+#'@param sample.method (string) The site-pair sample method to use. Options are 'random', 'geodist' (geographic distance), 'envdist' (environmental distance), 'geodens' (geographic density), 'geowt' (geographically weighted). (default = 'random')
 #'@param Indiv.Dev.Explained.Min (float) The minimum amount of deviance explained when potential predictors are assessed individually. (default = 1.0)
 #'@param n.predictors.min (integer) The target (or minimum) number of predictor variables in the final model. (default = 8)
 #'@param b.used.factor (float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs. This factor is multiplied by the ratio of n.pairs.target:n.sites in site.env.data to obtain the b.used parameter (default = 2)
@@ -565,14 +565,14 @@ gdm_builder <- function(site.env.data,
                                                   n.pairs.target = n.pairs.train)
       }#end if sample.method == 'random'
     if(sample.method == 'geodist')
-    {
+      {
       Pairs.Table.Train <- sitepair_sample_geographic(site.env.data = site.env.data,
                                                       n.pairs.target = n.pairs.train,
                                                       b.used.factor=b.used.factor,
                                                       b.dpair.factor=b.dpair.factor)
-    }#end if sample.method == 'geodist'
+      }#end if sample.method == 'geodist'
     if(sample.method == 'envdist')
-    {
+      {
       Pairs.Table.Train <- sitepair_sample_environment(site.env.data = site.env.data,
                                                        n.pairs.target = n.pairs.train,
                                                        b.used.factor=b.used.factor,

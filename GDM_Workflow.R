@@ -177,6 +177,17 @@ Final.GDM <- gdm_builder(site.env.data = Site.Env.Data,
                         output.name = "gdm_builder_FinMod") 
 proc.time() - ptm
 
+## Assess sitepair samples --------------------------------------------------------------------------##
+SitePairOut <- sitepair_sample_assessor(site.env.data = Site.Env.Data, 
+                                        composition.data = Selected.records ,
+                                        n.pairs.train = n.pairs.model,
+                                        sample.method = 'random',
+                                        domain.mask=Aus.domain.mask,
+                                        pcs.projargs="+init=epsg:3577",
+                                        output.folder = data.processing.folder,       
+                                        output.name = "sitepair_assess_amph") 
+
+
 ## ADITIONAL STUFF ##-----------------------???----------------------------------------------##
 #Random sample
 Pairs.Table.Rnd <- sitepair_sample_random(site.env.data = Site.Env.Data,

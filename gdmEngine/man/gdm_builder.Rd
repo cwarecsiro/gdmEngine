@@ -33,7 +33,7 @@ gdm_builder(site.env.data, composition.data, geo = TRUE,
 
 \item{selection.metric}{(string) The model test metric to use in backward elimination of variables for model selection. Options are 'D2' (deviance explained), 'RMSE' (root mean square error), or 'equalised RMSE'. (default = 'D2')}
 
-\item{sample.method}{(string) The site-pair sample method to use. Options are 'random', 'geodist' (geographic distance), 'envdist' (environmental distance), 'geodens' (geographic density). (default = 'random')}
+\item{sample.method}{(string) The site-pair sample method to use. Options are 'random', 'geodist' (geographic distance), 'envdist' (environmental distance), 'geodens' (geographic density), 'geowt' (geographically weighted). (default = 'random')}
 
 \item{Indiv.Dev.Explained.Min}{(float) The minimum amount of deviance explained when potential predictors are assessed individually. (default = 1.0)}
 
