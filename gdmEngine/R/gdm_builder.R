@@ -2,8 +2,8 @@
 #'
 #'@description Derive a GDM for a dataset, including automated variable selection based on cross-validation predictive performance. Produces a final GDM object (average parameters across site-pair samples) and associated cross-validation test metrics.
 #'
-#'@param site.env.data (dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data.
-#'@param composition.data (dataframe) A dataframe holding the final species composition data: the records of all species in all grid cells to be used for modelling.
+#'@param site.env.data (dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data. Sites are rows, Col 1 = 'xy' (character of x & y coordinates joined with underscore between), col2 = ignored (i.e. anything), col3 = decimalLongitude, col4 = decimalLatitude, col5+ = predictor data.
+#'@param composition.data (dataframe) A dataframe holding the final species composition data: the records of all species in all grid cells to be used for modelling. Col1 = 'scientificName', col2 = 'decimalLongitude', col3 = decimalLongitude
 #'@param geo (boolean) Whether geographic distance should be considered as a predictor when deriving the GDM. (default = TRUE)
 #'@param train.proportion (float) The proportion of sites in 'site.env.data' to use in training the GDM, with the remaining proportion used to test the model. (default = 0.8)
 #'@param n.pairs.train (integer) The number of site-pairs to use in training the GDM. If not specified, the default is to use 10 percent of the total number of pairs possible from the training sites. (default = NULL)
@@ -30,13 +30,10 @@
 #'
 #'@examples output = gdm_builder(My.site.env.data, My.composition.data, output.folder = 'C:/Users/processed_data', output.name = 'My.sitepair.data')
 #'
-#'@importFrom reshape2 dcast
-#'@importFrom betapart beta.pair
 #'@importFrom gdm gdm
 #'@importFrom gdm predict.gdm
-#'@importFrom raster pointDistance
 #'@importFrom DescTools Gini
-#'@importFrom sp CRS
+#'@importFrom sp CRS SpatialPoints
 #'
 #'@export
 gdm_builder <- function(site.env.data, 
@@ -54,8 +51,8 @@ gdm_builder <- function(site.env.data,
                         b.used.factor=2,
                         b.dpair.factor=0.5,
                         b.epair.factor=1,
-                        sigma.spair=NULL,
-                        spair.factor=1,
+                        sigma.spair=1,
+                        spair.factor=NULL,
                         domain.mask=NULL,
                         pcs.projargs=NULL, 
                         bandwidth.geowt=NULL,
@@ -66,6 +63,10 @@ gdm_builder <- function(site.env.data,
 {
   ## NOTE - THIS FUNCTION ESSENTIALLY ASSUMES YOU ARE DOING SOME SITE-PAIR SUBSAMPLING. REQUIRES RE-CODING TO
   ## DEAL WITH CASES WHERE THERE IS NO SITE-PAIR SUBSAMPLING
+  ## To fix: 
+  ##         1) find out why models are better in backward elimination than final (? Test this further. Can't see it yet)
+
+    
   start.time <- proc.time()
   
   ## SETUP ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -291,15 +292,15 @@ gdm_builder <- function(site.env.data,
   # And now combine the model individual variable explanatory power with the level of 
   # corellation between variables to select a set for use in an initial multivariate model.
   # Set up the variable assessment
-  var.impt <- ind.var.test.stats.sampairs[,test.col]
-  var.impt[ind.var.test.stats.sampairs[,4] < Indiv.Dev.Explained.Min] <- 9999  
+  var.impt <- ind.var.test.stats.sampairs[,4]
+  var.impt[ind.var.test.stats.sampairs[,4] < Indiv.Dev.Explained.Min] <- -9999  
   var.impt <- var.impt[-length(var.impt)] #remove geographic distance
   in.var.lst <- c()
   i.var<-1
-  while(i.var<n.vars)
+  while(i.var<=n.vars)
     {
-    nxt.bst.env<-as.numeric(which.min(var.impt))
-    if(as.logical(var.impt[nxt.bst.env]>=9999))
+    nxt.bst.env<-as.numeric(which.max(var.impt))
+    if(as.logical(var.impt[nxt.bst.env]<0))
       {break}
     # check if this variable is too correlated to variables already selected
     if(length(in.var.lst)>0)
@@ -307,19 +308,19 @@ gdm_builder <- function(site.env.data,
       cor.to.in.vars<-var.cor[c(in.var.lst),nxt.bst.env]
       if(abs(max(cor.to.in.vars)) > correlation.threshold)
         {
-        var.impt[nxt.bst.env] <- 9999
+        var.impt[nxt.bst.env] <- -9999
         }# end if(max(cor.to.in.vars) > correlation.threshold)
       if(abs(max(cor.to.in.vars)) <= correlation.threshold)
         {
         in.var.lst<-c(in.var.lst,nxt.bst.env)
-        var.impt[nxt.bst.env] <- 9999       
-      } # end if(max(cor.to.in.vars) <= correlation.threshold) 
+        var.impt[nxt.bst.env] <- -9999       
+        } # end if(max(cor.to.in.vars) <= correlation.threshold) 
       } # end if length(in.var.lst)>0
     if(length(in.var.lst)<1)
       {
       # catch the variable index and set its error to extreme (9999)
       in.var.lst<-c(in.var.lst,nxt.bst.env)
-      var.impt[nxt.bst.env] <- 9999  
+      var.impt[nxt.bst.env] <- -9999  
     } # end if length(in.var.lst)<1    
     i.var <- i.var + 1
   } # end while i.var<n.env.variables
@@ -412,6 +413,7 @@ gdm_builder <- function(site.env.data,
   drop.stats.D2 <- matrix(nrow=length(drop.names),ncol=length(drop.sequence),dimnames=list(drop.names,paste0(drop.sequence,"_variables")) )
   drop.stats.RMSE <- matrix(nrow=length(drop.names),ncol=length(drop.sequence),dimnames=list(drop.names,paste0(drop.sequence,"_variables")) )
   drop.stats.eRMSE <- matrix(nrow=length(drop.names),ncol=length(drop.sequence),dimnames=list(drop.names,paste0(drop.sequence,"_variables")) )
+  each.droplevel.D2 <- matrix(0,nrow=(n.crossvalid.tests+1),ncol=length(drop.sequence),dimnames=list(c(c(1:n.crossvalid.tests),"mean"),paste0(drop.sequence,"_variables")) )
   # Loop backwards, dropping the worst predictor
   out.col<-1
   for(i.drp in drop.sequence) 
@@ -440,6 +442,11 @@ gdm_builder <- function(site.env.data,
       # remove the rows with no data
       Training.table.In<-Training.table.In[complete.cases(Training.table.In),]
       Testing.table.In<-Testing.table.In[complete.cases(Testing.table.In),]
+      # see how much deviance the full model explains
+      validation.results <- gdm_SingleCrossValidation(Training.table.In, 
+                                                      Testing.table.In,
+                                                      geo=geo)
+      each.droplevel.D2[i.test,out.col] <- validation.results$Test.Deviance.Explained
       # Drop each variable, and see how the error changes
       for(i.var in 1:n.vars.in)
         {
@@ -479,18 +486,20 @@ gdm_builder <- function(site.env.data,
       if(test.col == 4)
         {drop.var <- which.max(drop.stats.D2[,out.col])}
       if(geo){
-        if(drop.var<n.preds){ # then we are dropping an env predictor
+        if(drop.var<=n.preds){ # then we are dropping an env predictor
           in.vars.in[drop.var] <- 0
           n.preds<-n.preds-1
         }else{ # then we must be dropping geo
           geo<-FALSE
           n.preds<-n.preds-1
         }
-      }else{
-        in.vars.in[drop.var] <- 0
-        n.preds<-n.preds-1
-      } # end else
+      }# end if (not sure why we had the 'else' below)
+      # }else{
+      #   in.vars.in[drop.var] <- 0
+      #   n.preds<-n.preds-1
+      # } # end else
     }# end if n.preds>n.predictors.min
+    each.droplevel.D2[(n.crossvalid.tests+1),out.col] <- mean(each.droplevel.D2[c(1:n.crossvalid.tests),out.col]) 
     out.col<-out.col+1
   }# end for i.drp
   ###################################################################################
@@ -657,44 +666,55 @@ gdm_builder <- function(site.env.data,
                                                            'b.epair.factor',
                                                            'sigma.spair',
                                                            'b.spair.factor',
+                                                           'domain.mask',
+                                                           'pcs.projargs', 
+                                                           'bandwidth.geowt',
                                                            'output.folder',       
                                                            'output.name')),
-                                   value=as.character(c(geo,
-                                                        train.proportion,
-                                                        n.pairs.train,
-                                                        n.pairs.test,
-                                                        n.crossvalid.tests,
-                                                        correlation.threshold,
-                                                        selection.metric,
-                                                        sample.method,
-                                                        Indiv.Dev.Explained.Min,
-                                                        n.predictors.min,
-                                                        b.used.factor,
-                                                        b.dpair.factor,
-                                                        b.epair.factor,
-                                                        sigma.spair,
-                                                        spair.factor,
-                                                        output.folder,       
-                                                        output.name)))
+                                   value=as.character(rep(NA,times=20)))
+  GDM_Builder_arguments$value <- as.character(GDM_Builder_arguments$value)
+  GDM_Builder_arguments$value[1] <- as.character(geo)
+  GDM_Builder_arguments$value[2] <- as.character(train.proportion)
+  GDM_Builder_arguments$value[3] <- as.character(n.pairs.train)
+  GDM_Builder_arguments$value[4] <- as.character(n.pairs.test)
+  GDM_Builder_arguments$value[5] <- as.character(n.crossvalid.tests)
+  GDM_Builder_arguments$value[6] <- as.character(correlation.threshold)
+  GDM_Builder_arguments$value[7] <- as.character(selection.metric)
+  GDM_Builder_arguments$value[8] <- as.character(sample.method)
+  GDM_Builder_arguments$value[9] <- as.character(Indiv.Dev.Explained.Min)
+  GDM_Builder_arguments$value[10] <- as.character(n.predictors.min)
+  GDM_Builder_arguments$value[11] <- as.character(b.used.factor)
+  GDM_Builder_arguments$value[12] <- as.character(b.dpair.factor)
+  GDM_Builder_arguments$value[13] <- as.character(b.epair.factor)
+  GDM_Builder_arguments$value[14] <- as.character(sigma.spair)
+  if(!is.null(spair.factor)) {GDM_Builder_arguments$value[15] <- as.character(spair.factor)}
+  if(!is.null(domain.mask)) {GDM_Builder_arguments$value[16] <- as.character(domain.mask@file@name)}
+  if(!is.null(pcs.projargs)) {GDM_Builder_arguments$value[17] <- as.character(pcs.projargs)}
+  if(!is.null(bandwidth.geowt)) {GDM_Builder_arguments$value[18] <- as.character(bandwidth.geowt)}
+  if(!is.null(output.folder))GDM_Builder_arguments$value[19] <- as.character(output.folder)       
+  GDM_Builder_arguments$value[20] <- as.character(output.name)
+  
   
   GDM_Builder_results = list(Inputs = match.call(),
                              Arguments = GDM_Builder_arguments,
                              ProcessingTime = r.time,
+                             Individual.Performance = ind.var.test.stats.sampairs,
                              Backward.Elim.D2 = drop.stats.D2,
                              Backward.Elim.RMSE = drop.stats.RMSE, 
                              Backward.Elim.eRMSE = drop.stats.eRMSE, 
-                             Predictors = Final.mod$predictors,
+                             Backward.Elim.Full.D2 = each.droplevel.D2,
+                             #Predictors = Final.mod$predictors,
                              Deviance.Explained = deviance.explained.set,
                              Intercept = intercept.set,
                              Dissimilarities.Evenness = final.mod.obs.dissim.evenness,
                              Mean.Absolute.Error = final.mod.MAE.set,
                              Root.Mean.Squre.Error = final.mod.RMSE.set,
                              Equalised.RMSE = final.mod.equRMSE.set,
-                             Deviance.Exp = final.mod.D2.set,
+                             Deviance.Exp.CrossVal = final.mod.D2.set,
                              rnd.Mean.Absolute.Error = final.mod.MAE.rnd.set,
                              rnd.Root.Mean.Squre.Error = final.mod.RMSE.rnd.set,
                              rnd.Equalised.RMSE = final.mod.equRMSE.rnd.set,
-                             rnd.Deviance.Exp = final.mod.D2.rnd.set,
+                             rnd.Deviance.Exp.CrossVal = final.mod.D2.rnd.set,
                              dissimilarity.summary = final.mod.dissimilarity,
                              Mean.Final.GDM = Final.mod)
 

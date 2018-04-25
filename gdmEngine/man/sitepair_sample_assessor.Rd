@@ -7,9 +7,10 @@
 sitepair_sample_assessor(site.env.data, composition.data,
   n.pairs.train = NULL, n.crossvalid.tests = 10, sample.method = "random",
   b.used.factor = 2, b.dpair.factor = 0.5, b.epair.factor = 1,
-  sigma.spair = NULL, spair.factor = 1, domain.mask = NULL,
-  pcs.projargs = NULL, bandwidth.geowt = NULL, output.folder = NULL,
-  output.name = "Sitepair_sample_assessor_output", verbose = TRUE, ...)
+  env.colnames = c("PTA", "TXX"), sigma.spair = NULL, spair.factor = 1,
+  domain.mask = NULL, pcs.projargs = NULL, bandwidth.geowt = NULL,
+  output.folder = NULL, output.name = "Sitepair_sample_assessor_output",
+  verbose = TRUE, ...)
 }
 \arguments{
 \item{site.env.data}{(dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data.}

@@ -9,15 +9,15 @@ gdm_builder(site.env.data, composition.data, geo = TRUE,
   n.crossvalid.tests = 10, correlation.threshold = 0.7,
   selection.metric = "D2", sample.method = "random",
   Indiv.Dev.Explained.Min = 1, n.predictors.min = 8, b.used.factor = 2,
-  b.dpair.factor = 0.5, b.epair.factor = 1, sigma.spair = NULL,
-  spair.factor = 1, domain.mask = NULL, pcs.projargs = NULL,
+  b.dpair.factor = 0.5, b.epair.factor = 1, sigma.spair = 1,
+  spair.factor = NULL, domain.mask = NULL, pcs.projargs = NULL,
   bandwidth.geowt = NULL, output.folder = NULL,
   output.name = "gdm_builder_output", verbose = TRUE, ...)
 }
 \arguments{
-\item{site.env.data}{(dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data.}
+\item{site.env.data}{(dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data. Sites are rows, Col 1 = 'xy' (character of x & y coordinates joined with underscore between), col2 = ignored (i.e. anything), col3 = decimalLongitude, col4 = decimalLatitude, col5+ = predictor data.}
 
-\item{composition.data}{(dataframe) A dataframe holding the final species composition data: the records of all species in all grid cells to be used for modelling.}
+\item{composition.data}{(dataframe) A dataframe holding the final species composition data: the records of all species in all grid cells to be used for modelling. Col1 = 'scientificName', col2 = 'decimalLongitude', col3 = decimalLongitude}
 
 \item{geo}{(boolean) Whether geographic distance should be considered as a predictor when deriving the GDM. (default = TRUE)}
 

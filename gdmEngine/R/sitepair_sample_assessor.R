@@ -36,6 +36,7 @@ sitepair_sample_assessor <- function(site.env.data,
                                      b.used.factor=2,
                                      b.dpair.factor=0.5,
                                      b.epair.factor=1,
+                                     env.colnames=c('PTA','TXX'),
                                      sigma.spair=NULL,
                                      spair.factor=1,
                                      domain.mask=NULL,
@@ -228,7 +229,7 @@ sitepair_sample_assessor <- function(site.env.data,
     pairs.geo.distance[i.test,] <- summary(pairs.distance)
     
   ## Environmental distribution (of sites) ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    env.colnames=c('PTA','TXX')
+    #env.colnames=c('PTA','TXX')
     # Work out which cols in site.env.data will be used to determine env distance
     oldw <- getOption("warn")
     options(warn = -1)
