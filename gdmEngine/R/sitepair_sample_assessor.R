@@ -5,6 +5,8 @@
 #'@param site.env.data (dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data.
 #'@param composition.data (dataframe) A dataframe holding the final species composition data: the records of all species in all grid cells to be used for modelling.
 #'@param n.pairs.train (integer) The number of site-pairs to use in training the GDM. If not specified, the default is to use 10 percent of the total number of pairs possible from the training sites. (default = NULL)
+#'@param n.pairs.per.site (integer) If 'n.pairs.train' is not specified, this parameter specifies the target of the average number of pairs each site is included in, to calculate n.pairs.train. (default = NULL) 
+#'@param prop.pairs.train (float) If 'n.pairs.train' is not specified, and 'n.pairs.per.site' is not specified, a proportion of all possible sitepairs is specified by this argument and used. (default = 0.05 (i.e. 5% of possible number of sitepairs))
 #'@param n.crossvalid.tests (integer) The number of cross-validation sets to use in sampling site-pairs. (default = 10)
 #'@param sample.method (string) The site-pair sample method to use. Options are 'random', 'geodist' (geographic distance), 'envdist' (environmental distance), 'geodens' (geographic density), 'geowt' (geographically weighted). (default = 'random')
 #'@param b.used.factor (float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs. This factor is multiplied by the ratio of n.pairs.target:n.sites in site.env.data to obtain the b.used parameter (default = 2)
@@ -15,6 +17,9 @@
 #'@param domain.mask (raster layer) A raster layer specifying the analysis domain
 #'@param pcs.projargs (character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, for example when 'domain.mask' is in geographic coordinate system. For Australian Albers, pcs.projargs="+init=epsg:3577". (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).
 #'@param bandwidth.geowt (float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. (default = NULL, in which case bandwidth is 5% of the x-axis extent)
+#'@param bandwidth.skip (float) The minimum distance (as a factor of the specified bandwidth) of any data from a geographic 'sample point'. Where all data are greater than 'b.skip' x bandwidth away from a sample point, that sample point will be not used. (default = NULL)
+#'@param bandwidth.DistFact (float) The distance between sample points, as a factor to be multiplied by the bandwidth. (default = NULL)
+#'@param geowt.RndProp (float) The proportion of sites relative to the geographically weighted sample that will be drawn at random from the whole region (default = NULL)
 #'@param output.folder (string) A folder to save the outputs to. If none specified, no file is written.
 #'@param output.name (string) A name to use in saving the outputs. (default = 'gdm_builder_output')
 #'@param verbose (boolean) Print messages to console. Default TRUE.
@@ -31,17 +36,21 @@
 sitepair_sample_assessor <- function(site.env.data, 
                                      composition.data,
                                      n.pairs.train = NULL,
+                                     n.pairs.per.site = NULL,
+                                     prop.pairs.train = 0.05,
                                      n.crossvalid.tests = 10,
                                      sample.method = 'random',
                                      b.used.factor=2,
                                      b.dpair.factor=0.5,
                                      b.epair.factor=1,
-                                     env.colnames=c('PTA','TXX'),
                                      sigma.spair=NULL,
                                      spair.factor=1,
                                      domain.mask=NULL,
                                      pcs.projargs=NULL, 
                                      bandwidth.geowt=NULL,
+                                     bandwidth.skip=NULL,
+                                     bandwidth.DistFact=NULL,
+                                     geowt.RndProp=NULL,
                                      output.folder = NULL,       
                                      output.name = "Sitepair_sample_assessor_output",  
                                      verbose=TRUE,
@@ -54,12 +63,18 @@ sitepair_sample_assessor <- function(site.env.data,
   n.vars <- ncol(site.env.data) - n.cols.start 
   # Determine how many sites we are using for the training and testing sets
   n.sites.train <- nrow(site.env.data)
-  # If the number of pairs to use in modelling is not specified, use 10% the available pairs as a default
+  # If the number of pairs to use in modelling is not specified, use 'prop.pairs.train' of the available pairs (10% as a default)
   if(is.null(n.pairs.train))
-  {
+    {
     n.pairs.total <- ((n.sites.train^2)-n.sites.train)/2
-    n.pairs.train <- floor(n.pairs.total*0.1)
-  }# end if is.null(n.pairs.model)
+    if(!is.null(n.pairs.per.site))
+      {
+      n.pairs.ideal <- 0.5 * n.pairs.per.site * n.sites.train
+      n.pairs.train <- min(n.pairs.ideal, (n.pairs.total*0.5)) # maxing the possible pairs at half the full selection   
+      }else{
+      n.pairs.train <- floor(n.pairs.total*prop.pairs.train)
+      } # end else
+    }# end if is.null(n.pairs.model)
   # ensure specis names are a factor in composition.data
   if(!is.factor(composition.data$scientificName))
   {composition.data$scientificName<-as.factor(composition.data$scientificName)}
@@ -125,14 +140,17 @@ sitepair_sample_assessor <- function(site.env.data,
       
     }#end if sample.method == 'geodens'
     if(sample.method == 'geowt')
-    {
+      {
       Pairs.Table.Train <- sitepair_sample_geo_weighted(site.env.data = Train.Site.Env.Data,
                                                         n.pairs.target = n.pairs.train,
-                                                        bandwidth = bandwidth.geowt, 
+                                                        bandwidth = bandwidth.geowt,
+                                                        b.skip = bandwidth.skip, #
+                                                        inter.sample.pt.b.factor = bandwidth.DistFact,  #
+                                                        prop.sites.background = geowt.RndProp,   #
                                                         domain.mask = domain.mask,
                                                         pcs.projargs = pcs.projargs)    
       
-    }# end if(sample.method == 'geowt')
+      }# end if(sample.method == 'geowt')
     ##  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * ##
     ## CALCULATE DISSIMILARITIES ##
     Pairs.Table.Train <- calculate_dissimilarities(pairs.table = Pairs.Table.Train, 
@@ -229,7 +247,7 @@ sitepair_sample_assessor <- function(site.env.data,
     pairs.geo.distance[i.test,] <- summary(pairs.distance)
     
   ## Environmental distribution (of sites) ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    #env.colnames=c('PTA','TXX')
+    env.colnames=c('PTA','TXX')
     # Work out which cols in site.env.data will be used to determine env distance
     oldw <- getOption("warn")
     options(warn = -1)

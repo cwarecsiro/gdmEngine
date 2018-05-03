@@ -4,9 +4,12 @@
 #'
 #'@param site.env.data (dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data.
 #'@param n.pairs.target (integer) The number of site-pairs to select.
-#'@param bandwidth (float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. (default = NULL, in which case bandwidth is 5% of the x-axis extent)
+#'@param bandwidth (float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. Units are the same x/y units as 'domain.mask' or pcs.projargs (if specified). (default = NULL, in which case bandwidth is 5% of the x-axis extent)
+#'@param b.skip (float) The minimum distance (as a factor of the specified bandwidth) of any data from a geographic 'sample point'. Where all data are greater than 'b.skip' x bandwidth away from a sample point, that sample point will be not used. (default = 3)
+#'@param inter.sample.pt.b.factor (float) The distance between sample points, as a factor to be multiplied by the bandwidth. (default=1, in which case the distance between sample points is equal to the bandwidth)
+#'@param prop.sites.background (float) The proportion of sites relative to the geographically weighted sample that will be drawn at random from the whole region (default = 0.1 (i.e. 10%))
 #'@param domain.mask (raster layer) A raster layer specifying the analysis domain
-#'@param pcs.projargs (character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, for example when 'domain.mask' is in geographic coordinate system. (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).
+#'@param pcs.projargs (character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, such as when 'domain.mask' is in geographic coordinate system. An example would be specifying Albers projected coordinates for Australia as: pcs.projargs="+init=epsg:3577" . (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).
 #'@param output.folder (string) A folder to save the outputs to. If none specified, no file is written.
 #'@param output.name (string) A name to use in saving the outputs. Default: 'site_pairs_data_dens'.
 #'@param verbose (boolean) Print messages to console. Default TRUE.
@@ -22,9 +25,12 @@
 #'@export
 sitepair_sample_geo_weighted=function(site.env.data,
                                       n.pairs.target,
-                                      bandwidth=NULL, # NEW - bandwidth, in same x/y units as 'domain.mask' or pcs.projargs (if specified)
+                                      bandwidth=NULL,              
+                                      b.skip=3, 
+                                      inter.sample.pt.b.factor=1,  
+                                      prop.sites.background=0.1,   
                                       domain.mask,
-                                      pcs.projargs=NULL, #for Aus Albers: pcs.projargs="+init=epsg:3577"
+                                      pcs.projargs=NULL,          
                                       output.folder = NULL,       
                                       output.name = "site_pairs_data_geowt",  
                                       verbose=FALSE)
@@ -34,15 +40,7 @@ sitepair_sample_geo_weighted=function(site.env.data,
 # - add some longer distance samples to the sample of sites around each sample point  
   
   
-  # ARGUMENTS ################################
-  # specify the distance from a sample point to use in skipping sample points (i.e. for sample points in the sea)
-  b.skip <- 3 # i.e. 3 times the bandwidth
-  # specify the distance between sample points, as a multiple of the bandwidth
-  inter.sample.pt.b.factor <- 2 # i.e. 2 x bandwidth between sample points
-  # specify the proportion of sites to add to the local sample that are drawn at random from the whole region
-  prop.sites.background <- 0.1 # i.e. 10% of sites should be a random sample across the whole region
-  ###########################################
-  
+
   ###### Set up the geographic sample points ############################################################
   if(is.null(pcs.projargs))
     {

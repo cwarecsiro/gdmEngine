@@ -68,7 +68,6 @@ gdm_builder <- function(site.env.data,
 
     
   start.time <- proc.time()
-  
   ## SETUP ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
   # Determine how many sites we are using for the training and testing sets
   n.sites.train <- floor(train.proportion * nrow(site.env.data))
@@ -492,12 +491,11 @@ gdm_builder <- function(site.env.data,
         }else{ # then we must be dropping geo
           geo<-FALSE
           n.preds<-n.preds-1
-        }
-      }# end if (not sure why we had the 'else' below)
-      # }else{
-      #   in.vars.in[drop.var] <- 0
-      #   n.preds<-n.preds-1
-      # } # end else
+          }# end else drop.var<=n.preds
+      }else{ # end if (geo)
+        in.vars.in[drop.var] <- 0
+        n.preds<-n.preds-1
+      } # end else (geo)
     }# end if n.preds>n.predictors.min
     each.droplevel.D2[(n.crossvalid.tests+1),out.col] <- mean(each.droplevel.D2[c(1:n.crossvalid.tests),out.col]) 
     out.col<-out.col+1
