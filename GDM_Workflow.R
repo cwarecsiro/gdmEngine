@@ -50,9 +50,9 @@ min.rich.limit <- 10
 max.rich.limit <- 400
 min.rich.rad <- 200
 min.rich.proportion <- 0.25
-n.pairs.model <- 100000
+n.pairs.model <- 144000 # equates to each site used 10 times
 train.proportion <- 0.8
-n.pairs.test <- 20000
+n.pairs.test <- 36000   # equates to each site used 10 times
 
 
 # AMPHIBIANS INPUTS
@@ -147,36 +147,78 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
 
 ##TEMP##
 #AMPHIBIANS -------
-Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
-Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
+#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
 #VASCULAR PLANTS -------
-#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
-#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-03-07.csv")
+Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-03-07.csv")
 #LAND SNAILS -------
 #Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/selected_gridcell_composition_2018-03-09.csv")
 #Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/site_env_data_2018-03-09.csv")
 #Reptiles ---------
-Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/selected_gridcell_composition_2018-03-15.csv")
-Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/site_env_data_2018-03-15.csv")
+#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/selected_gridcell_composition_2018-03-15.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/site_env_data_2018-03-15.csv")
+##ENDTEMP##
 
-
-## DERIVE A GDM --------------------------------------------------------------------------##
+## DERIVE A GDM ------------------------------------------------------------------------------------##
 ptm <- proc.time()
-Final.GDM <- gdm_builder(site.env.data = Site.Env.Data, 
-                        composition.data = Selected.records ,
-                        geo=TRUE,
-                        n.pairs.train = n.pairs.model,
-                        n.pairs.test = n.pairs.test,
-                        selection.metric = 'D2',
-                        sample.method = 'random',
-                        Indiv.Dev.Explained.Min = 1.0,
-                        n.predictors.min = 9,
-                        domain.mask=Aus.domain.mask,
-                        pcs.projargs="+init=epsg:3577",
-                        output.folder = data.processing.folder,       
-                        output.name = "gdm_builder_FinMod") 
+GDM.Selection <- gdm_builder(site.env.data = Site.Env.Data, 
+                             composition.data = Selected.records,
+                             geo=FALSE,
+                             n.pairs.train = n.pairs.model,
+                             n.pairs.test = n.pairs.test,
+                             selection.metric = 'D2',
+                             sample.method = 'random',
+                             Indiv.Dev.Explained.Min = 1.0,
+                             n.predictors.min = 8,
+                             domain.mask=Aus.domain.mask,
+                             pcs.projargs="+init=epsg:3577",
+                             output.folder = data.processing.folder,       
+                             output.name = "gdm_mod_builder_results_RandSamp_noGeo") 
 proc.time() - ptm
 
+## SELECT A SET OF PREDICTORS FOR A GDM & APPLY SIGNIFICANCE TEST -----------------------------------##
+final.mod.preds <- GDM.Selection$Mean.Final.GDM$predictors
+geo.in = FALSE
+if(final.mod.preds[1] == 'Geographic')
+  {
+  final.mod.preds <- final.mod.preds[-1]
+  geo.in = TRUE
+  }# end if final.mod.preds[1] == 'Geographic'
+# or specify directly, for example: 
+# final.mod.preds <- c('EPA','WDA','PTX','PHCT','SLTT','ELVR1000','PTOT')
+
+## ASSUMING YOU'RE HAPPY WITH A SET OF PREDICTORS, FIT A FINAL MODEL, INCLUDING CROSS-VALIDATION 
+## ASSESSMENT AND SIGNIFICANCE TEST -----------------------------------------------------------------##
+final.model <- gdm_build_single_model(site.env.data = Site.Env.Data, 
+                                      composition.data = Selected.records,
+                                      predictor.names = final.mod.preds,
+                                      geo=geo.in,
+                                      n.pairs.train = n.pairs.model,
+                                      n.pairs.test = n.pairs.test,
+                                      sample.method = 'random',
+                                      b.used.factor=2,
+                                      domain.mask=Aus.domain.mask,
+                                      pcs.projargs="+init=epsg:3577",
+                                      output.folder = data.processing.folder,
+                                      output.name = "gdm_builder_FinMod_RandSamp")
+
+## SIGNIFICANCE TEST
+ptm <- proc.time()
+gdm_ext.sigtest(dllpath="//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow/GDM_EXT_For_Karel/GDM4Rext.dll",
+                wdpath = data.processing.folder,
+                datatable = "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/gdm_builder_FinMod_RandSamp_GDMtable_2018-05-10.csv", # GDM input table saved to .csv
+                outname = "FinMod_RandSamp_sig_test",
+                iterations = 100,
+                do_geo = TRUE)
+proc.time() - ptm
+
+## NOW TRANSFORM THE GRIDS BASED ON THE SELECTED MODEL ----------------------------------------------##
+
+
+
+
+## ADITIONAL STUFF ##-----------------------???----------------------------------------------##
 ## Assess sitepair samples --------------------------------------------------------------------------##
 SitePairOut <- sitepair_sample_assessor(site.env.data = Site.Env.Data, 
                                         composition.data = Selected.records ,
@@ -187,8 +229,6 @@ SitePairOut <- sitepair_sample_assessor(site.env.data = Site.Env.Data,
                                         output.folder = data.processing.folder,       
                                         output.name = "sitepair_assess_amph") 
 
-
-## ADITIONAL STUFF ##-----------------------???----------------------------------------------##
 #Random sample
 Pairs.Table.Rnd <- sitepair_sample_random(site.env.data = Site.Env.Data,
                                           n.pairs.target = n.pairs.model)

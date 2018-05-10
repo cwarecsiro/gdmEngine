@@ -93,6 +93,10 @@ sitepair_sample_geo_weighted=function(site.env.data,
   n.samples <- ceiling((n.pairs.target/nrow(site.env.data))*1.5) #multiply by 1.5 for safety buffer
   # set up a catcher for the sampled pairs
   train.pairs<-NULL
+  i.sam <- 1
+  i.pair.tally <- 0
+  while(i.pair.tally < n.pairs.target)
+  {
   # Loop through the sample points
   for(i.pt in 1:nrow(sample.pts))
     {
@@ -105,12 +109,12 @@ sitepair_sample_geo_weighted=function(site.env.data,
     if(max(site.wt) < (exp(-0.5*(((b.skip*bandwidth)/bandwidth)^2))) ) #  w.ij <- exp(-0.5*((d.ij/bandwidth)^2))
       {next}
     in.sites<-NULL
-    for(i.sam in 1:n.samples)
-      {
+  #for(i.sam in 1:n.samples) #try putting the multiple sampling on the outer loop
+  #  {
       # Use the site weights to randomly select sites
       site.sample <- rbinom(n=length(site.wt), size=1, prob=site.wt) 
       in.sites<-c(in.sites, which(site.sample>0))
-      }#end for i.sam
+  #  }#end for i.sam
     # If we have sampled more than one site, then process the sites into pairs and add them to the master
     # list of sampled site-pairs
     if(length(in.sites)>1)
@@ -142,6 +146,11 @@ sitepair_sample_geo_weighted=function(site.env.data,
       train.pairs<-unique(train.pairs)
       }# end if length(in.sites)>1
     }# end for i.pt
+  i.pair.tally <- nrow(train.pairs)
+  if(i.sam > n.samples)
+    {break}
+  i.sam <- i.sam + 1  
+  }# end while i.pair.tally < n.pairs.target
   
   ## Processing the selected pairs ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~##  
   # Provide a warning if not enough pairs were selected

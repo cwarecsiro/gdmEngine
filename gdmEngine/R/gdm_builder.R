@@ -22,6 +22,9 @@
 #'@param domain.mask (raster layer) A raster layer specifying the analysis domain
 #'@param pcs.projargs (character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, for example when 'domain.mask' is in geographic coordinate system. For Australian Albers, pcs.projargs="+init=epsg:3577". (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).
 #'@param bandwidth.geowt (float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. (default = NULL, in which case bandwidth is 5% of the x-axis extent)
+#'@param bandwidth.skip (float) The minimum distance (as a factor of the specified bandwidth) of any data from a geographic 'sample point'. Where all data are greater than 'b.skip' x bandwidth away from a sample point, that sample point will be not used. (default = NULL)
+#'@param bandwidth.DistFact (float) The distance between sample points, as a factor to be multiplied by the bandwidth. (default = NULL)
+#'@param geowt.RndProp (float) The proportion of sites relative to the geographically weighted sample that will be drawn at random from the whole region (default = NULL)
 #'@param output.folder (string) A folder to save the outputs to. If none specified, no file is written.
 #'@param output.name (string) A name to use in saving the outputs. (default = 'gdm_builder_output')
 #'@param verbose (boolean) Print messages to console. Default TRUE.
@@ -56,6 +59,9 @@ gdm_builder <- function(site.env.data,
                         domain.mask=NULL,
                         pcs.projargs=NULL, 
                         bandwidth.geowt=NULL,
+                        bandwidth.skip=NULL,
+                        bandwidth.DistFact=NULL,
+                        geowt.RndProp=NULL,
                         output.folder = NULL,       
                         output.name = "gdm_builder_output",  
                         verbose=TRUE,
@@ -188,15 +194,22 @@ gdm_builder <- function(site.env.data,
       {
       Pairs.Table.Train <- sitepair_sample_geo_weighted(site.env.data = Train.Site.Env.Data,
                                                         n.pairs.target = n.pairs.train,
-                                                        bandwidth = bandwidth.geowt, 
+                                                        bandwidth = bandwidth.geowt,
+                                                        b.skip = bandwidth.skip, #
+                                                        inter.sample.pt.b.factor = bandwidth.DistFact,  #
+                                                        prop.sites.background = geowt.RndProp,   #
                                                         domain.mask = domain.mask,
-                                                        pcs.projargs = pcs.projargs)    
+                                                        pcs.projargs = pcs.projargs) 
+      
       Pairs.Table.Test <- sitepair_sample_geo_weighted(site.env.data = Test.Site.Env.Data,
-                                                        n.pairs.target = n.pairs.test,
-                                                        bandwidth = bandwidth.geowt, 
-                                                        domain.mask = domain.mask,
-                                                        pcs.projargs = pcs.projargs)
-      }# end if(sample.method == 'geowt')
+                                                       n.pairs.target = n.pairs.test,
+                                                       bandwidth = bandwidth.geowt,
+                                                       b.skip = bandwidth.skip, #
+                                                       inter.sample.pt.b.factor = bandwidth.DistFact,  #
+                                                       prop.sites.background = geowt.RndProp,   #
+                                                       domain.mask = domain.mask,
+                                                       pcs.projargs = pcs.projargs) 
+    }# end if(sample.method == 'geowt')
     # And always have a purely random set of site-pairs for model testing as well
     Pairs.Table.Test.Rnd <- sitepair_sample_random(site.env.data = Test.Site.Env.Data,
                                                    n.pairs.target = n.pairs.test)
@@ -305,11 +318,12 @@ gdm_builder <- function(site.env.data,
     if(length(in.var.lst)>0)
       {
       cor.to.in.vars<-var.cor[c(in.var.lst),nxt.bst.env]
-      if(abs(max(cor.to.in.vars)) > correlation.threshold)
+      cor.to.in.vars<-abs(cor.to.in.vars)
+      if((max(cor.to.in.vars)) > correlation.threshold)
         {
         var.impt[nxt.bst.env] <- -9999
         }# end if(max(cor.to.in.vars) > correlation.threshold)
-      if(abs(max(cor.to.in.vars)) <= correlation.threshold)
+      if((max(cor.to.in.vars)) <= correlation.threshold)
         {
         in.var.lst<-c(in.var.lst,nxt.bst.env)
         var.impt[nxt.bst.env] <- -9999       
@@ -485,7 +499,7 @@ gdm_builder <- function(site.env.data,
       if(test.col == 4)
         {drop.var <- which.max(drop.stats.D2[,out.col])}
       if(geo){
-        if(drop.var<=n.preds){ # then we are dropping an env predictor
+        if(drop.var < nrow(drop.stats.D2)){ # then we are dropping an env predictor
           in.vars.in[drop.var] <- 0
           n.preds<-n.preds-1
         }else{ # then we must be dropping geo
@@ -599,9 +613,12 @@ gdm_builder <- function(site.env.data,
       {
       Pairs.Table.Train <- sitepair_sample_geo_weighted(site.env.data = site.env.data,
                                                         n.pairs.target = n.pairs.train,
-                                                        bandwidth = bandwidth.geowt, 
+                                                        bandwidth = bandwidth.geowt,
+                                                        b.skip = bandwidth.skip, #
+                                                        inter.sample.pt.b.factor = bandwidth.DistFact,  #
+                                                        prop.sites.background = geowt.RndProp,   #
                                                         domain.mask = domain.mask,
-                                                        pcs.projargs = pcs.projargs)    
+                                                        pcs.projargs = pcs.projargs)   
       }# end if(sample.method == 'geowt')
     ##  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *  ##
     Pairs.Table.Train <- calculate_dissimilarities(pairs.table = Pairs.Table.Train, 
@@ -667,9 +684,12 @@ gdm_builder <- function(site.env.data,
                                                            'domain.mask',
                                                            'pcs.projargs', 
                                                            'bandwidth.geowt',
+                                                           'bandwidth.skip',
+                                                           'bandwidth.DistFact',
+                                                           'geowt.RndProp',
                                                            'output.folder',       
                                                            'output.name')),
-                                   value=as.character(rep(NA,times=20)))
+                                   value=as.character(rep(NA,times=23)))
   GDM_Builder_arguments$value <- as.character(GDM_Builder_arguments$value)
   GDM_Builder_arguments$value[1] <- as.character(geo)
   GDM_Builder_arguments$value[2] <- as.character(train.proportion)
@@ -689,8 +709,11 @@ gdm_builder <- function(site.env.data,
   if(!is.null(domain.mask)) {GDM_Builder_arguments$value[16] <- as.character(domain.mask@file@name)}
   if(!is.null(pcs.projargs)) {GDM_Builder_arguments$value[17] <- as.character(pcs.projargs)}
   if(!is.null(bandwidth.geowt)) {GDM_Builder_arguments$value[18] <- as.character(bandwidth.geowt)}
-  if(!is.null(output.folder))GDM_Builder_arguments$value[19] <- as.character(output.folder)       
-  GDM_Builder_arguments$value[20] <- as.character(output.name)
+  if(!is.null(bandwidth.skip)) {Sitepair_sample_assessor_args$value[19] <- as.character(bandwidth.skip)}
+  if(!is.null(bandwidth.DistFact)) {Sitepair_sample_assessor_args$value[20] <- as.character(bandwidth.DistFact)}
+  if(!is.null(geowt.RndProp)) {Sitepair_sample_assessor_args$value[21] <- as.character(geowt.RndProp)}
+  if(!is.null(output.folder))GDM_Builder_arguments$value[22] <- as.character(output.folder)       
+  GDM_Builder_arguments$value[23] <- as.character(output.name)
   
   
   GDM_Builder_results = list(Inputs = match.call(),

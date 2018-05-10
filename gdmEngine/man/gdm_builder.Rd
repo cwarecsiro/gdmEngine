@@ -11,7 +11,8 @@ gdm_builder(site.env.data, composition.data, geo = TRUE,
   Indiv.Dev.Explained.Min = 1, n.predictors.min = 8, b.used.factor = 2,
   b.dpair.factor = 0.5, b.epair.factor = 1, sigma.spair = 1,
   spair.factor = NULL, domain.mask = NULL, pcs.projargs = NULL,
-  bandwidth.geowt = NULL, output.folder = NULL,
+  bandwidth.geowt = NULL, bandwidth.skip = NULL,
+  bandwidth.DistFact = NULL, geowt.RndProp = NULL, output.folder = NULL,
   output.name = "gdm_builder_output", verbose = TRUE, ...)
 }
 \arguments{
@@ -54,6 +55,12 @@ gdm_builder(site.env.data, composition.data, geo = TRUE,
 \item{pcs.projargs}{(character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, for example when 'domain.mask' is in geographic coordinate system. For Australian Albers, pcs.projargs="+init=epsg:3577". (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).}
 
 \item{bandwidth.geowt}{(float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. (default = NULL, in which case bandwidth is 5% of the x-axis extent)}
+
+\item{bandwidth.skip}{(float) The minimum distance (as a factor of the specified bandwidth) of any data from a geographic 'sample point'. Where all data are greater than 'b.skip' x bandwidth away from a sample point, that sample point will be not used. (default = NULL)}
+
+\item{bandwidth.DistFact}{(float) The distance between sample points, as a factor to be multiplied by the bandwidth. (default = NULL)}
+
+\item{geowt.RndProp}{(float) The proportion of sites relative to the geographically weighted sample that will be drawn at random from the whole region (default = NULL)}
 
 \item{output.folder}{(string) A folder to save the outputs to. If none specified, no file is written.}
 

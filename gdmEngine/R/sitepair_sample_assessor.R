@@ -70,7 +70,7 @@ sitepair_sample_assessor <- function(site.env.data,
     if(!is.null(n.pairs.per.site))
       {
       n.pairs.ideal <- 0.5 * n.pairs.per.site * n.sites.train
-      n.pairs.train <- min(n.pairs.ideal, (n.pairs.total*0.5)) # maxing the possible pairs at half the full selection   
+      n.pairs.train <- floor(min(n.pairs.ideal, (n.pairs.total*0.5))) # maxing the possible pairs at half the full selection   
       }else{
       n.pairs.train <- floor(n.pairs.total*prop.pairs.train)
       } # end else
@@ -177,13 +177,18 @@ sitepair_sample_assessor <- function(site.env.data,
   sitepairs.env.evenness<-rep(0,times=n.crossvalid.tests)
   pairs.env.distance<-dissim.summary
   sites.ntimes.used<-dissim.summary
+  # Store the site-pair data in a list
+  pairs.lst <- list()
   
   # Loop through the samples, and catch the relevant attributes of the site-pairs
   for(i.test in 1:n.crossvalid.tests)  
     { 
   ## Grab the test and train site-pair data 
     Pairs.Table.Train <- train.lst[[i.test]]
-  
+    
+    pairs.name <- paste('Pairs_',i.test, sep='')
+    pairs.lst[[pairs.name]] <- Pairs.Table.Train[,c(1,11,12)]
+    
   ## Dissimilarities ##^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     dissim.hist <- hist(Pairs.Table.Train$distance,
                         breaks = seq(from=0, to=1, by=0.025),
@@ -352,9 +357,12 @@ sitepair_sample_assessor <- function(site.env.data,
                                                            'b.spair.factor',
                                                            'pcs.projargs', 
                                                            'bandwidth.geowt',
+                                                           'bandwidth.skip',
+                                                           'bandwidth.DistFact',
+                                                           'geowt.RndProp',
                                                            'output.folder',       
                                                            'output.name')),
-                                     'value'=c(as.character(rep(NA,times=12))))
+                                            'value'=c(as.character(rep(NA,times=15))))
   Sitepair_sample_assessor_args$value <- as.character(Sitepair_sample_assessor_args$value)
   if(!is.null(n.pairs.train)) {Sitepair_sample_assessor_args$value[1] <- as.character(n.pairs.train)}
   Sitepair_sample_assessor_args$value[2] <- as.character(n.crossvalid.tests)
@@ -366,8 +374,11 @@ sitepair_sample_assessor <- function(site.env.data,
   Sitepair_sample_assessor_args$value[8] <- as.character(spair.factor)
   if(!is.null(pcs.projargs)) {Sitepair_sample_assessor_args$value[9] <- as.character(pcs.projargs)} 
   if(!is.null(bandwidth.geowt)) {Sitepair_sample_assessor_args$value[10] <- as.character(bandwidth.geowt)}
-  if(!is.null(output.folder)) {Sitepair_sample_assessor_args$value[11] <- as.character(output.folder)}      
-  Sitepair_sample_assessor_args$value[12] <- as.character(output.name)
+  if(!is.null(bandwidth.skip)) {Sitepair_sample_assessor_args$value[11] <- as.character(bandwidth.skip)}
+  if(!is.null(bandwidth.DistFact)) {Sitepair_sample_assessor_args$value[12] <- as.character(bandwidth.DistFact)}
+  if(!is.null(geowt.RndProp)) {Sitepair_sample_assessor_args$value[13] <- as.character(geowt.RndProp)}
+  if(!is.null(output.folder)) {Sitepair_sample_assessor_args$value[14] <- as.character(output.folder)}      
+  Sitepair_sample_assessor_args$value[15] <- as.character(output.name)
   
   Sitepair_assessor_results = list(Inputs = match.call(),
                              Arguments = Sitepair_sample_assessor_args,
@@ -380,7 +391,8 @@ sitepair_sample_assessor <- function(site.env.data,
                              SitesEnvEvenness = sites.env.evenness,
                              SitepairsEnvEvenness = sitepairs.env.evenness,
                              SitepairsEnvDistanceSummary = pairs.env.distance,
-                             nTimesSitesUsedInPairs = sites.ntimes.used)
+                             nTimesSitesUsedInPairs = sites.ntimes.used,
+                             PairsData = pairs.lst)
   
   ## Write the output list to file if specified ##
   if(!is.null(output.folder))

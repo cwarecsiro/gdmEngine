@@ -1,0 +1,80 @@
+gdm_ext.transform <-
+function (model, inlist, outdir, dllpath, extrap_type=c("Default10", "WholeGrad", "Conservative", "None")) 
+{
+    ##
+    ##
+    ## model MUST contain the following fields...
+    ## geo,preds,splines,quantiles,coefficients
+    ##
+    ##
+    
+    # setup the extrapolation type here
+    if (missing(extrap_type))
+        etype <- 0 #Default10
+    else
+        switch(extrap_type,
+           Default10=etype <- 0,
+           WholeGrad=etype <- 1,
+           Conservative=etype <- 2,
+           None=etype <- 3)
+    
+    
+    dyn.load(dllpath)
+    
+    
+    z <- .C( "CreateTransformsFromR", 
+             inlist, 
+             outdir,
+             as.integer(etype),
+             as.integer(model$geo),
+             as.integer(model$preds),
+             as.integer(model$splines),
+             as.double(model$quantiles),
+             as.double(model$coefficients))
+    
+    dyn.unload(dllpath)
+    return(TRUE)
+}
+
+
+gdm_ext.sigtest <-
+function (dllpath, wdpath, datatable, outname, iterations = 100, do_geo = TRUE) 
+{
+    #print(paste("outname: ", outname, sep=""))
+    #print(paste("iterations: ", iterations, sep=""))
+    #print(paste("dllpath: ", dllpath, sep=""))
+    #print(paste("wdpath: ", wdpath, sep=""))
+    
+    if (do_geo)
+        print("Include Geographic Distance Predictor")
+    else
+        print("Exclude Geographic Distance Predictor")
+    
+    #
+    # load the datatable
+    #
+    mytable <- read.csv(datatable)
+    numpreds <- (ncol(mytable) - 6) / 2
+    #print(paste("numpreds: ", numpreds, sep=""))
+    
+    ##
+    ## create a GDM parameter file 
+    ##
+    paramFilePath <- paste(outname, ".txt", sep="")
+    
+    dyn.load(dllpath)
+    
+    
+    z0 <- .C( "SaveGDMParams", wdpath, paramFilePath, datatable, as.integer(numpreds), as.integer(do_geo))
+    
+    
+    fullparamfilepath <- paste(wdpath, "\\", paramFilePath, sep="")
+    z1 <- .C( "ExtractAndUpdateQuantilesSigTest", fullparamfilepath)
+    
+    
+    z2 <- .C( "DoSigTestGDM", fullparamfilepath, as.integer(iterations))
+         
+    
+    dyn.unload(dllpath)
+}
+
