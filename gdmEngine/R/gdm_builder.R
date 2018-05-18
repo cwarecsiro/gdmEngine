@@ -709,9 +709,9 @@ gdm_builder <- function(site.env.data,
   if(!is.null(domain.mask)) {GDM_Builder_arguments$value[16] <- as.character(domain.mask@file@name)}
   if(!is.null(pcs.projargs)) {GDM_Builder_arguments$value[17] <- as.character(pcs.projargs)}
   if(!is.null(bandwidth.geowt)) {GDM_Builder_arguments$value[18] <- as.character(bandwidth.geowt)}
-  if(!is.null(bandwidth.skip)) {Sitepair_sample_assessor_args$value[19] <- as.character(bandwidth.skip)}
-  if(!is.null(bandwidth.DistFact)) {Sitepair_sample_assessor_args$value[20] <- as.character(bandwidth.DistFact)}
-  if(!is.null(geowt.RndProp)) {Sitepair_sample_assessor_args$value[21] <- as.character(geowt.RndProp)}
+  if(!is.null(bandwidth.skip)) {GDM_Builder_arguments$value[19] <- as.character(bandwidth.skip)}
+  if(!is.null(bandwidth.DistFact)) {GDM_Builder_arguments$value[20] <- as.character(bandwidth.DistFact)}
+  if(!is.null(geowt.RndProp)) {GDM_Builder_arguments$value[21] <- as.character(geowt.RndProp)}
   if(!is.null(output.folder))GDM_Builder_arguments$value[22] <- as.character(output.folder)       
   GDM_Builder_arguments$value[23] <- as.character(output.name)
   

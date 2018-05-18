@@ -27,8 +27,8 @@
 #'@export
 #'
 #'@examples 
-#'download_occurrences(taxon="genus:Wandella", wkt="POLYGON((112.0+44.0,154.0+44.0,154.0+9.0,112.0+9.0,112.0+44.0))", 
-#'method = "offline",email="karel.mokany@csiro.au", download_reason_id="7", verbose = TRUE)
+#' download_occurrences(taxon="genus:Wandella", wkt="POLYGON((112.0+44.0,154.0+44.0,154.0+9.0,112.0+9.0,112.0+44.0))", 
+#' method = "offline",email="karel.mokany@csiro.au", download_reason_id="7", verbose = TRUE)
 #'
 download_occurrences <- function (taxon, wkt, fields, qa, method = "offline", 
                                   email, download_reason_id, dwcHeaders = TRUE, dst = NULL, read = TRUE,

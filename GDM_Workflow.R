@@ -35,7 +35,7 @@ terrain.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/
 soil.files <- list.files(path = "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/env/SOIL/TOP", full.names=TRUE, pattern = ".flt")
 env.files <- c(climate.files, terrain.files, soil.files)
 env.files <- env.files[(substr(env.files, nchar(env.files)-3, nchar(env.files)) == ".flt")] # to remove some arcmap filenames
-env.files <- env.files[-c(26,29,30,32,33,34,37,38,39,40)] # remove grids we don't want to assess in the modelling
+env.files <- env.files[-c(3,26,29,30,32,33,34,37,38,39,40)] # remove grids we don't want to assess in the modelling
 env.stk <- stack(env.files, quick=TRUE) #env.stk <- stack(env.files)
 
 # PLANTS INPUTS
@@ -151,7 +151,7 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
 #Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
 #VASCULAR PLANTS -------
 Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
-Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-03-07.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-05-15.csv")
 #LAND SNAILS -------
 #Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/selected_gridcell_composition_2018-03-09.csv")
 #Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/site_env_data_2018-03-09.csv")
@@ -168,13 +168,17 @@ GDM.Selection <- gdm_builder(site.env.data = Site.Env.Data,
                              n.pairs.train = n.pairs.model,
                              n.pairs.test = n.pairs.test,
                              selection.metric = 'D2',
-                             sample.method = 'random',
+                             sample.method = 'geowt',
                              Indiv.Dev.Explained.Min = 1.0,
                              n.predictors.min = 8,
                              domain.mask=Aus.domain.mask,
                              pcs.projargs="+init=epsg:3577",
+                             bandwidth.geowt=150000,
+                             bandwidth.skip=2,
+                             bandwidth.DistFact=1,
+                             geowt.RndProp=0.05,
                              output.folder = data.processing.folder,       
-                             output.name = "gdm_mod_builder_results_RandSamp_noGeo") 
+                             output.name = "gdm_mod_builder_results_GeowtSamp_noGeo_v2") 
 proc.time() - ptm
 
 ## SELECT A SET OF PREDICTORS FOR A GDM & APPLY SIGNIFICANCE TEST -----------------------------------##
@@ -214,6 +218,19 @@ gdm_ext.sigtest(dllpath="//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_work
 proc.time() - ptm
 
 ## NOW TRANSFORM THE GRIDS BASED ON THE SELECTED MODEL ----------------------------------------------##
+# assuming the final model is called 'final.model'
+predictor.filepaths <- NULL
+for(i.lyr in 1:length(final.model$predictors)) # need to keep the order of predictors, so do this in a loop
+  { predictor.filepaths <- c(predictor.filepaths, env.files[which(all.pred.names %in% final.model$predictors[i.lyr])]) }
+pred.list.filename = file.path(data.processing.folder,"predictor_grid_filelist.csv")
+predictor.filepaths = substr(predictor.filepaths,1,nchar(predictor.filepaths)-4)
+write.table(predictor.filepaths, file = pred.list.filename,row.names=FALSE, na="",col.names=FALSE, sep=",")
+gdm_ext_transform(model = final.model, 
+                  inlist = pred.list.filename, 
+                  outdir = data.processing.folder, 
+                  extrap_type = "Default10") #c("Default10", "WholeGrad", "Conservative", "None")) 
+
+
 
 
 
