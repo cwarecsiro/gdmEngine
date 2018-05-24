@@ -39,21 +39,29 @@ env.files <- env.files[-c(20,21,32,35,36,38,39,40,43,44,45,46)] # remove grids w
 env.stk <- stack(env.files)
 
 # PLANTS INPUTS
-species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/APC_and_Orchid_SpeciesNames.csv"
+species.names.file <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/APC_and_Orchid_SpeciesNames.csv"
 species.names <- read.csv(species.names.file)
 species.names <- as.character(species.names[,1])
-species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants"
-species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/raw_files"
-data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants"
+species.records.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/vascular_plants"
+species.records.folder.raw <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/raw_files"
+data.processing.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants"
+agg.cell.rad <- 2.25
+min.rich.limit <- 10
+max.rich.limit <- 400
+min.rich.rad <- 200
+min.rich.proportion <- 0.25
+n.pairs.model <- 144000 # equates to each site used 10 times
+train.proportion <- 0.8
+n.pairs.test <- 36000   # equates to each site used 10 times
 
 # AMPHIBIANS INPUTS
-species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/amphibians/AFD-20171211T130458.csv"
+species.names.file <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/amphibians/AFD-20171211T130458.csv"
 species.names <- read.csv(species.names.file)
 species.names <- paste(species.names$GENUS, species.names$SPECIES)
 species.names <- unique(species.names)
-species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/amphibians"
-species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/amphibians/raw_files"
-data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians"
+species.records.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/amphibians"
+species.records.folder.raw <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/amphibians/raw_files"
+data.processing.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/amphibians"
 agg.cell.rad <- 2.25
 min.rich.limit <- 2
 max.rich.limit <- 50
@@ -64,13 +72,13 @@ train.proportion <- 0.8
 n.pairs.test <- 20000
 
 # LAND SNAIL INPUTS
-species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails/AusLandSnails_ALASpeciesList_9Mar18.csv"
+species.names.file <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/land_snails/AusLandSnails_ALASpeciesList_9Mar18.csv"
 species.names <- read.csv(species.names.file)
 species.names <- species.names$Species.Name
 species.names <- unique(species.names)
-species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails"
-species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails/raw_files"
-data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails"
+species.records.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/land_snails"
+species.records.folder.raw <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/land_snails/raw_files"
+data.processing.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/land_snails"
 agg.cell.rad <- 2.25
 min.rich.limit <- 2
 max.rich.limit <- 50
@@ -82,13 +90,13 @@ n.pairs.test <- 10000
 
 
 # REPTILE INPUTS
-species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/AFD-20171211T113438.csv"
+species.names.file <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/reptiles/AFD-20171211T113438.csv"
 species.names <- read.csv(species.names.file)
 species.names <- paste(species.names$GENUS, species.names$SPECIES)
 species.names <- unique(species.names)
-species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles"
-species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/raw_files"
-data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles"
+species.records.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/reptiles"
+species.records.folder.raw <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/reptiles/raw_files"
+data.processing.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/reptiles"
 agg.cell.rad <- 2.25
 min.rich.limit <- 3
 max.rich.limit <- 50
@@ -136,17 +144,17 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
 
 ##TEMP##
 #AMPHIBIANS -------
-Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
-Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
+#Selected.records <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
 #VASCULAR PLANTS -------
-#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
-#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-03-07.csv")
+Selected.records <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-03-07.csv")
 #LAND SNAILS -------
-#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/selected_gridcell_composition_2018-03-09.csv")
-#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/site_env_data_2018-03-09.csv")
+#Selected.records <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/land_snails/selected_gridcell_composition_2018-03-09.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/land_snails/site_env_data_2018-03-09.csv")
 #Reptiles ---------
-Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/selected_gridcell_composition_2018-03-15.csv")
-Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/site_env_data_2018-03-15.csv")
+#Selected.records <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/reptiles/selected_gridcell_composition_2018-03-15.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/reptiles/site_env_data_2018-03-15.csv")
 ##ENDTEMP##
 
 # Make a single focussed sample ----------------------------------------------------------##
@@ -166,12 +174,13 @@ geowt.sample <- sitepair_sample_assessor(site.env.data=Site.Env.Data,
                                         bandwidth.skip=2,
                                         bandwidth.DistFact=1,
                                         geowt.RndProp=0.05,
-                                        output.folder = "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleAssessment",       
+                                        output.folder = "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleAssessment",       
                                         output.name = "Sitepair_sample_assessor_output_geowt1") 
 
 
+##----------------------------------------------------------------------------------------##
 ## NOW RUN THE SITEPAIR SAMPLING ATTRIBUTE ASSESSMENT ------------------------------------##
-taxa <- "land_snails"
+taxa <- "vascular_plants"
 
 #### PARAMETERS FOR RANDOM ####
 parameter.tbl <- expand.grid(p.sample.method='random',
@@ -180,10 +189,10 @@ parameter.tbl <- expand.grid(p.sample.method='random',
                              stringsAsFactors=FALSE)
 parameter.tbl<-unique(parameter.tbl)
 parameter.tbl$run.name<-paste0(taxa,"_",parameter.tbl$p.sample.method,"_",c(1:nrow(parameter.tbl))) ## **CHANGE FOR EACH TAXA**
-analysis.out.folder<-paste0("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",parameter.tbl$p.sample.method[1])  ## **CHANGE FOR EACH TAXA**
+analysis.out.folder<-paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",parameter.tbl$p.sample.method[1])  ## **CHANGE FOR EACH TAXA**
 write.csv(parameter.tbl,paste0(analysis.out.folder,"/",taxa,"_parameters_",parameter.tbl$p.sample.method[1],".csv"),row.names = FALSE) ## **CHANGE FOR EACH TAXA**
 # run the parallel loop over parameter combinations
-cl<-makeCluster(12) #setup parallel backend to use 12 processors
+cl<-makeCluster(25) #setup parallel backend to use 12 processors
 registerDoParallel(cl) 
 foreach(i.run=1:nrow(parameter.tbl), .packages='gdmEngine') %dopar% {
   this.sample <- sitepair_sample_assessor(site.env.data = Site.Env.Data,
@@ -207,10 +216,10 @@ parameter.tbl <- expand.grid(p.sample.method='geodist',
                              stringsAsFactors=FALSE)
 parameter.tbl<-unique(parameter.tbl)
 parameter.tbl$run.name<-paste0(taxa,"_",parameter.tbl$p.sample.method,"_",c(1:nrow(parameter.tbl))) ## **CHANGE FOR EACH TAXA**
-analysis.out.folder<-paste0("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",parameter.tbl$p.sample.method[1])  ## **CHANGE FOR EACH TAXA**
+analysis.out.folder<-paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",parameter.tbl$p.sample.method[1])  ## **CHANGE FOR EACH TAXA**
 write.csv(parameter.tbl,paste0(analysis.out.folder,"/",taxa,"_parameters_",parameter.tbl$p.sample.method[1],".csv"),row.names = FALSE) ## **CHANGE FOR EACH TAXA**
 # run the parallel loop over parameter combinations
-cl<-makeCluster(12) #setup parallel backend to use 12 processors
+cl<-makeCluster(25) #setup parallel backend to use 12 processors
 registerDoParallel(cl) 
 foreach(i.run=1:nrow(parameter.tbl), .packages='gdmEngine') %dopar% {
   this.sample <- sitepair_sample_assessor(site.env.data = Site.Env.Data,
@@ -235,10 +244,10 @@ parameter.tbl <- expand.grid(p.sample.method='envdist',
                              stringsAsFactors=FALSE)
 parameter.tbl<-unique(parameter.tbl)
 parameter.tbl$run.name<-paste0(taxa,"_",parameter.tbl$p.sample.method,"_",c(1:nrow(parameter.tbl))) ## **CHANGE FOR EACH TAXA**
-analysis.out.folder<-paste0("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",parameter.tbl$p.sample.method[1])  ## **CHANGE FOR EACH TAXA**
+analysis.out.folder<-paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",parameter.tbl$p.sample.method[1])  ## **CHANGE FOR EACH TAXA**
 write.csv(parameter.tbl,paste0(analysis.out.folder,"/",taxa,"_parameters_",parameter.tbl$p.sample.method[1],".csv"),row.names = FALSE) ## **CHANGE FOR EACH TAXA**
 # run the parallel loop over parameter combinations
-cl<-makeCluster(12) #setup parallel backend to use 12 processors
+cl<-makeCluster(25) #setup parallel backend to use 12 processors
 registerDoParallel(cl) 
 foreach(i.run=1:nrow(parameter.tbl), .packages='gdmEngine') %dopar% {
   this.sample <- sitepair_sample_assessor(site.env.data = Site.Env.Data,
@@ -264,10 +273,10 @@ parameter.tbl <- expand.grid(p.sample.method='geodens',
                              stringsAsFactors=FALSE)
 parameter.tbl<-unique(parameter.tbl)
 parameter.tbl$run.name<-paste0(taxa,"_",parameter.tbl$p.sample.method,"_",c(1:nrow(parameter.tbl))) ## **CHANGE FOR EACH TAXA**
-analysis.out.folder<-paste0("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",parameter.tbl$p.sample.method[1])  ## **CHANGE FOR EACH TAXA**
+analysis.out.folder<-paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",parameter.tbl$p.sample.method[1])  ## **CHANGE FOR EACH TAXA**
 write.csv(parameter.tbl,paste0(analysis.out.folder,"/",taxa,"_parameters_",parameter.tbl$p.sample.method[1],".csv"),row.names = FALSE) ## **CHANGE FOR EACH TAXA**
 # run the parallel loop over parameter combinations
-cl<-makeCluster(12) #setup parallel backend to use 12 processors
+cl<-makeCluster(25) #setup parallel backend to use 12 processors
 registerDoParallel(cl) 
 foreach(i.run=1:nrow(parameter.tbl), .packages='gdmEngine') %dopar% {
   this.sample <- sitepair_sample_assessor(site.env.data = Site.Env.Data,
@@ -296,10 +305,10 @@ parameter.tbl <- expand.grid(p.sample.method='geowt',
 
 parameter.tbl<-unique(parameter.tbl)
 parameter.tbl$run.name<-paste0(taxa,"_",parameter.tbl$p.sample.method,"_",c(1:nrow(parameter.tbl))) ## **CHANGE FOR EACH TAXA**
-analysis.out.folder<-paste0("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",parameter.tbl$p.sample.method[1])  ## **CHANGE FOR EACH TAXA**
+analysis.out.folder<-paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",parameter.tbl$p.sample.method[1])  ## **CHANGE FOR EACH TAXA**
 write.csv(parameter.tbl,paste0(analysis.out.folder,"/",taxa,"_parameters_",parameter.tbl$p.sample.method[1],".csv"),row.names = FALSE) ## **CHANGE FOR EACH TAXA**
 #  for parallel implementation...
-cl<-makeCluster(12) #setup parallel backend to use 12 processors
+cl<-makeCluster(25) #setup parallel backend to use 14 processors
 registerDoParallel(cl) 
 # run the parallel loop over parameter combinations
 foreach(i.run=1:nrow(parameter.tbl), .packages='gdmEngine') %dopar% {
@@ -318,21 +327,27 @@ foreach(i.run=1:nrow(parameter.tbl), .packages='gdmEngine') %dopar% {
                                           output.name = parameter.tbl$run.name[i.run])
   } # end for i.run
 stopCluster(cl)
-
-
-
-
-
+##----------------------------------------------------------------------------------------##
 
 ##----------------------------------------------------------------------------------------##
 ## SUMMARISE THE RESULTS FROM THE SITEPAIR SAMPLING ASSESSMENT ---------------------------##
-# Specify the folder where the output files are held
-analysis.out.folder<-"//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleAssessment/geowt"  ## **CHANGE FOR EACH TAXA**
-analysis.out.files<-as.character(list.files(analysis.out.folder))
-# Read in the parameter table
-parameter.tbl<-read.csv(paste0(analysis.out.folder,"/Amphibian_parameters_geowt.csv")) ## **CHANGE FOR EACH TAXA**
-# Create a table to catch the summary data
-results.tbl <- data.frame(ProcTime = as.numeric(rep(NA,times=nrow(parameter.tbl))),
+library(gtools)
+# Specify the taxa
+taxa <- "land_snails"
+# Specify the sample types
+sample_method <- c("envdist","geodens","geodist","geowt","random")
+# Loop through the sample methods, and join the data together
+taxa.results.tbl <- NULL
+for(i.smp in 1:length(sample_method))
+  {
+  smp.mth <- sample_method[i.smp]
+  # Specify the folder where the output files are held
+  analysis.out.folder<-paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",smp.mth)  ## **CHANGE FOR EACH TAXA**
+  analysis.out.files<-as.character(list.files(analysis.out.folder))
+  # Read in the parameter table
+  parameter.tbl<-read.csv(paste0(analysis.out.folder,"/",taxa,"_parameters_",smp.mth,".csv")) ## **CHANGE FOR EACH TAXA**
+  # Create a table to catch the summary data
+  results.tbl <- data.frame(ProcTime = as.numeric(rep(NA,times=nrow(parameter.tbl))),
                           Dissimilarity.Evenness = as.numeric(rep(NA,times=nrow(parameter.tbl))),
                           Min.Dissimilarity = as.numeric(rep(NA,times=nrow(parameter.tbl))),
                           Q1.Dissimilarity = as.numeric(rep(NA,times=nrow(parameter.tbl))),
@@ -358,147 +373,174 @@ results.tbl <- data.frame(ProcTime = as.numeric(rep(NA,times=nrow(parameter.tbl)
                           Mdn.nTimes.SitesUsedInPairs = as.numeric(rep(NA,times=nrow(parameter.tbl))),
                           Q3.nTimes.SitesUsedInPairs = as.numeric(rep(NA,times=nrow(parameter.tbl))),
                           Max.nTimes.SitesUsedInPairs = as.numeric(rep(NA,times=nrow(parameter.tbl)))  )
-# Now loop through parameter combos, see if there's an output file for each, read it in and
-# summarise the results, catching in the output table.
-for(i.run in 1:nrow(parameter.tbl))
-  {
-  #find if there is an output file to match the run.name
-  #paste(as.character(parameter.tbl$run.name[i.run]),"_",sep='')
-  f.name <- analysis.out.files[pmatch(paste(as.character(parameter.tbl$run.name[i.run]),"_",sep=''), analysis.out.files)]
-  if(!is.na(f.name))
+  # Now loop through parameter combos, see if there's an output file for each, read it in and
+  # summarise the results, catching in the output table.
+  for(i.run in 1:nrow(parameter.tbl))
     {
-    # open the file
-    load(file.path(analysis.out.folder,f.name))
-    # catch the results 
-    results.tbl$ProcTime[i.run] = Sitepair_assessor_results$ProcessingTime[3]
-    results.tbl$Dissimilarity.Evenness[i.run] = mean(Sitepair_assessor_results$DissimilarityEvenness)
-    results.tbl$Min.Dissimilarity[i.run] = mean(Sitepair_assessor_results$DissimilaritySummary[,1])
-    results.tbl$Q1.Dissimilarity[i.run] =  mean(Sitepair_assessor_results$DissimilaritySummary[,2])
-    results.tbl$Mdn.Dissimilarity[i.run] =  mean(Sitepair_assessor_results$DissimilaritySummary[,3])
-    results.tbl$Q3.Dissimilarity[i.run] =  mean(Sitepair_assessor_results$DissimilaritySummary[,5])
-    results.tbl$Max.Dissimilarity[i.run] =  mean(Sitepair_assessor_results$DissimilaritySummary[,6])
-    results.tbl$Sites.Geo.Evenness[i.run] = mean(Sitepair_assessor_results$SitesGeoEvenness)
-    results.tbl$Sitepairs.Geo.Evenness[i.run] = mean(Sitepair_assessor_results$SitepairsGeoEvenness)
-    results.tbl$Min.Sitepairs.GeoDistance[i.run] = mean(Sitepair_assessor_results$SitepairsGeoDistanceSummary[,1])
-    results.tbl$Q1.Sitepairs.GeoDistance[i.run] = mean(Sitepair_assessor_results$SitepairsGeoDistanceSummary[,2])
-    results.tbl$Mdn.Sitepairs.GeoDistance[i.run] = mean(Sitepair_assessor_results$SitepairsGeoDistanceSummary[,3])
-    results.tbl$Q3.Sitepairs.GeoDistance[i.run] = mean(Sitepair_assessor_results$SitepairsGeoDistanceSummary[,5])
-    results.tbl$Max.Sitepairs.GeoDistance[i.run] = mean(Sitepair_assessor_results$SitepairsGeoDistanceSummary[,6])
-    results.tbl$Sites.Env.Evenness[i.run] = mean(Sitepair_assessor_results$SitesEnvEvenness)
-    results.tbl$Sitepairs.Env.Evenness[i.run] = mean(Sitepair_assessor_results$SitepairsEnvEvenness)
-    results.tbl$Min.Sitepairs.EnvDistance[i.run] = mean(Sitepair_assessor_results$SitepairsEnvDistanceSummary[,1])
-    results.tbl$Q1.Sitepairs.EnvDistance[i.run] = mean(Sitepair_assessor_results$SitepairsEnvDistanceSummary[,2])
-    results.tbl$Mdn.Sitepairs.EnvDistance[i.run] = mean(Sitepair_assessor_results$SitepairsEnvDistanceSummary[,3])
-    results.tbl$Q3.Sitepairs.EnvDistance[i.run] = mean(Sitepair_assessor_results$SitepairsEnvDistanceSummary[,5])
-    results.tbl$Max.Sitepairs.EnvDistance[i.run] = mean(Sitepair_assessor_results$SitepairsEnvDistanceSummary[,6])
-    results.tbl$Min.nTimes.SitesUsedInPairs[i.run] = mean(Sitepair_assessor_results$nTimesSitesUsedInPairs[,1])
-    results.tbl$Q1.nTimes.SitesUsedInPairs[i.run] = mean(Sitepair_assessor_results$nTimesSitesUsedInPairs[,2])
-    results.tbl$Mdn.nTimes.SitesUsedInPairs[i.run] = mean(Sitepair_assessor_results$nTimesSitesUsedInPairs[,3])
-    results.tbl$Q3.nTimes.SitesUsedInPairs[i.run] = mean(Sitepair_assessor_results$nTimesSitesUsedInPairs[,5])
-    results.tbl$Max.nTimes.SitesUsedInPairs[i.run] = mean(Sitepair_assessor_results$nTimesSitesUsedInPairs[,6])
-    # remove the results
-    rm(Sitepair_assessor_results)
-    }# end if !is.na(f.name)
-  } # end for i.run
-parameter.results.tbl <- cbind(parameter.tbl, results.tbl) 
-write.csv(parameter.results.tbl, paste0(analysis.out.folder,"/Amph_parameters_results_geowt.csv"), row.names = FALSE)
+    #find if there is an output file to match the run.name
+    #paste(as.character(parameter.tbl$run.name[i.run]),"_",sep='')
+    f.name <- analysis.out.files[pmatch(paste(as.character(parameter.tbl$run.name[i.run]),"_",sep=''), analysis.out.files)]
+    if(!is.na(f.name))
+      {
+      # open the file
+      load(file.path(analysis.out.folder,f.name))
+      # catch the results 
+      results.tbl$ProcTime[i.run] = Sitepair_assessor_results$ProcessingTime[3]
+      results.tbl$Dissimilarity.Evenness[i.run] = mean(Sitepair_assessor_results$DissimilarityEvenness)
+      results.tbl$Min.Dissimilarity[i.run] = mean(Sitepair_assessor_results$DissimilaritySummary[,1])
+      results.tbl$Q1.Dissimilarity[i.run] =  mean(Sitepair_assessor_results$DissimilaritySummary[,2])
+      results.tbl$Mdn.Dissimilarity[i.run] =  mean(Sitepair_assessor_results$DissimilaritySummary[,3])
+      results.tbl$Q3.Dissimilarity[i.run] =  mean(Sitepair_assessor_results$DissimilaritySummary[,5])
+      results.tbl$Max.Dissimilarity[i.run] =  mean(Sitepair_assessor_results$DissimilaritySummary[,6])
+      results.tbl$Sites.Geo.Evenness[i.run] = mean(Sitepair_assessor_results$SitesGeoEvenness)
+      results.tbl$Sitepairs.Geo.Evenness[i.run] = mean(Sitepair_assessor_results$SitepairsGeoEvenness)
+      results.tbl$Min.Sitepairs.GeoDistance[i.run] = mean(Sitepair_assessor_results$SitepairsGeoDistanceSummary[,1])
+      results.tbl$Q1.Sitepairs.GeoDistance[i.run] = mean(Sitepair_assessor_results$SitepairsGeoDistanceSummary[,2])
+      results.tbl$Mdn.Sitepairs.GeoDistance[i.run] = mean(Sitepair_assessor_results$SitepairsGeoDistanceSummary[,3])
+      results.tbl$Q3.Sitepairs.GeoDistance[i.run] = mean(Sitepair_assessor_results$SitepairsGeoDistanceSummary[,5])
+      results.tbl$Max.Sitepairs.GeoDistance[i.run] = mean(Sitepair_assessor_results$SitepairsGeoDistanceSummary[,6])
+      results.tbl$Sites.Env.Evenness[i.run] = mean(Sitepair_assessor_results$SitesEnvEvenness)
+      results.tbl$Sitepairs.Env.Evenness[i.run] = mean(Sitepair_assessor_results$SitepairsEnvEvenness)
+      results.tbl$Min.Sitepairs.EnvDistance[i.run] = mean(Sitepair_assessor_results$SitepairsEnvDistanceSummary[,1])
+      results.tbl$Q1.Sitepairs.EnvDistance[i.run] = mean(Sitepair_assessor_results$SitepairsEnvDistanceSummary[,2])
+      results.tbl$Mdn.Sitepairs.EnvDistance[i.run] = mean(Sitepair_assessor_results$SitepairsEnvDistanceSummary[,3])
+      results.tbl$Q3.Sitepairs.EnvDistance[i.run] = mean(Sitepair_assessor_results$SitepairsEnvDistanceSummary[,5])
+      results.tbl$Max.Sitepairs.EnvDistance[i.run] = mean(Sitepair_assessor_results$SitepairsEnvDistanceSummary[,6])
+      results.tbl$Min.nTimes.SitesUsedInPairs[i.run] = mean(Sitepair_assessor_results$nTimesSitesUsedInPairs[,1])
+      results.tbl$Q1.nTimes.SitesUsedInPairs[i.run] = mean(Sitepair_assessor_results$nTimesSitesUsedInPairs[,2])
+      results.tbl$Mdn.nTimes.SitesUsedInPairs[i.run] = mean(Sitepair_assessor_results$nTimesSitesUsedInPairs[,3])
+      results.tbl$Q3.nTimes.SitesUsedInPairs[i.run] = mean(Sitepair_assessor_results$nTimesSitesUsedInPairs[,5])
+      results.tbl$Max.nTimes.SitesUsedInPairs[i.run] = mean(Sitepair_assessor_results$nTimesSitesUsedInPairs[,6])
+      # remove the results
+      rm(Sitepair_assessor_results)
+      }# end if !is.na(f.name)
+    } # end for i.run
+  parameter.results.tbl <- cbind(parameter.tbl, results.tbl) 
+  taxa.results.tbl <- smartbind(taxa.results.tbl,parameter.results.tbl)
+  }# end for i.smp
 
+parameter.results.tbl<-taxa.results.tbl[!is.na(taxa.results.tbl$run.name),]
+write.csv(parameter.results.tbl, paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",taxa,"_SampleAssess_Results.csv"), row.names = FALSE)
 
 ## Plot results ###############################################
 library(ggplot2)
-#parameter.results.tbl<-read.csv(paste0(analysis.out.folder,"/Amph_parameters_results_geowt.csv")) ## CHANGE THIS ***
-figures.out.folder<-"//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleAssessment/Figures"
+#taxa <- "amphibians" 
+#parameter.results.tbl<-read.csv(paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",taxa,"_SampleAssess_Results.csv"))
+figures.out.folder<-paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/Figures")
 # convert factors to factors
 parameter.results.tbl$p.sample.method<-as.factor(parameter.results.tbl$p.sample.method)
 parameter.results.tbl$p.n.pairs.per.site<-as.factor(parameter.results.tbl$p.n.pairs.per.site)
-# FOR SAMPLE METHOD = GEOWT...
+parameter.results.tbl$p.b.used.factor<-as.factor(parameter.results.tbl$p.b.used.factor)
+parameter.results.tbl$p.b.epair.factor<-as.factor(parameter.results.tbl$p.b.epair.factor)
+parameter.results.tbl$p.sigma.spair<-as.factor(parameter.results.tbl$p.sigma.spair)
+parameter.results.tbl$p.b.spair.factor<-as.factor(parameter.results.tbl$p.b.spair.factor)
+parameter.results.tbl$p.b.dpair.factor<-as.factor(parameter.results.tbl$p.b.dpair.factor)
 parameter.results.tbl$p.bandwidth.geowt<-as.factor(parameter.results.tbl$p.bandwidth.geowt)
 parameter.results.tbl$p.bandwidth.skip<-as.factor(parameter.results.tbl$p.bandwidth.skip)
 parameter.results.tbl$p.bandwidth.DistFact<-as.factor(parameter.results.tbl$p.bandwidth.DistFact)
 parameter.results.tbl$p.geowt.RndProp<-as.factor(parameter.results.tbl$p.geowt.RndProp)
 
-## for p.bandwidth.geowt
-p1<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.geowt, y=Dissimilarity.Evenness, fill=p.n.pairs.per.site)) +
+## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ##
+## First compare overall sampling methods, to see which performs best over all
+p1<-ggplot(parameter.results.tbl, aes(x=p.sample.method, y=Dissimilarity.Evenness)) +
   geom_boxplot() + labs(y = "Dissim.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p2<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.geowt, y=Mdn.Dissimilarity, fill=p.n.pairs.per.site)) +
+p2<-ggplot(parameter.results.tbl, aes(x=p.sample.method, y=Mdn.Dissimilarity)) +
   geom_boxplot() + labs(y = "Mdn.Dissim") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p3<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.geowt, y=Sitepairs.Geo.Evenness, fill=p.n.pairs.per.site)) +
+p3<-ggplot(parameter.results.tbl, aes(x=p.sample.method, y=Sitepairs.Geo.Evenness)) +
   geom_boxplot() + labs(y = "Geo.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p4<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.geowt, y=Sitepairs.Env.Evenness, fill=p.n.pairs.per.site)) +
+p4<-ggplot(parameter.results.tbl, aes(x=p.sample.method, y=Sitepairs.Env.Evenness)) +
   geom_boxplot() + labs(y = "Env.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p5<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.geowt, y=Mdn.Sitepairs.EnvDistance, fill=p.n.pairs.per.site)) +
+p5<-ggplot(parameter.results.tbl, aes(x=p.sample.method, y=Mdn.Sitepairs.EnvDistance)) +
   geom_boxplot() + labs(y = "Mdn.Env.Dist") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p6<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.geowt, y=Mdn.Sitepairs.GeoDistance, fill=p.n.pairs.per.site)) +
+p6<-ggplot(parameter.results.tbl, aes(x=p.sample.method, y=Mdn.Sitepairs.GeoDistance)) +
+  geom_boxplot() + labs(y = "Mdn.Geo.Dist") 
+png(paste0(figures.out.folder,"/SampleMethod_PerformaceSummary.png"),height=1000,width=500)
+multiplot(p1, p2, p3, p4, p5, p6, cols=1)
+dev.off()#___
+
+## GEOWT ANALYSIS ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ##
+## for p.bandwidth.geowt
+p1<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.geowt, y=Dissimilarity.Evenness, fill=p.n.pairs.per.site)) +
+  geom_boxplot() + labs(y = "Dissim.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p2<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.geowt, y=Mdn.Dissimilarity, fill=p.n.pairs.per.site)) +
+  geom_boxplot() + labs(y = "Mdn.Dissim") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p3<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.geowt, y=Sitepairs.Geo.Evenness, fill=p.n.pairs.per.site)) +
+  geom_boxplot() + labs(y = "Geo.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p4<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.geowt, y=Sitepairs.Env.Evenness, fill=p.n.pairs.per.site)) +
+  geom_boxplot() + labs(y = "Env.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p5<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.geowt, y=Mdn.Sitepairs.EnvDistance, fill=p.n.pairs.per.site)) +
+  geom_boxplot() + labs(y = "Mdn.Env.Dist") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p6<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.geowt, y=Mdn.Sitepairs.GeoDistance, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Mdn.Geo.Dist") 
 png(paste0(figures.out.folder,"/p_bandwidth_geowt.png"),height=1000,width=500)
 multiplot(p1, p2, p3, p4, p5,p6,cols=1)
 dev.off()#___
 
 ## for p.bandwidth.skip
-p1<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.skip, y=Dissimilarity.Evenness, fill=p.n.pairs.per.site)) +
+p1<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.skip, y=Dissimilarity.Evenness, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Dissim.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p2<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.skip, y=Mdn.Dissimilarity, fill=p.n.pairs.per.site)) +
+p2<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.skip, y=Mdn.Dissimilarity, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Mdn.Dissim") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p3<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.skip, y=Sitepairs.Geo.Evenness, fill=p.n.pairs.per.site)) +
+p3<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.skip, y=Sitepairs.Geo.Evenness, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Geo.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p4<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.skip, y=Sitepairs.Env.Evenness, fill=p.n.pairs.per.site)) +
+p4<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.skip, y=Sitepairs.Env.Evenness, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Env.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p5<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.skip, y=Mdn.Sitepairs.EnvDistance, fill=p.n.pairs.per.site)) +
+p5<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.skip, y=Mdn.Sitepairs.EnvDistance, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Mdn.Env.Dist") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p6<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.skip, y=Mdn.Sitepairs.GeoDistance, fill=p.n.pairs.per.site)) +
+p6<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.skip, y=Mdn.Sitepairs.GeoDistance, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Mdn.Geo.Dist") 
 png(paste0(figures.out.folder,"/p_bandwidth_skip.png"),height=1000,width=500)
 multiplot(p1, p2, p3, p4, p5,p6,cols=1)
 dev.off()#___
 
 ## for p.bandwidth.DistFact
-p1<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.DistFact, y=Dissimilarity.Evenness, fill=p.n.pairs.per.site)) +
+p1<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.DistFact, y=Dissimilarity.Evenness, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Dissim.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p2<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.DistFact, y=Mdn.Dissimilarity, fill=p.n.pairs.per.site)) +
+p2<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.DistFact, y=Mdn.Dissimilarity, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Mdn.Dissim") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p3<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.DistFact, y=Sitepairs.Geo.Evenness, fill=p.n.pairs.per.site)) +
+p3<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.DistFact, y=Sitepairs.Geo.Evenness, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Geo.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p4<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.DistFact, y=Sitepairs.Env.Evenness, fill=p.n.pairs.per.site)) +
+p4<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.DistFact, y=Sitepairs.Env.Evenness, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Env.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p5<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.DistFact, y=Mdn.Sitepairs.EnvDistance, fill=p.n.pairs.per.site)) +
+p5<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.DistFact, y=Mdn.Sitepairs.EnvDistance, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Mdn.Env.Dist") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p6<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.DistFact, y=Mdn.Sitepairs.GeoDistance, fill=p.n.pairs.per.site)) +
+p6<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.DistFact, y=Mdn.Sitepairs.GeoDistance, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Mdn.Geo.Dist") 
 png(paste0(figures.out.folder,"/p_bandwidth_distFact.png"),height=1000,width=500)
 multiplot(p1, p2, p3, p4, p5,p6,cols=1)
 dev.off()#___
 
 ## for p.geowt.RndProp
-p1<-ggplot(parameter.results.tbl, aes(x=p.geowt.RndProp, y=Dissimilarity.Evenness, fill=p.n.pairs.per.site)) +
+p1<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.geowt.RndProp, y=Dissimilarity.Evenness, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Dissim.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p2<-ggplot(parameter.results.tbl, aes(x=p.geowt.RndProp, y=Mdn.Dissimilarity, fill=p.n.pairs.per.site)) +
+p2<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.geowt.RndProp, y=Mdn.Dissimilarity, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Mdn.Dissim") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p3<-ggplot(parameter.results.tbl, aes(x=p.geowt.RndProp, y=Sitepairs.Geo.Evenness, fill=p.n.pairs.per.site)) +
+p3<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.geowt.RndProp, y=Sitepairs.Geo.Evenness, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Geo.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p4<-ggplot(parameter.results.tbl, aes(x=p.geowt.RndProp, y=Sitepairs.Env.Evenness, fill=p.n.pairs.per.site)) +
+p4<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.geowt.RndProp, y=Sitepairs.Env.Evenness, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Env.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p5<-ggplot(parameter.results.tbl, aes(x=p.geowt.RndProp, y=Mdn.Sitepairs.EnvDistance, fill=p.n.pairs.per.site)) +
+p5<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.geowt.RndProp, y=Mdn.Sitepairs.EnvDistance, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Mdn.Env.Dist") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
-p6<-ggplot(parameter.results.tbl, aes(x=p.geowt.RndProp, y=Mdn.Sitepairs.GeoDistance, fill=p.n.pairs.per.site)) +
+p6<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.geowt.RndProp, y=Mdn.Sitepairs.GeoDistance, fill=p.n.pairs.per.site)) +
   geom_boxplot() + labs(y = "Mdn.Geo.Dist") 
 png(paste0(figures.out.folder,"/p_bandwidth_randProp.png"),height=1000,width=500)
 multiplot(p1, p2, p3, p4, p5,p6,cols=1)
 dev.off()#___
 
 # RUNTIME
-p1<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.geowt, y=ProcTime, fill=p.n.pairs.per.site)) +
+p1<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.geowt, y=ProcTime, fill=p.n.pairs.per.site)) +
   geom_boxplot() + ylim(0, 10000) +  theme(legend.position="none")
-p2<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.skip, y=ProcTime, fill=p.n.pairs.per.site)) +
+p2<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.skip, y=ProcTime, fill=p.n.pairs.per.site)) +
   geom_boxplot() + ylim(0, 10000) +  theme(axis.text.y=element_blank(), axis.title.y=element_blank(), legend.position="none")
-p3<-ggplot(parameter.results.tbl, aes(x=p.bandwidth.DistFact, y=ProcTime, fill=p.n.pairs.per.site)) +
+p3<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.bandwidth.DistFact, y=ProcTime, fill=p.n.pairs.per.site)) +
   geom_boxplot() + ylim(0, 10000) +  theme(axis.text.y=element_blank(), axis.title.y=element_blank(), legend.position="none")
-p4<-ggplot(parameter.results.tbl, aes(x=p.geowt.RndProp, y=ProcTime, fill=p.n.pairs.per.site)) +
+p4<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt",], aes(x=p.geowt.RndProp, y=ProcTime, fill=p.n.pairs.per.site)) +
   geom_boxplot() + ylim(0, 10000) +  theme(axis.text.y=element_blank(), axis.title.y=element_blank(), legend.position="none")
 png(paste0(figures.out.folder,"/p_bandwidth_ProcTime.png"),height=500,width=1000)
 multiplot(p1, p2, p3, p4, cols=4)
 dev.off()#___
 
-
+## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ##
 
 
 

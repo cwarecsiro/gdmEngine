@@ -467,9 +467,9 @@ write.csv(Training.table.In, file=table.path, row.names = FALSE)
   if(!is.null(domain.mask)) {GDM_Builder_arguments$value[12] <- as.character(domain.mask@file@name)}
   if(!is.null(pcs.projargs)) {GDM_Builder_arguments$value[13] <- as.character(pcs.projargs)}
   if(!is.null(bandwidth.geowt)) {GDM_Builder_arguments$value[14] <- as.character(bandwidth.geowt)}
-  if(!is.null(bandwidth.skip)) {Sitepair_sample_assessor_args$value[15] <- as.character(bandwidth.skip)}
-  if(!is.null(bandwidth.DistFact)) {Sitepair_sample_assessor_args$value[16] <- as.character(bandwidth.DistFact)}
-  if(!is.null(geowt.RndProp)) {Sitepair_sample_assessor_args$value[17] <- as.character(geowt.RndProp)}
+  if(!is.null(bandwidth.skip)) {GDM_Builder_arguments$value[15] <- as.character(bandwidth.skip)}
+  if(!is.null(bandwidth.DistFact)) {GDM_Builder_arguments$value[16] <- as.character(bandwidth.DistFact)}
+  if(!is.null(geowt.RndProp)) {GDM_Builder_arguments$value[17] <- as.character(geowt.RndProp)}
   if(!is.null(output.folder))GDM_Builder_arguments$value[18] <- as.character(output.folder)       
   GDM_Builder_arguments$value[19] <- as.character(output.name)
   

@@ -12,6 +12,8 @@
 #'
 #'@examples output = extract_env_data(My.composition.data, My.env.stk, output.folder = 'C:/Users/processed_data', output.name = My.filtered.ALA.data, domain.mask = Aust.ras)
 #'
+#'@importFrom raster extract
+#'
 #'@export
 extract_env_data = function(ALA.composition.data,             
                             environment.stk,
@@ -38,7 +40,7 @@ extract_env_data = function(ALA.composition.data,
   agg.check$decimalLatitude <- as.numeric(agg.check$decimalLatitude)  
   
   # extract the environment data for the cells with records
-  env.dat <- extract(environment.stk, SpatialPoints(cbind(agg.check$decimalLongitude,agg.check$decimalLatitude)))
+  env.dat <- raster::extract(environment.stk, SpatialPoints(cbind(agg.check$decimalLongitude,agg.check$decimalLatitude)))
   
   # bind the environment data back
   agg.check <- cbind(agg.check, as.data.frame(env.dat))

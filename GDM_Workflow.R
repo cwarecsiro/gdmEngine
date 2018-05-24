@@ -85,9 +85,9 @@ min.rich.limit <- 2
 max.rich.limit <- 50
 min.rich.rad <- 50
 min.rich.proportion <- 0.25
-n.pairs.model <- 50000
+n.pairs.model <- 14000 # equates to each site used 10 times
 train.proportion <- 0.8
-n.pairs.test <- 10000
+n.pairs.test <- 3500   # equates to each site used 10 times
 
 
 # REPTILE INPUTS
@@ -170,7 +170,7 @@ GDM.Selection <- gdm_builder(site.env.data = Site.Env.Data,
                              selection.metric = 'D2',
                              sample.method = 'geowt',
                              Indiv.Dev.Explained.Min = 1.0,
-                             n.predictors.min = 8,
+                             n.predictors.min = 5,
                              domain.mask=Aus.domain.mask,
                              pcs.projargs="+init=epsg:3577",
                              bandwidth.geowt=150000,
@@ -178,7 +178,7 @@ GDM.Selection <- gdm_builder(site.env.data = Site.Env.Data,
                              bandwidth.DistFact=1,
                              geowt.RndProp=0.05,
                              output.folder = data.processing.folder,       
-                             output.name = "gdm_mod_builder_results_GeowtSamp_noGeo_v2") 
+                             output.name = "gdm_mod_builder_results_GeowtSamp_noGeo") 
 proc.time() - ptm
 
 ## SELECT A SET OF PREDICTORS FOR A GDM & APPLY SIGNIFICANCE TEST -----------------------------------##
@@ -191,6 +191,7 @@ if(final.mod.preds[1] == 'Geographic')
   }# end if final.mod.preds[1] == 'Geographic'
 # or specify directly, for example: 
 # final.mod.preds <- c('EPA','WDA','PTX','PHCT','SLTT','ELVR1000','PTOT')
+ final.mod.preds <- c('WDA','PTX','PTS2','EPI','TXX','SLTT','ELVR1000','CLYT')
 
 ## ASSUMING YOU'RE HAPPY WITH A SET OF PREDICTORS, FIT A FINAL MODEL, INCLUDING CROSS-VALIDATION 
 ## ASSESSMENT AND SIGNIFICANCE TEST -----------------------------------------------------------------##
@@ -200,12 +201,16 @@ final.model <- gdm_build_single_model(site.env.data = Site.Env.Data,
                                       geo=geo.in,
                                       n.pairs.train = n.pairs.model,
                                       n.pairs.test = n.pairs.test,
-                                      sample.method = 'random',
+                                      sample.method = 'geowt',
                                       b.used.factor=2,
                                       domain.mask=Aus.domain.mask,
                                       pcs.projargs="+init=epsg:3577",
+                                      bandwidth.geowt=150000,
+                                      bandwidth.skip=2,
+                                      bandwidth.DistFact=1,
+                                      geowt.RndProp=0.05,
                                       output.folder = data.processing.folder,
-                                      output.name = "gdm_builder_FinMod_RandSamp")
+                                      output.name = "gdm_builder_FinMod_GeowtSamp")
 
 ## SIGNIFICANCE TEST
 ptm <- proc.time()

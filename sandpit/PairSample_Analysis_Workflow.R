@@ -22,30 +22,30 @@ library(data.table)
 
 ## ESTABLISH KEY INPUTS ------------------------------------------------------------------##
 # Read in a spatial raster specifying the domain and resolution to be modelled
-Aus.domain.mask <- raster("//ces-10-cdc/OSM_CDC_GISDATA_work/AUS0025/CLIM/MASK/MASK0.flt")
+Aus.domain.mask <- raster("//ces-10-cdc.it.csiro.au/OSM_CDC_GISDATA_work/AUS0025/CLIM/MASK/MASK0.flt")
 
 # SPECIFY ALA DATA FILTERING THRESHOLDS
 data.start.year = 1970
 location.uncertainty.limit = 2000
 
 # Specify Environmental layers
-climate.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/1990", full.names=TRUE, pattern = ".flt")
-terrain.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/LAND", full.names=TRUE, pattern = ".flt")
+climate.files <- list.files(path = "//lw-osm-02-cdc.it.csiro.au/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/1990", full.names=TRUE, pattern = ".flt")
+terrain.files <- list.files(path = "//lw-osm-02-cdc.it.csiro.au/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/LAND", full.names=TRUE, pattern = ".flt")
 env.files <- c(climate.files, terrain.files)
 env.files <- env.files[(substr(env.files, nchar(env.files)-3, nchar(env.files)) == ".flt")] # to remove some arcmap filenames
 env.files <- env.files[-c(20,21,32,35,36,38,39,40,43,44,45,46)] # remove grids we don't want to assess in the modelling
 env.stk <- stack(env.files)
 
 # PLANTS INPUTS
-species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/APC_and_Orchid_SpeciesNames.csv"
+species.names.file <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/APC_and_Orchid_SpeciesNames.csv"
 species.names <- read.csv(species.names.file)
 species.names <- as.character(species.names[,1])
-species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants"
-species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/raw_files"
-data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants"
+species.records.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/vascular_plants"
+species.records.folder.raw <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/vascular_plants/raw_files"
+data.processing.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants"
 
 # AMPHIBIANS INPUTS
-species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/amphibians/AFD-20171211T130458.csv"
+species.names.file <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/amphibians/AFD-20171211T130458.csv"
 species.names <- read.csv(species.names.file)
 species.names <- paste(species.names$GENUS, species.names$SPECIES)
 species.names <- unique(species.names)
@@ -62,13 +62,13 @@ train.proportion <- 0.8
 n.pairs.test <- 20000
 
 # LAND SNAIL INPUTS
-species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails/AusLandSnails_ALASpeciesList_9Mar18.csv"
+species.names.file <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/land_snails/AusLandSnails_ALASpeciesList_9Mar18.csv"
 species.names <- read.csv(species.names.file)
 species.names <- species.names$Species.Name
 species.names <- unique(species.names)
-species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails"
-species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails/raw_files"
-data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails"
+species.records.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/land_snails"
+species.records.folder.raw <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/land_snails/raw_files"
+data.processing.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/land_snails"
 agg.cell.rad <- 2.25
 min.rich.limit <- 2
 max.rich.limit <- 50
@@ -80,13 +80,13 @@ n.pairs.test <- 10000
 
 
 # REPTILE INPUTS
-species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/AFD-20171211T113438.csv"
+species.names.file <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/reptiles/AFD-20171211T113438.csv"
 species.names <- read.csv(species.names.file)
 species.names <- paste(species.names$GENUS, species.names$SPECIES)
 species.names <- unique(species.names)
-species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles"
-species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/raw_files"
-data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles"
+species.records.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/reptiles"
+species.records.folder.raw <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/source/biol/reptiles/raw_files"
+data.processing.folder <- "//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/reptiles"
 agg.cell.rad <- 2.25
 min.rich.limit <- 3
 max.rich.limit <- 50
@@ -134,17 +134,17 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
 
 ##TEMP##
 #AMPHIBIANS -------
-#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
-#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
+#Selected.records <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
 #VASCULAR PLANTS -------
-#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
-#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-03-07.csv")
+#Selected.records <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-03-07.csv")
 #LAND SNAILS -------
-#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/selected_gridcell_composition_2018-03-09.csv")
-#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/site_env_data_2018-03-09.csv")
+#Selected.records <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/land_snails/selected_gridcell_composition_2018-03-09.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/land_snails/site_env_data_2018-03-09.csv")
 #Reptiles ---------
-Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/selected_gridcell_composition_2018-03-15.csv")
-Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/site_env_data_2018-03-15.csv")
+Selected.records <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/reptiles/selected_gridcell_composition_2018-03-15.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/reptiles/site_env_data_2018-03-15.csv")
 ##ENDTEMP##
 
 ## NOW RUN THE SITEPAIR SAMPLING PARAMETER ASSESSMENT ------------------------------------##
@@ -175,7 +175,7 @@ parameter.tbl<-unique(parameter.tbl)
 parameter.tbl<-parameter.tbl[order(parameter.tbl$p.sample.method),]
 parameter.tbl$run.name<-paste0("Amph_",parameter.tbl$p.sample.method,"_",c(1:nrow(parameter.tbl)))
 # Now run all the parameter combinations
-analysis.out.folder<-"//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/SitePairSampleTesting"
+analysis.out.folder<-"//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/reptiles/SitePairSampleTesting"
 write.csv(parameter.tbl,paste0(analysis.out.folder,"/reptile_parameters.csv"),row.names = FALSE)
 # for(i.run in 1:nrow(parameter.tbl))
 #   {
@@ -230,7 +230,7 @@ stopCluster(cl)
 
 ## SUMMARISE THE RESULTS FROM THE SITEPAIR SAMPLING ASSESSMENT ---------------------------##
 # Specify the folder where the output files are held
-analysis.out.folder<-"//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/SitePairSampleTesting"
+analysis.out.folder<-"//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/reptiles/SitePairSampleTesting"
 analysis.out.files<-as.character(list.files(analysis.out.folder))
 # Read in the parameter table
 parameter.tbl <- read.csv(paste0(analysis.out.folder,"/reptile_parameters.csv"))
@@ -279,8 +279,8 @@ write.csv(parameter.results.tbl, paste0(analysis.out.folder,"/reptile_parameters
 
 ## Plot results ###############################################
 library(ggplot2)
-parameter.results.tbl<-read.csv('//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleTesting/amph_parameters_results.csv')
-figures.out.folder<-"//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleTesting/Figures"
+parameter.results.tbl<-read.csv('//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleTesting/amph_parameters_results.csv')
+figures.out.folder<-"//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/amphibians/SitePairSampleTesting/Figures"
 # convert factors to factors
 parameter.results.tbl$p.geo<-as.factor(parameter.results.tbl$p.geo)
 parameter.results.tbl$p.n.predictors.min<-as.factor(parameter.results.tbl$p.n.predictors.min)

@@ -1,12 +1,24 @@
 Package: gdmEngine
 Version: 0.01
-Date: 2018-05-18
+Date: 2018-05-24
 Title: Workflow for GDM
 Description: Functions used to develop GDMs
 Author: mok010
 Maintainer: Chris Ware <chris.ware@csiro.au>
 SystemRequirements: git with shell distribution
 Licence: errr
-Imports: Rcpp (>= 0.11.4)
+Imports:
+                  assertthat,
+                  DescTools,
+                  gdm,
+                  magrittr,
+                  nnls,
+                  matrixStats,                  
+                  parallel,
+                  plyr,
+                  raster,
+                  Rcpp,
+                  sp,
+                  spatstat,
 LinkingTo: Rcpp
 RoxygenNote: 6.0.1

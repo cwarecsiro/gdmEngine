@@ -29,7 +29,19 @@ update_build = function(){
                   'SystemRequirements: git with shell distribution',
                   'Licence: errr',
                   #paste('Authors@R:', unname(Sys.info()['user']))
-                  'Imports: Rcpp (>= 0.11.4)',
+                  'Imports:
+                  assertthat,
+                  DescTools,
+                  gdm,
+                  magrittr,
+                  nnls,
+                  matrixStats,                  
+                  parallel,
+                  plyr,
+                  raster,
+                  Rcpp,
+                  sp,
+                  spatstat,',
                   'LinkingTo: Rcpp'
   )
   sink(paste(pkg_root, 'DESCRIPTION', sep = '/'))
