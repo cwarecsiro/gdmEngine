@@ -4,7 +4,8 @@
 \alias{BigGridTransform}
 \title{Create GDM transformed grids for big grids}
 \usage{
-BigGridTransform(nrows, ncols, nlayers, InFilePaths, OutFilePaths)
+BigGridTransform(nrows, ncols, nlayers_in, geo, nSplinesTotal, splines, knots,
+  coefficients, extrap_code, InFilePaths, OutFilePaths)
 }
 \arguments{
 \item{site_spp}{(matrix) A matrix of the indices for species (col2) occurring in each site (col1), with each row an occurrence}

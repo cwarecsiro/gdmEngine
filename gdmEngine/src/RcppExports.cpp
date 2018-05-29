@@ -6,17 +6,23 @@
 using namespace Rcpp;
 
 // BigGridTransform
-int BigGridTransform(int nrows, int ncols, int nlayers, Rcpp::StringVector InFilePaths, Rcpp::StringVector OutFilePaths);
-RcppExport SEXP _gdmEngine_BigGridTransform(SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP nlayersSEXP, SEXP InFilePathsSEXP, SEXP OutFilePathsSEXP) {
+int BigGridTransform(int nrows, int ncols, int nlayers_in, int geo, int nSplinesTotal, IntegerVector splines, NumericVector knots, NumericVector coefficients, int extrap_code, Rcpp::StringVector InFilePaths, Rcpp::StringVector OutFilePaths);
+RcppExport SEXP _gdmEngine_BigGridTransform(SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP nlayers_inSEXP, SEXP geoSEXP, SEXP nSplinesTotalSEXP, SEXP splinesSEXP, SEXP knotsSEXP, SEXP coefficientsSEXP, SEXP extrap_codeSEXP, SEXP InFilePathsSEXP, SEXP OutFilePathsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< int >::type nrows(nrowsSEXP);
     Rcpp::traits::input_parameter< int >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< int >::type nlayers(nlayersSEXP);
+    Rcpp::traits::input_parameter< int >::type nlayers_in(nlayers_inSEXP);
+    Rcpp::traits::input_parameter< int >::type geo(geoSEXP);
+    Rcpp::traits::input_parameter< int >::type nSplinesTotal(nSplinesTotalSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type splines(splinesSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type knots(knotsSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type coefficients(coefficientsSEXP);
+    Rcpp::traits::input_parameter< int >::type extrap_code(extrap_codeSEXP);
     Rcpp::traits::input_parameter< Rcpp::StringVector >::type InFilePaths(InFilePathsSEXP);
     Rcpp::traits::input_parameter< Rcpp::StringVector >::type OutFilePaths(OutFilePathsSEXP);
-    rcpp_result_gen = Rcpp::wrap(BigGridTransform(nrows, ncols, nlayers, InFilePaths, OutFilePaths));
+    rcpp_result_gen = Rcpp::wrap(BigGridTransform(nrows, ncols, nlayers_in, geo, nSplinesTotal, splines, knots, coefficients, extrap_code, InFilePaths, OutFilePaths));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -48,7 +54,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_gdmEngine_BigGridTransform", (DL_FUNC) &_gdmEngine_BigGridTransform, 5},
+    {"_gdmEngine_BigGridTransform", (DL_FUNC) &_gdmEngine_BigGridTransform, 11},
     {"_gdmEngine_PairsDissim", (DL_FUNC) &_gdmEngine_PairsDissim, 4},
     {"_gdmEngine_PairsDist", (DL_FUNC) &_gdmEngine_PairsDist, 2},
     {NULL, NULL, 0}

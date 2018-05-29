@@ -1,6 +1,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "TransformGrids.h"
+#include "DynamicArray.h"
 #include "Rcpp.h"
 using namespace Rcpp;
 //    Add header of the cpp code that does stuff here, e.g.:  #include "AdaptorFileUtils_V2.h"
@@ -16,46 +18,79 @@ using namespace Rcpp;
 //' @export
 //[[Rcpp::export]]
 
+
 int BigGridTransform(int nrows,
                      int ncols,
-                     int nlayers,
+                     int nlayers_in,
+                     int geo,
+                     int nSplinesTotal,
+                     IntegerVector splines,
+                     NumericVector knots,
+                     NumericVector coefficients,
+                     int extrap_code,
                      Rcpp::StringVector InFilePaths,
                      Rcpp::StringVector OutFilePaths)
 {
+  
+  // For convenience, lets now shoot this straight to a stand-alone cpp function
+  int i_spl;
+  int i_prd;
   int out;
-  out = nrows + ncols; 
+  int* Asplines;
+  float* Aknots;
+  float* Acoefficients;
+  // hard code the maximum number of predictors for starters (n=50)
+  std::string AInFilePaths[50];
+  std::string AOutFilePaths[52];
+  
+  // Allocate arrays
+  Asplines=AllocateInt1DArray(nlayers_in + geo);
+  Aknots=AllocateFloat1DArray(nSplinesTotal);
+  Acoefficients=AllocateFloat1DArray(nSplinesTotal);  
+  
+  // read the filepaths from R to the string arrays
+  for(i_prd=0; i_prd<nlayers_in; i_prd++)
+    {
+    AInFilePaths[i_prd] = InFilePaths[i_prd];
+    AOutFilePaths[i_prd] = OutFilePaths[i_prd];
+    } // end for i_prd  
+  if(geo>0)
+    {
+    AOutFilePaths[nlayers_in] = OutFilePaths[nlayers_in];
+    AOutFilePaths[(nlayers_in+1)] = OutFilePaths[(nlayers_in+1)];
+    }// end if geo>0
+  
+  // Read the data from R to the arrays
+  for(i_prd=0; i_prd<(nlayers_in + geo); i_prd++)
+    {
+    Asplines[i_prd] = splines[i_prd];
+    } // end for i_prd
+  
+  for(i_spl=0; i_spl<nSplinesTotal; i_spl++)
+    {
+    Aknots[i_spl] = knots[i_spl];
+    Acoefficients[i_spl] = coefficients[i_spl]; 
+    } // end for i_spl
+  
+  
+  out = TransformGrids(nrows,
+                       ncols,
+                       nlayers_in,
+                       geo,
+                       nSplinesTotal,
+                       Asplines,                         
+                       Aknots,
+                       Acoefficients,
+                       extrap_code,
+                       AInFilePaths,
+                       AOutFilePaths);
+  
+  
+  // Free the dynamic arrays
+  FreeInt1DArray(Asplines);
+  FreeFloat1DArray(Aknots);
+  FreeFloat1DArray(Acoefficients);
+  
   return(out);
-              
-  // int n_sites = site_rich.size();
-  // int n_pairs = pair_rows.nrow();
-  // int n_records = site_spp.nrow();  
-  // IntegerMatrix comp(ncols,nlayers);        
-  // IntegerVector upto_index(n_sites);
-  // NumericVector out(n_pairs);
-  // 
-  // 
-  // for(int i_site=0; i_site < n_sites; i_site++) {
-  //   upto_index[i_site] = 0;
-  //   }
-  // for(int i_rec = 0; i_rec < n_records; i_rec++) {
-  //   int site_index = site_spp(i_rec,0) - 1;
-  //   comp(site_index, upto_index[site_index]) = site_spp(i_rec,1);
-  //   upto_index[site_index] += 1;
-  //   }
-  // 
-  // for(int i = 0; i < n_pairs; i++) {
-  //   int site_one_index = pair_rows(i,0) - 1;
-  //   int site_two_index = pair_rows(i,1) - 1;
-  //   float n_spp_common = 0;
-  //   for(int i_spp_one=0; i_spp_one<site_rich[site_one_index]; i_spp_one++){
-  //     for(int i_spp_two=0; i_spp_two<site_rich[site_two_index]; i_spp_two++){
-  //       if(comp(site_one_index,i_spp_one) == comp(site_two_index,i_spp_two)){
-  //         n_spp_common += 1;
-  //         }
-  //       }      
-  //     }  
-  //   float sum_rich = site_rich[site_one_index] + site_rich[site_two_index];
-  //   out[i] = (1 - ((2 * n_spp_common) / (sum_rich)));
-  //   }
-  // return out;
-  }
+
+  } // end BigGridTransform

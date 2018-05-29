@@ -10,8 +10,8 @@
 #' @return Vector, the Sorensen dissimilarity between the specified pairs.
 #' @examples output = PairsDissim(site.spp, ij.pairs, site.rich, max.rich)
 #' @export
-BigGridTransform <- function(nrows, ncols, nlayers, InFilePaths, OutFilePaths) {
-    .Call('_gdmEngine_BigGridTransform', PACKAGE = 'gdmEngine', nrows, ncols, nlayers, InFilePaths, OutFilePaths)
+BigGridTransform <- function(nrows, ncols, nlayers_in, geo, nSplinesTotal, splines, knots, coefficients, extrap_code, InFilePaths, OutFilePaths) {
+    .Call('_gdmEngine_BigGridTransform', PACKAGE = 'gdmEngine', nrows, ncols, nlayers_in, geo, nSplinesTotal, splines, knots, coefficients, extrap_code, InFilePaths, OutFilePaths)
 }
 
 #' @title Compositional dissimilarity calculation for specified pairs of sites

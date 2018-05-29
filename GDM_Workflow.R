@@ -195,22 +195,22 @@ if(final.mod.preds[1] == 'Geographic')
 
 ## ASSUMING YOU'RE HAPPY WITH A SET OF PREDICTORS, FIT A FINAL MODEL, INCLUDING CROSS-VALIDATION 
 ## ASSESSMENT AND SIGNIFICANCE TEST -----------------------------------------------------------------##
-final.model <- gdm_build_single_model(site.env.data = Site.Env.Data, 
+final.model2 <- gdm_build_single_model(site.env.data = Site.Env.Data, 
                                       composition.data = Selected.records,
                                       predictor.names = final.mod.preds,
                                       geo=geo.in,
                                       n.pairs.train = n.pairs.model,
                                       n.pairs.test = n.pairs.test,
-                                      sample.method = 'geowt',
+                                      sample.method = 'random',#geowt',
                                       b.used.factor=2,
                                       domain.mask=Aus.domain.mask,
                                       pcs.projargs="+init=epsg:3577",
-                                      bandwidth.geowt=150000,
-                                      bandwidth.skip=2,
-                                      bandwidth.DistFact=1,
-                                      geowt.RndProp=0.05,
+                                      #bandwidth.geowt=150000,
+                                      #bandwidth.skip=2,
+                                      #bandwidth.DistFact=1,
+                                      #geowt.RndProp=0.05,
                                       output.folder = data.processing.folder,
-                                      output.name = "gdm_builder_FinMod_GeowtSamp")
+                                      output.name = "gdm_builder_FinMod_RandSampGeo")
 
 ## SIGNIFICANCE TEST
 ptm <- proc.time()
