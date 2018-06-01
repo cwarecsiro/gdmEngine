@@ -78,8 +78,8 @@ protected:
    int n_layers;
    long int n_rows, n_cols;
    int i_geo;
-   string s_binary_in[50]; // full pathnames for all input grids (IN ALPHABETICAL ORDER of grid name)
-   string s_binary_out[5]; // full pathnames for output transgrids as FLT
+   std::string s_binary_in[50]; // full pathnames for all input grids (IN ALPHABETICAL ORDER of grid name)
+   std::string s_binary_out[50]; // full pathnames for output transgrids as FLT
 //   int b_isbare[30]; // flag special transform for binary BARE ground
 //   int b_iszero[30]; // is this a zero grid for this biome? Check before doing anything
 //   double d_bare_scale; // simple scaling if bare

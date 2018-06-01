@@ -13,9 +13,9 @@
 library(gdmEngine)
 library(ALA4R)
 library(raster)
-library(data.table)
-library(dplyr)
-library(magrittr)
+#library(data.table)
+#library(dplyr)
+#library(magrittr)
 #library(plyr)
 #library(assertthat)
 #library(spatstat)
@@ -35,7 +35,7 @@ terrain.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/
 soil.files <- list.files(path = "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/env/SOIL/TOP", full.names=TRUE, pattern = ".flt")
 env.files <- c(climate.files, terrain.files, soil.files)
 env.files <- env.files[(substr(env.files, nchar(env.files)-3, nchar(env.files)) == ".flt")] # to remove some arcmap filenames
-env.files <- env.files[-c(3,26,29,30,32,33,34,37,38,39,40)] # remove grids we don't want to assess in the modelling
+env.files <- env.files[-c(3,11,12,26,29,30,31,32,33,34,37,38,39,40)] # remove grids we don't want to assess in the modelling
 env.stk <- stack(env.files, quick=TRUE) #env.stk <- stack(env.files)
 
 # PLANTS INPUTS
@@ -151,7 +151,7 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
 #Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
 #VASCULAR PLANTS -------
 Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
-Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-05-15.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-05-31.csv")
 #LAND SNAILS -------
 #Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/selected_gridcell_composition_2018-03-09.csv")
 #Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/site_env_data_2018-03-09.csv")
@@ -178,7 +178,7 @@ GDM.Selection <- gdm_builder(site.env.data = Site.Env.Data,
                              bandwidth.DistFact=1,
                              geowt.RndProp=0.05,
                              output.folder = data.processing.folder,       
-                             output.name = "gdm_mod_builder_results_GeowtSamp_noGeo") 
+                             output.name = "gdm_mod_builder_results_GeowtSamp_noGeo_V3") 
 proc.time() - ptm
 
 ## SELECT A SET OF PREDICTORS FOR A GDM & APPLY SIGNIFICANCE TEST -----------------------------------##
@@ -191,27 +191,27 @@ if(final.mod.preds[1] == 'Geographic')
   }# end if final.mod.preds[1] == 'Geographic'
 # or specify directly, for example: 
 # final.mod.preds <- c('EPA','WDA','PTX','PHCT','SLTT','ELVR1000','PTOT')
- final.mod.preds <- c('WDA','PTX','PTS2','EPI','TXX','SLTT','ELVR1000','CLYT')
+ final.mod.preds <- c('WDA','TXM','PTX','ELVR1000','SNDT','ECET','TNI','PTOT')
 
 ## ASSUMING YOU'RE HAPPY WITH A SET OF PREDICTORS, FIT A FINAL MODEL, INCLUDING CROSS-VALIDATION 
 ## ASSESSMENT AND SIGNIFICANCE TEST -----------------------------------------------------------------##
-final.model2 <- gdm_build_single_model(site.env.data = Site.Env.Data, 
-                                      composition.data = Selected.records,
-                                      predictor.names = final.mod.preds,
-                                      geo=geo.in,
-                                      n.pairs.train = n.pairs.model,
-                                      n.pairs.test = n.pairs.test,
-                                      sample.method = 'random',#geowt',
-                                      b.used.factor=2,
-                                      domain.mask=Aus.domain.mask,
-                                      pcs.projargs="+init=epsg:3577",
-                                      #bandwidth.geowt=150000,
-                                      #bandwidth.skip=2,
-                                      #bandwidth.DistFact=1,
-                                      #geowt.RndProp=0.05,
-                                      output.folder = data.processing.folder,
-                                      output.name = "gdm_builder_FinMod_RandSampGeo")
-
+final.model.test <- gdm_build_single_model(site.env.data = Site.Env.Data, 
+                                            composition.data = Selected.records,
+                                            predictor.names = final.mod.preds,
+                                            geo=geo.in,
+                                            n.pairs.train = n.pairs.model,
+                                            n.pairs.test = n.pairs.test,
+                                            sample.method = 'geowt',
+                                            b.used.factor=2,
+                                            domain.mask=Aus.domain.mask,
+                                            pcs.projargs="+init=epsg:3577",
+                                            bandwidth.geowt=150000,
+                                            bandwidth.skip=2,
+                                            bandwidth.DistFact=1,
+                                            geowt.RndProp=0.05,
+                                            output.folder = file.path(data.processing.folder,"Final_GDM"),
+                                            output.name = "gdm_build_FinMod_plants")
+ 
 ## SIGNIFICANCE TEST
 ptm <- proc.time()
 gdm_ext.sigtest(dllpath="//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow/GDM_EXT_For_Karel/GDM4Rext.dll",
@@ -223,21 +223,24 @@ gdm_ext.sigtest(dllpath="//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_work
 proc.time() - ptm
 
 ## NOW TRANSFORM THE GRIDS BASED ON THE SELECTED MODEL ----------------------------------------------##
-# assuming the final model is called 'final.model'
-predictor.filepaths <- NULL
-for(i.lyr in 1:length(final.model$predictors)) # need to keep the order of predictors, so do this in a loop
-  { predictor.filepaths <- c(predictor.filepaths, env.files[which(all.pred.names %in% final.model$predictors[i.lyr])]) }
-pred.list.filename = file.path(data.processing.folder,"predictor_grid_filelist.csv")
-predictor.filepaths = substr(predictor.filepaths,1,nchar(predictor.filepaths)-4)
-write.table(predictor.filepaths, file = pred.list.filename,row.names=FALSE, na="",col.names=FALSE, sep=",")
-gdm_ext_transform(model = final.model, 
-                  inlist = pred.list.filename, 
-                  outdir = data.processing.folder, 
-                  extrap_type = "Default10") #c("Default10", "WholeGrad", "Conservative", "None")) 
+load(file.path(data.processing.folder,"gdm_mod_builder_results_GeowtSamp_noGeo_v2_2018-05-16.Rdata"))
+#final.gdm <- GDM_Final_Model$Mean.Final.GDM
+final.gdm <- GDM_Builder_results$Mean.Final.GDM #TEMP
+TransformGrids(gdm.model=final.gdm,
+               env.grids.stk=env.stk,
+               extrap.method = 'Conservative',
+               output.folder = data.processing.folder) 
 
 
-
-
+## And plot the transformed grids to see if there are any spatial issues with the model projections
+trans.grids <- list.files(path = data.processing.folder, full.names=TRUE, pattern = ".flt")
+for(i in 1:length(trans.grids))
+  {
+  next.ras <- raster(trans.grids[i])
+  png(paste0(data.processing.folder,"/plot_",names(next.ras),".png"),height=500,width=500)
+  plot(next.ras)
+  dev.off()#___
+  } # end for i
 
 
 ## ADITIONAL STUFF ##-----------------------???----------------------------------------------##

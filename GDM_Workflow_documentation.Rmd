@@ -1,0 +1,238 @@
+---
+title: "GDM workflow documentation"
+author: CSIRO Macroecological Modelling Team
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Purpose
+
+This document is intended to demonstrate a complete GDM workflow process, using the custom built 'gdmEngine' R package. This package of functions should have generic value for a wide range of potential applications, but has been designed specifically for deriving GDMs for specified taxa across the Australian continent.
+
+An important feature we have incorporated into this set of linked functions is the documentation of each step in the workflow, through writing data products to file, with associated log files that document when and how the data products were derived. The intent is that this will enable enhanced clarity, repeatability and documentation of the steps undertken in deriving a GDM for a taxonomic group.
+
+### Getting started
+
+The first step is to establish the necessary processing environment, including loading the gdmEngine package. If your computing environment doesn't already have R installed, then download and install it from here, to suit your computer:
+<https://www.r-project.org/>
+and also download and install RStudio, as a nice environment from which to use R, if you don't already have it:
+<https://www.rstudio.com/products/rstudio/download/#download>
+and we'll also need Rtools installed, which can also bee downloaded and installed for your operating system from CRAN:
+<https://cran.r-project.org/bin/>
+
+Once this software is installed, launch RStudio and install the devtools package, which we'll need to enable installation of the gdmEngine package:
+
+```{r eval=FALSE}
+## - ALL CODE COMMENTED OUT FOR THE MOMENT - 
+install.packages("devtools")
+library(devtools)
+```
+
+Then we can install the gdmEngine package, which will automatically install a number of other R packages on which it relies. To do this, we use the 'install.packages()' function, pointing to the full filepath of where the gdmEngine package binary ('gdmEngine_0.01.tar.gz') is stored.
+
+```{r eval=FALSE}
+## NOT SURE YET WHETHER TO INSTALL FROM BIANRY OR BITBUCKET OR OTHER
+install.packages("C:\\my folder\gdmEngine_0.01.tar.gz", repos = NULL, type="source")
+library(gdmEngine)
+```
+
+To manipulate data as part of the workflow presented here, we'll also need to load a number of R packages, which will have been installed as part of the installation of 'gdmEngine.
+
+```{r eval=FALSE}
+library(raster)
+# any more?
+```
+
+Once your system is set up the first time, subsequent implementation of the workflow only requires load the already installed libraries, using the 'library()' function. Now we're ready to proceed through the data processing workflow. 
+
+### Preparing the spatial environmental data
+
+This workflow assumes that environmental predictors are available as spatially complete layers, and that these grids are stored in '.flt' format if you want to generate transformed grids from the final GDM you fit. So the first task is to specify a regional mask, that specifies the common grid resolution, extent and all valid cells for the modelling (cell value = 1).
+
+```{r eval=FALSE}
+Aus.domain.mask <- raster("//ces-10-cdc/OSM_CDC_GISDATA_work/AUS0025/CLIM/MASK/MASK0.flt")
+```
+
+Now we can specify the environment grids we would like to consider as candidate predictors of compositional dissimilarity, and combine them into a raster stack. Below is an example of how we might read in a large number of spatial filenames, then refine this to a set that we think are potentially ecologically meaningful predictors for the taxa we are modelling. Obviously the filepaths below will need to be customised by each user.
+
+```{r eval=FALSE}
+climate.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/1990", full.names=TRUE, pattern = ".flt")
+terrain.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/LAND", full.names=TRUE, pattern = ".flt")
+soil.files <- list.files(path = "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/env/SOIL/TOP", full.names=TRUE, pattern = ".flt")
+env.files <- c(climate.files, terrain.files, soil.files)
+# Sometime programs such as ArcMap creates filenames that have '.flt' within them, so it's important to remove theses
+env.files <- env.files[(substr(env.files, nchar(env.files)-3, nchar(env.files)) == ".flt")]
+# We can then list all of the files available by calling 'env.files', after which we may choose to remove some that are not relevant. For example: 
+env.files <- env.files[-c(3,11,12,26,29,30,31,32,33,34,37,38,39,40)] 
+# Now we can stack the environmental grids that we do want to retain in the analysis.
+env.stk <- stack(env.files, quick=TRUE)
+```
+
+### Specifying taxonomic parameters
+
+Now we need to establish some key data and modelling parameters for the taxonomic group we are going to model. Our approach here is to establish all these parameters up front, then use them in the workflow functions that follow. That way, it is relatively simple to then modify these key parameters for a new taxaonomic group, and then run the same workflow functions. For this example, we will use all described reptile species native to Australia. This workflow assumes you have a list of species names for which you want to download data for and prepare ready for modelling.
+
+```{r eval=FALSE}
+# Load our list of species names from a file, then prepare it to a nice simple list of species names. Obviously use your own file and folder path in the code below.
+species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/AFD-20171211T113438.csv"
+species.names <- read.csv(species.names.file)
+# This file has a column for the genus name and a cilumn for the species name, which we will join to standard binomial nomenclature.
+species.names <- paste(species.names$GENUS, species.names$SPECIES)
+# And just ensure we don't have any duplicate names
+species.names <- unique(species.names)
+```
+
+We also need to specify some folders where we will write out data files and processing log files created during the workflow. Again, replace the paths below with your own.
+
+```{r eval=FALSE}
+## Specify working folders
+# Now select a folder in which to store the ALA records we are going to download
+species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles"
+# The records will be downloaded to a subfolder called "raw_files", so specify this
+species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/raw_files"
+# And also specify the folder in which to store the outputs of the data processing and modelling steps
+data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles"
+```
+
+### Download species occurrence records from the ALA 
+To obtain the species records required for modelling, we will download all available records for each species in our list ('species.names'), with the data downloaded for each species being saved as a separate file in the speciefied folder ('species.records.folder').
+
+```{r eval=FALSE}
+download_taxalist(specieslist = species.names,
+                  dst = species.records.folder)
+```
+
+### Merge the species occurrence records for all species
+Because we downloaded the records separately for each species, we will now merge those records into a single dataframe. Here we specify the folder holding our downloaded species record files ('species.records.folder.raw'), and the folder where we will write out a copy of the merged data ('data.processing.folder'). This function will also return the merged data to a datframe in our R working environment ('All.records'). 
+
+```{r eval=FALSE}
+All.records <- merge_downloads(src=species.records.folder.raw,
+                               output.folder = data.processing.folder)
+```
+At this point, if you have additional species records that you'd like to include in the analysis, such as restricted records not available via public download, then you could add those to the 'All.records' data frame.
+
+### Filter the species occurrence records
+While the download_taxalist() function applied above in downloading species records from the ALA does some simple filtering out of data that won't be useful, here we will further refine the data, using the merged dataframe we have just created. In this case we need to specify the raster layer specifying our spatial domain of interest ('Aus.domain.mask'), the oldest records we are interested in including, by year ('data.start.year'), and the limit of spatial uncertainty we are comfortable with ('location.uncertainty.limit'), noting that many records do not provide spatial uncertainty information and we will retain all such records, to avoid massive reductions in available data. The filter_ALA_data() function that undertakes this refinement returns a dataframe of the filtered species records.
+
+```{r eval=FALSE}
+# Specify the parameters
+data.start.year <- 1970
+location.uncertainty.limit <- 2000   # maximum spatial uncertainty in metres
+# Run the function
+Filtered.records <- filter_ALA_data(ALA.download.data = All.records$data,             
+                                    output.folder = data.processing.folder,       
+                                    domain.mask = Aus.domain.mask,                   
+                                    earliest.year = data.start.year,
+                                    spatial.uncertainty.m = location.uncertainty.limit)
+```
+
+### Aggregate the species occurrence records to grid cells 
+The filtered species records are now ready to be aggregated to grid cells in the study region. In this step, the spatial location of each record (X,Y) is standardised to the centroid of the grid cell they occur within. In this step we can aggregate records from a modest neighbourhood around each cell ('agg.cell.rad'), to help overcome potential undersampling issues in using presence-only data, and may be particularly useful where fine-resolution spatial grids are being applied. Below we're going to specify a 2.25 grid cell radius. Every record will only be included in one grid cell, which will be the cell that has the most species recorded within the specified radius. Setting the aggregation radius to a value less than 1 will result in no aggregation of records from surrounding grid cells. 
+[CHECK - make sure 'agg.radius.ncells = NULL' works, looks like it might produce a dataframe with diff cols]
+
+```{r eval=FALSE}
+# Specify the parameter
+agg.cell.rad <- 2.25 # in grid cell units
+# Run the function
+Aggregated.records <- aggregate_ALA_data(ALA.filtered.data = Filtered.records,
+                                         domain.mask = Aus.domain.mask,
+                                         agg.radius.ncells = agg.cell.rad,
+                                         output.folder = data.processing.folder)
+```
+
+### Select grid cells with sufficient species occurrence records
+Having aggregated all occurrence records to grid cells, we now filter those grid cells to ones that have sufficient quantity of species observations to be considered a 'community sample' to be used in modelling compositional dissimilarity. First we specify an absolute minimum and maximum number of records we are willing to accept per grid cell:
+    **min.rich.limit** - We can stipulate a minimum number of species recorded in a grid cell that we will accept as an adequate sample of the community composition. Below, we're going to say 3 species is the minimum.
+    **max.rich.limit** - Sometimes there will be grid cells that have an unrealistic number of species recorded, such as through generalising records to centroids of regions. So here we will remove all grid cells and their records where they have unrealistically large numbers of species associated with them (in this case, 50 species).
+    
+While we have stipulated an absolute minimum number of species recorded for any grid cell, we can also set an additional higher minimum threshold, that varies with natural variation in species richness across our region. The next two parameters enable this more nuanced threshold on the minimum number of species recorded that is considered an adequate community sample. This process involves looking at the maximum number of species recorded within a specified distance from each grid cell, then setting the minimum richness threshold as a specified proportion of that maximum recorded richness.
+    **min.rich.rad** - This is the radius (in grid cells) around each cell that we will look for the most number of species recorded. (below we set this to 200 grid cells)
+    **min.rich.proportion** - This is the minimum proportion of the maximum number of species recorded within the specified radius that we will consider an adequate sample of the community composition. Below we set this to 0.25 (i.e. 1/4 of the max. number of species per grid cell within the neighnourhood of specified radius)
+
+```{r eval=FALSE}
+# Specify the parameters
+min.rich.limit <- 3          # minimum number of species
+max.rich.limit <- 50         # maximum number of species
+min.rich.rad <- 200          # radius around each grid cell, in grid cells
+min.rich.proportion <- 0.25  # minimum proportion of the maximum species richness of any grid cell in the radius
+# Run the function
+Selected.records <- select_gridcells_composition(ALA.aggregated.data = Aggregated.records ,
+                                                 domain.mask = Aus.domain.mask,
+                                                 min.richness.threshold = min.rich.limit,
+                                                 max.richness.threshold = max.rich.limit,
+                                                 reference.radius.ncells = min.rich.rad,
+                                                 min.proportion.max.richness = min.rich.proportion,
+                                                 output.folder = data.processing.folder)
+```
+
+The 'select_gridcells_composition()' function is the final step in preparing the species occurrence records for modelling. The output dataframe ('Selected.records'), which will be used as input to the GDM fitting functions that follow, has three columns: scientificName, decimalLongitude, decimalLatitude. This defines the sites (or grid cells) that will be used as a basis for deriving the GDM. 
+
+### Extract environmental predictor data for the selected grid cells
+The next step in the workflow involves extracting the candidate environmental predictor data for the locations of the selected species occurrence records. Here we simply provide the selected records and the stack of environment grids to create a dataframe containing the values for each environmental predictor in each grid cell with species assemblage data.
+
+```{r eval=FALSE}
+Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,             
+                                  environment.stk = env.stk,
+                                  output.folder = data.processing.folder)
+```
+
+### GDM variable selection
+Now both the biological and environmental data are prepared, 
+
+
+
+
+Finally, we will specify some key parameters for fitting and testing GDMs:
+    **n.pairs.model** - The number of site-pairs that we will use in generating the GDM. Below we have stipulated 100,000 site pairs.
+    **n.pairs.test** - The number of site-pairs to use in testing the GDMs through cross validation. Below we set 20,000 site pairs. In this workflow, these will be derived from the default proportion (20%) of all sites available for modelling, while the training site pairs will be derived from the remaining 80% of sites.
+
+```{r eval=FALSE}
+n.pairs.model <- 100000
+n.pairs.test <- 20000
+
+GDM.Selection <- gdm_builder(site.env.data = Site.Env.Data, 
+                             composition.data = Selected.records,
+                             geo=FALSE,
+                             n.pairs.train = n.pairs.model,
+                             n.pairs.test = n.pairs.test,
+                             sample.method = 'geowt',
+                             n.predictors.min = 5,
+                             domain.mask=Aus.domain.mask,
+                             pcs.projargs="+init=epsg:3577",
+                             bandwidth.geowt=150000,
+                             bandwidth.skip=2,
+                             bandwidth.DistFact=1,
+                             geowt.RndProp=0.05,
+                             output.folder = data.processing.folder,       
+                             output.name = "gdm_mod_builder_results") 
+
+
+```
+
+
+
+
+
+
+```{r eval=FALSE}
+
+```
+
+
+
+```{r eval=FALSE}
+
+```
+
+
+
+
+
+```{r}
+
+```
+
+

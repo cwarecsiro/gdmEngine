@@ -18,7 +18,7 @@
 #'@export 
 TransformGrids <- function(gdm.model,
                            env.grids.stk,
-                           extrap.method = 'Conservative', # alternatively: "End10", "WholeGrad", "Clamped"
+                           extrap.method = 'Conservative',
                            output.folder = NULL,       
                            output.name = "tran",  
                            verbose=TRUE) 
@@ -50,7 +50,7 @@ TransformGrids <- function(gdm.model,
   env.files <- character(length = npreds)
   for(i.prd in 1:npreds)
     {
-    layer.index <- which(names(env.stk) == pred.names[i.prd])
+    layer.index <- which(names(env.grids.stk) == pred.names[i.prd])
     if(length(layer.index)>0){
       env.files[i.prd] <- env.grids.stk@layers[[layer.index]]@file@name
       if(substr(env.files[i.prd], nchar(env.files[i.prd])-3, nchar(env.files[i.prd])) != ".flt")
@@ -88,8 +88,9 @@ TransformGrids <- function(gdm.model,
   vec.splines <- as.integer(gdm.model$splines)
   vec.knots <- gdm.model$knots
   vec.coeffs <- gdm.model$coefficients
-  
- #Call BigGridTransform() from BigGridTransform.cpp
+ 
+  out.val <- 1
+ ## Call BigGridTransform() from BigGridTransform.cpp
   out.val <- BigGridTransform(grid.rows,
                               grid.cols,
                               npreds,
@@ -115,8 +116,6 @@ TransformGrids <- function(gdm.model,
     {
       dir.create(output.folder)
     }# end if !dir.exists
-    out.path <- file.path(output.folder,paste0(output.name,"_",Sys.Date(),".csv")) 
-    write.csv(pairs.table.new, out.path, row.names=FALSE)
     # write a log file describing how the data was created *************************************
     fileConn<-file(file.path(output.folder,paste0(output.name,"_",Sys.Date(),"_log_file.txt")),'w')
     writeLines("#######################################################################",con = fileConn)
@@ -143,6 +142,7 @@ TransformGrids <- function(gdm.model,
     writeLines(paste0(gdm.model$coefficients),con = fileConn)
     writeLines(paste0("Input environment grids: "),con = fileConn)
     writeLines(paste0(env.files),con = fileConn)
+    writeLines(paste0("Extrapolation method: ", extrap.method),con = fileConn)
     writeLines(paste0("Output transformed grids: "),con = fileConn)
     writeLines(paste0(trans.files),con = fileConn)
     writeLines("#######################################################################",con = fileConn)

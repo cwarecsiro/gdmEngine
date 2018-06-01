@@ -6,7 +6,7 @@
 #'@param output.folder (string) A folder to save the outputs to. If none specified, no file is written.
 #'@param output.name (string), A name to use in saving the outputs. Default: 'merged_taxa_data'.
 #'@param keep_unzip (boolean) Save the unzipped contents of each file?
-#'@param parallel (boolean) If TRUE (default) will use all CPU (-2) available to load data.
+#'@param parallel (boolean) If TRUE will use all CPU (-2) available to load data. (default = FALSE)
 #'@param verbose (boolean) Print messages to console. Default TRUE.
 #'
 #'@return List. $data is a data.frame with the combined records. $log is a data.frame with the taxa names searched, 
@@ -22,7 +22,7 @@ merge_downloads = function(src,
                            output.folder = NULL,       
                            output.name = "merged_taxa_data",
                            keep_unzip = FALSE,
-                           parallel = TRUE, 
+                           parallel = FALSE, 
                            verbose = TRUE)
   {
   

@@ -1156,10 +1156,10 @@ void TTranspactor::SetModelParameters(int arg_geo,
 //******************************************************************************
   
   
-  /******************************************************************************
-   * TTranspactor  SetModelParameters. Loads local spline, quatile and coefficient
-   * values here to reduce arguments and allow precalculation of extrapolation 
-   *********************************************************************/
+//   ******************************************************************************
+//   * TTranspactor  SetModelParameters. Loads local spline, quatile and coefficient
+//   * values here to reduce arguments and allow precalculation of extrapolation 
+//   *********************************************************************//
   void TTranspactor::SetGridPaths(int arg_geo,
                                   int arg_n_layers,
                                   std::string arg_InFilePaths[],

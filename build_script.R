@@ -41,8 +41,8 @@ update_build = function(){
                   raster,
                   Rcpp,
                   sp,
-                  spatstat,',
-                  'LinkingTo: Rcpp'
+                  spatstat,' #,
+                  #'LinkingTo: Rcpp'
   )
   sink(paste(pkg_root, 'DESCRIPTION', sep = '/'))
   cat(DESCRIPTION, sep = '\n')
