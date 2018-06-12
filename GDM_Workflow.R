@@ -68,9 +68,9 @@ min.rich.limit <- 2
 max.rich.limit <- 50
 min.rich.rad <- 200
 min.rich.proportion <- 0.25
-n.pairs.model <- 100000
+n.pairs.model <- 67000 # equates to each site used 10 times
 train.proportion <- 0.8
-n.pairs.test <- 20000
+n.pairs.test <- 17000  # equates to each site used 10 times
 
 # LAND SNAIL INPUTS
 species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/land_snails/AusLandSnails_ALASpeciesList_9Mar18.csv"
@@ -103,9 +103,9 @@ min.rich.limit <- 3
 max.rich.limit <- 50
 min.rich.rad <- 200
 min.rich.proportion <- 0.25
-n.pairs.model <- 100000
+n.pairs.model <- 60500  # equates to each site used 10 times
 train.proportion <- 0.8
-n.pairs.test <- 20000
+n.pairs.test <- 15000   # equates to each site used 10 times
 
 
 ## DOWNLOAD BIOLOGICAL DATA FROM ALA -----------------------------------------------------##
@@ -147,17 +147,17 @@ Site.Env.Data <- extract_env_data(ALA.composition.data = Selected.records,
 
 ##TEMP##
 #AMPHIBIANS -------
-#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
-#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-03-05.csv")
+Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/selected_gridcell_composition_2018-03-05.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/amphibians/site_env_data_2018-06-04.csv")
 #VASCULAR PLANTS -------
-Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
-Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-05-31.csv")
+#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/selected_gridcell_composition_2018-03-07.csv")
+#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/site_env_data_2018-05-31.csv")
 #LAND SNAILS -------
-#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/selected_gridcell_composition_2018-03-09.csv")
-#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/site_env_data_2018-03-09.csv")
+Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/selected_gridcell_composition_2018-03-09.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/land_snails/site_env_data_2018-06-04.csv")
 #Reptiles ---------
-#Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/selected_gridcell_composition_2018-03-15.csv")
-#Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/site_env_data_2018-03-15.csv")
+Selected.records <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/selected_gridcell_composition_2018-03-15.csv")
+Site.Env.Data <- read.csv("//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles/site_env_data_2018-06-04.csv")
 ##ENDTEMP##
 
 ## DERIVE A GDM ------------------------------------------------------------------------------------##
@@ -167,6 +167,7 @@ GDM.Selection <- gdm_builder(site.env.data = Site.Env.Data,
                              geo=FALSE,
                              n.pairs.train = n.pairs.model,
                              n.pairs.test = n.pairs.test,
+                             correlation.threshold = 0.8,
                              selection.metric = 'D2',
                              sample.method = 'geowt',
                              Indiv.Dev.Explained.Min = 1.0,
@@ -178,21 +179,22 @@ GDM.Selection <- gdm_builder(site.env.data = Site.Env.Data,
                              bandwidth.DistFact=1,
                              geowt.RndProp=0.05,
                              output.folder = data.processing.folder,       
-                             output.name = "gdm_mod_builder_results_GeowtSamp_noGeo_V3") 
+                             output.name = "gdm_mod_builder_results_GeowtSamp_NoGeo_V2") 
 proc.time() - ptm
 
 ## SELECT A SET OF PREDICTORS FOR A GDM & APPLY SIGNIFICANCE TEST -----------------------------------##
 final.mod.preds <- GDM.Selection$Mean.Final.GDM$predictors
-geo.in = FALSE
+geo.in = TRUE
 if(final.mod.preds[1] == 'Geographic')
   {
   final.mod.preds <- final.mod.preds[-1]
   geo.in = TRUE
   }# end if final.mod.preds[1] == 'Geographic'
 # or specify directly, for example: 
-# final.mod.preds <- c('EPA','WDA','PTX','PHCT','SLTT','ELVR1000','PTOT')
- final.mod.preds <- c('WDA','TXM','PTX','ELVR1000','SNDT','ECET','TNI','PTOT')
-
+# final.mod.preds <- c('WDA','TXM','PTX','ELVR1000','SNDT','ECET','TNI','PTOT') #PLANTS
+ final.mod.preds <- c('TXM','EAAS','TRI','ECET','ELVR1000','SNDT') #AMPHIBIANS
+ final.mod.preds <- c('WDA','EAAS','TRA','EPI','BDWT','ELVR1000','CLYT') #geo.in=TRUE #LANDSNAILS
+ 
 ## ASSUMING YOU'RE HAPPY WITH A SET OF PREDICTORS, FIT A FINAL MODEL, INCLUDING CROSS-VALIDATION 
 ## ASSESSMENT AND SIGNIFICANCE TEST -----------------------------------------------------------------##
 final.model.test <- gdm_build_single_model(site.env.data = Site.Env.Data, 
@@ -210,37 +212,61 @@ final.model.test <- gdm_build_single_model(site.env.data = Site.Env.Data,
                                             bandwidth.DistFact=1,
                                             geowt.RndProp=0.05,
                                             output.folder = file.path(data.processing.folder,"Final_GDM"),
-                                            output.name = "gdm_build_FinMod_plants")
+                                            output.name = "gdm_build_FinMod_land_snails")
  
-## SIGNIFICANCE TEST
-ptm <- proc.time()
-gdm_ext.sigtest(dllpath="//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow/GDM_EXT_For_Karel/GDM4Rext.dll",
-                wdpath = data.processing.folder,
-                datatable = "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/gdm_builder_FinMod_RandSamp_GDMtable_2018-05-10.csv", # GDM input table saved to .csv
-                outname = "FinMod_RandSamp_sig_test",
-                iterations = 100,
-                do_geo = TRUE)
-proc.time() - ptm
+# ## SIGNIFICANCE TEST
+# ptm <- proc.time()
+# gdm_ext.sigtest(dllpath="//ces-10-cdc/OSM_CDC_MMRG_work/users/bitbucket/gdm_workflow/GDM_EXT_For_Karel/GDM4Rext.dll",
+#                 wdpath = data.processing.folder,
+#                 datatable = "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/vascular_plants/gdm_builder_FinMod_RandSamp_GDMtable_2018-05-10.csv", # GDM input table saved to .csv
+#                 outname = "FinMod_RandSamp_sig_test",
+#                 iterations = 100,
+#                 do_geo = TRUE)
+# proc.time() - ptm
 
 ## NOW TRANSFORM THE GRIDS BASED ON THE SELECTED MODEL ----------------------------------------------##
-load(file.path(data.processing.folder,"gdm_mod_builder_results_GeowtSamp_noGeo_v2_2018-05-16.Rdata"))
-#final.gdm <- GDM_Final_Model$Mean.Final.GDM
-final.gdm <- GDM_Builder_results$Mean.Final.GDM #TEMP
+final.gdm <- final.model.test$Mean.Final.GDM
 TransformGrids(gdm.model=final.gdm,
                env.grids.stk=env.stk,
                extrap.method = 'Conservative',
-               output.folder = data.processing.folder) 
+               output.folder = file.path(data.processing.folder,"Final_GDM")) 
 
 
 ## And plot the transformed grids to see if there are any spatial issues with the model projections
-trans.grids <- list.files(path = data.processing.folder, full.names=TRUE, pattern = ".flt")
+trans.grids <- list.files(path = file.path(data.processing.folder,"Final_GDM"), full.names=TRUE, pattern = ".flt")
 for(i in 1:length(trans.grids))
   {
   next.ras <- raster(trans.grids[i])
-  png(paste0(data.processing.folder,"/plot_",names(next.ras),".png"),height=500,width=500)
+  png(paste0(file.path(data.processing.folder,"Final_GDM"),"/plot_",names(next.ras),".png"),height=1000,width=1000)
   plot(next.ras)
   dev.off()#___
   } # end for i
+
+
+## Create a plot of the main axes of compositional variation from the GDM transformed layers
+trans.grids <- list.files(path = file.path(data.processing.folder,"Final_GDM"), full.names=TRUE, pattern = ".flt")
+trans.grid.stk <- stack(trans.grids)
+rastDat <- sampleRandom(trans.grid.stk, 200000)
+pcaSamp <- prcomp(rastDat)
+pcaRast <- predict(trans.grid.stk, pcaSamp, index=1:3)
+# scale rasters
+pcaRast[[1]] <- (pcaRast[[1]]-pcaRast[[1]]@data@min) /
+  (pcaRast[[1]]@data@max-pcaRast[[1]]@data@min)*255
+pcaRast[[2]] <- (pcaRast[[2]]-pcaRast[[2]]@data@min) /
+  (pcaRast[[2]]@data@max-pcaRast[[2]]@data@min)*255
+pcaRast[[3]] <- (pcaRast[[3]]-pcaRast[[3]]@data@min) /
+  (pcaRast[[3]]@data@max-pcaRast[[3]]@data@min)*255
+#plotRGB(pcaRast, r=1, g=2, b=3)
+# KM - rescale pca axes to represent their contribution
+PC1.rng <- max(pcaSamp$x[,1]) - min(pcaSamp$x[,1])
+PC2.rng <- max(pcaSamp$x[,2]) - min(pcaSamp$x[,2])
+PC3.rng <- max(pcaSamp$x[,3]) - min(pcaSamp$x[,3])
+PC2.scl <- PC2.rng/PC1.rng
+PC3.scl <- PC3.rng/PC1.rng
+pcaRast[[2]] <- 255 - (pcaRast[[2]] * PC2.scl)
+pcaRast[[3]] <- 255 - (pcaRast[[3]] * PC3.scl)
+plotRGB(pcaRast, r=1, g=2, b=3)
+
 
 
 ## ADITIONAL STUFF ##-----------------------???----------------------------------------------##

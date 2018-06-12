@@ -333,7 +333,7 @@ stopCluster(cl)
 ## SUMMARISE THE RESULTS FROM THE SITEPAIR SAMPLING ASSESSMENT ---------------------------##
 library(gtools)
 # Specify the taxa
-taxa <- "land_snails"
+taxa <- "vascular_plants"
 # Specify the sample types
 sample_method <- c("envdist","geodens","geodist","geowt","random")
 # Loop through the sample methods, and join the data together
@@ -424,7 +424,7 @@ write.csv(parameter.results.tbl, paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE
 
 ## Plot results ###############################################
 library(ggplot2)
-#taxa <- "amphibians" 
+#taxa <- "land_snails" 
 #parameter.results.tbl<-read.csv(paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/",taxa,"_SampleAssess_Results.csv"))
 figures.out.folder<-paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",taxa,"/SitePairSampleAssessment/Figures")
 # convert factors to factors
@@ -539,16 +539,145 @@ p4<-ggplot(parameter.results.tbl[parameter.results.tbl$p.sample.method == "geowt
 png(paste0(figures.out.folder,"/p_bandwidth_ProcTime.png"),height=500,width=1000)
 multiplot(p1, p2, p3, p4, cols=4)
 dev.off()#___
-
 ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ##
 
+## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ##
+## Create a super-table that merges all the taxonomic groups
+all.taxa <- c("land_snails","amphibians","reptiles", "vascular_plants")
+for(i in 1:length(all.taxa))
+  {
+  parameter.results.tbl<-read.csv(paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/",all.taxa[i],"/SitePairSampleAssessment/",all.taxa[i],"_SampleAssess_Results.csv"))
+  if(i == 1)
+    {
+    results.all <- parameter.results.tbl
+    results.all$taxa <- all.taxa[i]
+    }else{
+    parameter.results.tbl$taxa <- all.taxa[i]
+    results.all <- rbind(results.all, parameter.results.tbl)
+    } # end else
+  } # end for i
+# convert factors to factors
+results.all$p.sample.method<-as.factor(results.all$p.sample.method)
+results.all$taxa<-as.factor(results.all$taxa)
+# plot the summary
+p1<-ggplot(results.all, aes(x=taxa, y=Dissimilarity.Evenness, fill=p.sample.method)) +
+  geom_boxplot() + labs(y = "Dissim.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p2<-ggplot(results.all, aes(x=taxa, y=Mdn.Dissimilarity, fill=p.sample.method)) +
+  geom_boxplot() + labs(y = "Mdn.Dissim") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p3<-ggplot(results.all, aes(x=taxa, y=Sitepairs.Geo.Evenness, fill=p.sample.method)) +
+  geom_boxplot() + labs(y = "Geo.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p4<-ggplot(results.all, aes(x=taxa, y=Sitepairs.Env.Evenness, fill=p.sample.method)) +
+  geom_boxplot() + labs(y = "Env.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p5<-ggplot(results.all, aes(x=taxa, y=Mdn.Sitepairs.EnvDistance, fill=p.sample.method)) +
+  geom_boxplot() + labs(y = "Mdn.Env.Dist") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p6<-ggplot(results.all, aes(x=taxa, y=Mdn.Sitepairs.GeoDistance, fill=p.sample.method)) +
+  geom_boxplot() + labs(y = "Mdn.Geo.Dist") 
+png(paste0("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/SampleMethod_PerformaceSummary.png"),height=1000,width=500)
+multiplot(p1, p2, p3, p4, p5, p6, cols=1)
+dev.off()#___
+
+## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ##
+## Reduce the 'all' dataset to 10 reps per site, then plot bandwidth attributes
+results.10p <- results.all[(results.all$p.n.pairs.per.site == 10),]
+results.10p <- results.10p[(as.character(results.10p$p.sample.method)=="geowt"),]
+## GEOWT ANALYSIS ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ##
+results.10p$p.bandwidth.geowt<- results.10p$p.bandwidth.geowt/1000
+results.10p$p.bandwidth.geowt<-as.factor(results.10p$p.bandwidth.geowt)
+results.10p$p.bandwidth.skip<-as.factor(results.10p$p.bandwidth.skip)
+results.10p$p.bandwidth.DistFact<-as.factor(results.10p$p.bandwidth.DistFact)
+results.10p$p.geowt.RndProp<-as.factor(results.10p$p.geowt.RndProp)
+
+## for p.bandwidth.geowt
+p1<-ggplot(results.10p, aes(x=p.bandwidth.geowt, y=Dissimilarity.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Dissim.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p2<-ggplot(results.10p, aes(x=p.bandwidth.geowt, y=Mdn.Dissimilarity)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Dissim") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p3<-ggplot(results.10p, aes(x=p.bandwidth.geowt, y=Sitepairs.Geo.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Geo.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p4<-ggplot(results.10p, aes(x=p.bandwidth.geowt, y=Sitepairs.Env.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Env.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p5<-ggplot(results.10p, aes(x=p.bandwidth.geowt, y=Mdn.Sitepairs.EnvDistance)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Env.Dist") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p6<-ggplot(results.10p, aes(x=p.bandwidth.geowt, y=Mdn.Sitepairs.GeoDistance)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Geo.Dist", x="Bandwidth (km)") + theme(axis.text.x = element_text(angle=60))
+png("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/p_bandwidth_geowt.png",height=1000,width=500)
+multiplot(p1, p2, p3, p4, p5,p6,cols=1)
+dev.off()#___
+
+## for p.bandwidth.DistFact
+p1<-ggplot(results.10p, aes(x=p.bandwidth.DistFact, y=Dissimilarity.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Dissim.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p2<-ggplot(results.10p, aes(x=p.bandwidth.DistFact, y=Mdn.Dissimilarity)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Dissim") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p3<-ggplot(results.10p, aes(x=p.bandwidth.DistFact, y=Sitepairs.Geo.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Geo.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p4<-ggplot(results.10p, aes(x=p.bandwidth.DistFact, y=Sitepairs.Env.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Env.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p5<-ggplot(results.10p, aes(x=p.bandwidth.DistFact, y=Mdn.Sitepairs.EnvDistance)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Env.Dist") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p6<-ggplot(results.10p, aes(x=p.bandwidth.DistFact, y=Mdn.Sitepairs.GeoDistance)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Geo.Dist", x = "Distance between sample points (multiple of bandwidth)") 
+png("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/p_bandwidth_DistFact.png",height=1000,width=500)
+multiplot(p1, p2, p3, p4, p5,p6,cols=1)
+dev.off()#___
+
+## for p.geowt.RndProp
+p1<-ggplot(results.10p, aes(x=p.geowt.RndProp, y=Dissimilarity.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Dissim.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p2<-ggplot(results.10p, aes(x=p.geowt.RndProp, y=Mdn.Dissimilarity)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Dissim") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p3<-ggplot(results.10p, aes(x=p.geowt.RndProp, y=Sitepairs.Geo.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Geo.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p4<-ggplot(results.10p, aes(x=p.geowt.RndProp, y=Sitepairs.Env.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Env.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p5<-ggplot(results.10p, aes(x=p.geowt.RndProp, y=Mdn.Sitepairs.EnvDistance)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Env.Dist") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p6<-ggplot(results.10p, aes(x=p.geowt.RndProp, y=Mdn.Sitepairs.GeoDistance)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Geo.Dist", x="Proportion of random pairs") + theme(axis.text.x = element_text(angle=45))
+png("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/p_geowt_RndProp.png",height=1000,width=500)
+multiplot(p1, p2, p3, p4, p5,p6,cols=1)
+dev.off()#___
+
+## for p.bandwidth.skip
+p1<-ggplot(results.10p, aes(x=p.bandwidth.skip, y=Dissimilarity.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Dissim.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p2<-ggplot(results.10p, aes(x=p.bandwidth.skip, y=Mdn.Dissimilarity)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Dissim") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p3<-ggplot(results.10p, aes(x=p.bandwidth.skip, y=Sitepairs.Geo.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Geo.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p4<-ggplot(results.10p, aes(x=p.bandwidth.skip, y=Sitepairs.Env.Evenness)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Env.Even") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p5<-ggplot(results.10p, aes(x=p.bandwidth.skip, y=Mdn.Sitepairs.EnvDistance)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Env.Dist") + theme(axis.text.x=element_blank(), axis.title.x=element_blank())
+p6<-ggplot(results.10p, aes(x=p.bandwidth.skip, y=Mdn.Sitepairs.GeoDistance)) +
+  geom_boxplot() + facet_grid(. ~ taxa) + labs(y = "Mdn.Geo.Dist", x = "Maximum distance of sample point to data cell (multiple of bandwidth)") 
+png("//osm-23-cdc.it.csiro.au/OSM_CBR_LW_DEE_work/processing/biol/p_bandwidth_skip.png",height=1000,width=500)
+multiplot(p1, p2, p3, p4, p5,p6,cols=1)
+dev.off()#___
+
+## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ##
+## Plot the sampling function for number of times used
+times.used <- c(0:50)
+prob.selected.0.5 <- decay.curve(times.used, 0.05, (5*0.5), 3)
+prob.selected.1 <- decay.curve(times.used, 0.05, (5*1), 3)
+prob.selected.2 <- decay.curve(times.used, 0.05, (5*2), 3)
+prob.selected.3 <- decay.curve(times.used, 0.05, (5*3), 3)
+prob.selected.4 <- decay.curve(times.used, 0.05, (5*4), 3)
+prob.selected.5 <- decay.curve(times.used, 0.05, (5*5), 3)
+plot(times.used,prob.selected.5, type="n", ylim = c(0,1), xlab = "Number of times already selected in a pair", ylab = "Probability of being selected")
+lines(smooth.spline(times.used,prob.selected.0.5),lty=6)
+lines(smooth.spline(times.used,prob.selected.1),lty=5)
+lines(smooth.spline(times.used,prob.selected.2),lty=4)
+lines(smooth.spline(times.used,prob.selected.3),lty=3)
+lines(smooth.spline(times.used,prob.selected.4),lty=2)
+lines(smooth.spline(times.used,prob.selected.5),lty=1)  
 
 
 
 
 
-
-
+## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ## -- ##
+## OLD CODE ##
 ## for p.geo
 png(paste0(figures.out.folder,"/p_geo_rndMnRMSE.png"),height=500,width=500)
 ggplot(parameter.results.tbl, aes(x=p.geo, y=rnd.Mn.RMSE, fill=p.n.predictors.min)) +
@@ -686,8 +815,9 @@ dev.off()#___
 # then plot 1 will go in the upper left, 2 will go in the upper right, and
 # 3 will go all the way across the bottom.
 #
+library(grid)
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  library(grid)
+
   
   # Make a list from the ... arguments and plotlist
   plots <- c(list(...), plotlist)

@@ -276,10 +276,13 @@ gdm_builder <- function(site.env.data,
       # Run the cross-validation - for strategically sampled test data 
       validation.results<- gdm_SingleCrossValidation(Training.table.In, 
                                                      Testing.table.In)    
-      ind.var.test.stats.sampairs[i.var,1] <- as.numeric(ind.var.test.stats.sampairs[i.var,1]) + validation.results$Mean.Absolute.Error
-      ind.var.test.stats.sampairs[i.var,2] <- as.numeric(ind.var.test.stats.sampairs[i.var,2]) + validation.results$Root.Mean.Squre.Error
-      ind.var.test.stats.sampairs[i.var,3] <- as.numeric(ind.var.test.stats.sampairs[i.var,3]) + validation.results$Equalised.RMSE
-      ind.var.test.stats.sampairs[i.var,4] <- as.numeric(ind.var.test.stats.sampairs[i.var,4]) + validation.results$Deviance.Explained
+      if(length(validation.results)>0)
+        {
+        ind.var.test.stats.sampairs[i.var,1] <- as.numeric(ind.var.test.stats.sampairs[i.var,1]) + validation.results$Mean.Absolute.Error
+        ind.var.test.stats.sampairs[i.var,2] <- as.numeric(ind.var.test.stats.sampairs[i.var,2]) + validation.results$Root.Mean.Squre.Error
+        ind.var.test.stats.sampairs[i.var,3] <- as.numeric(ind.var.test.stats.sampairs[i.var,3]) + validation.results$Equalised.RMSE
+        ind.var.test.stats.sampairs[i.var,4] <- as.numeric(ind.var.test.stats.sampairs[i.var,4]) + validation.results$Deviance.Explained
+        } # end if else length(validation.results)>0  
       }# end for i.var
     # Now test geographic distance 
     Training.table.In <- Pairs.Table.Train[,c(1:6)]
@@ -287,10 +290,13 @@ gdm_builder <- function(site.env.data,
     validation.results<- gdm_SingleCrossValidation(Training.table.In, 
                                                    Testing.table.In,
                                                    geo=TRUE)    
-    ind.var.test.stats.sampairs[(n.vars+1),1] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),1]) + validation.results$Mean.Absolute.Error
-    ind.var.test.stats.sampairs[(n.vars+1),2] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),2]) + validation.results$Root.Mean.Squre.Error
-    ind.var.test.stats.sampairs[(n.vars+1),3] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),3]) + validation.results$Equalised.RMSE
-    ind.var.test.stats.sampairs[(n.vars+1),4] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),4]) + validation.results$Test.Deviance.Explained
+    if(length(validation.results)>0)
+      {
+      ind.var.test.stats.sampairs[(n.vars+1),1] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),1]) + validation.results$Mean.Absolute.Error
+      ind.var.test.stats.sampairs[(n.vars+1),2] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),2]) + validation.results$Root.Mean.Squre.Error
+      ind.var.test.stats.sampairs[(n.vars+1),3] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),3]) + validation.results$Equalised.RMSE
+      ind.var.test.stats.sampairs[(n.vars+1),4] <- as.numeric(ind.var.test.stats.sampairs[(n.vars+1),4]) + validation.results$Test.Deviance.Explained
+      } # end if else length(validation.results)>0
     } # end for i.test  
   # Now calculate the means
   ind.var.test.stats.sampairs <- ind.var.test.stats.sampairs / n.crossvalid.tests    
