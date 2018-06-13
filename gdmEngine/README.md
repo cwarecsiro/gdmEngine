@@ -28,7 +28,7 @@ library(devtools)
 Then we can install the *gdmEngine* package, which will automatically install a number of other R packages on which it relies. To do this, we use the *install.packages* function, pointing to the github location where *gdmEngine* is stored.
 
 ``` r
-install_github("???/gdmEngine")
+install_github("cwarecsiro/gdmEngine/gdmEngine")
 library(gdmEngine)
 ```
 
@@ -46,25 +46,24 @@ Once your system is set up the first time, subsequent implementation of the work
 This workflow assumes that environmental predictors are available as spatially complete layers, and that these grids are stored in '.flt' format if you want to generate transformed grids from the final GDM you fit. So the first task is to specify a regional mask, that specifies the common grid resolution, extent and all valid cells for the modelling (cell value = 1).
 
 ``` r
-Aus.domain.mask <- raster("//ces-10-cdc/OSM_CDC_GISDATA_work/AUS0025/CLIM/MASK/MASK0.flt")
+Aus.domain.mask <- raster("C:/MASKS/MASK0.flt")
 ```
 
 Now we can specify the environment grids we would like to consider as candidate predictors of compositional dissimilarity, and combine them into a raster stack. Below is an example of how we might read in a large number of spatial filenames, then refine this to a set that we think are potentially ecologically meaningful predictors for the taxa we are modelling. Obviously the filepaths below will need to be customised by each user.
 
 ``` r
-climate.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/1990",
+climate.files <- list.files(path = "C:/CLIMATE",
                             full.names=TRUE, 
-                            pattern = ".flt")
-terrain.files <- list.files(path = "//lw-osm-02-cdc/OSM_CBR_LW_R51141_GPAA_work/ENV/A/OUT/LAND", 
+                            pattern = ".flt$")
+terrain.files <- list.files(path = "C:/TERRAIN", 
                             full.names=TRUE, 
-                            pattern = ".flt")
-soil.files <- list.files(path = "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/env/SOIL/TOP", 
+                            pattern = ".flt$")
+soil.files <- list.files(path = "C:/SOIL", 
                          full.names=TRUE, 
-                         pattern = ".flt")
+                         pattern = ".flt$")
 env.files <- c(climate.files, terrain.files, soil.files)
 
-# Sometime programs such as ArcMap creates filenames that have '.flt' within them, so it's important to remove theses
-env.files <- env.files[(substr(env.files, nchar(env.files)-3, nchar(env.files)) == ".flt")]
+# Sometime programs such as ArcMap creates filenames that have '.flt' within them (e.g. .flt.aux) - the dollar sign makes sure these don't get listed.
 
 # We can then list all of the files available by calling 'env.files', after which we may choose to remove some that are not relevant. For example: 
 env.files <- env.files[-c(3,11,12,26,29,30,31,32,33,34,37,38,39,40)] 
@@ -79,7 +78,7 @@ Now we need to establish some key data and modelling parameters for the taxonomi
 
 ``` r
 # Load our list of species names from a file, then prepare it to a nice simple list of species names. Obviously use your own file and folder path in the code below.
-species.names.file <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/AFD-20171211T113438.csv"
+species.names.file <- "C:/BIOL/reptiles/AFD-20171211T113438.csv"
 species.names <- read.csv(species.names.file)
 
 # This file has a column for the genus name and a cilumn for the species name, which we will join to standard binomial nomenclature.
@@ -94,13 +93,13 @@ We also need to specify some folders where we will write out data files and proc
 ``` r
 ## Specify working folders
 # Now select a folder in which to store the ALA records we are going to download
-species.records.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles"
+species.records.folder <- "C:/BIOL/reptiles"
 
 # The records will be downloaded to a subfolder called "raw_files", so specify this
-species.records.folder.raw <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/source/biol/reptiles/raw_files"
+species.records.folder.raw <- "C:/BIOL/reptiles/raw_files"
 
 # And also specify the folder in which to store the outputs of the data processing and modelling steps
-data.processing.folder <- "//osm-23-cdc/OSM_CBR_LW_DEE_work/processing/biol/reptiles"
+data.processing.folder <- "C:/BIOL/reptiles/processed"
 ```
 
 ### Download species occurrence records from the ALA
