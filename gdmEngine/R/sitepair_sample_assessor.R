@@ -6,17 +6,17 @@
 #'@param composition.data (dataframe) A dataframe holding the final species composition data: the records of all species in all grid cells to be used for modelling.
 #'@param n.pairs.train (integer) The number of site-pairs to use in training the GDM. If not specified, the default is to use 10 percent of the total number of pairs possible from the training sites. (default = NULL)
 #'@param n.pairs.per.site (integer) If 'n.pairs.train' is not specified, this parameter specifies the target of the average number of pairs each site is included in, to calculate n.pairs.train. (default = NULL) 
-#'@param prop.pairs.train (float) If 'n.pairs.train' is not specified, and 'n.pairs.per.site' is not specified, a proportion of all possible sitepairs is specified by this argument and used. (default = 0.05 (i.e. 5% of possible number of sitepairs))
+#'@param prop.pairs.train (float) If 'n.pairs.train' is not specified, and 'n.pairs.per.site' is not specified, a proportion of all possible sitepairs is specified by this argument and used. (default = 0.05 (i.e. 5 percent of possible number of sitepairs))
 #'@param n.crossvalid.tests (integer) The number of cross-validation sets to use in sampling site-pairs. (default = 10)
 #'@param sample.method (string) The site-pair sample method to use. Options are 'random', 'geodist' (geographic distance), 'envdist' (environmental distance), 'geodens' (geographic density), 'geowt' (geographically weighted). (default = 'random')
 #'@param b.used.factor (float) Multiplier for the decay curve parameter (x-value at curve inflection point) for the number of times each site is used in selected pairs. This factor is multiplied by the ratio of n.pairs.target:n.sites in site.env.data to obtain the b.used parameter (default = 2)
 #'@param b.dpair.factor (float) For sample method 'geodist'. Multiplier for the decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair. This factor is multiplied by the mean pairwise distance to obtain the b.dpairparameter. (default = 0.5)
 #'@param b.epair.factor (float) For sample method 'envdist'. Multiplier for the decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair. This factor is multiplied by the mean environmental distance to obtain the b.epair parameter (default = 1)
-#'@param sigma.spair (float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = NULL, in which case the value is set to 5% of the total x-axis extent of 'domain.mask')
+#'@param sigma.spair (float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = NULL, in which case the value is set to 5 percent of the total x-axis extent of 'domain.mask')
 #'@param spair.factor (float) For sample method 'geodens'. Multiplier for the decay curve parameter (x-value at curve inflection point) for the density of other sites around each site. This factor is multiplied by the mean density of sites to obtain the b.spair parameter. (default = 1.0)
 #'@param domain.mask (raster layer) A raster layer specifying the analysis domain
 #'@param pcs.projargs (character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, for example when 'domain.mask' is in geographic coordinate system. For Australian Albers, pcs.projargs="+init=epsg:3577". (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).
-#'@param bandwidth.geowt (float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. (default = NULL, in which case bandwidth is 5% of the x-axis extent)
+#'@param bandwidth.geowt (float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. (default = NULL, in which case bandwidth is 5 percent of the x-axis extent)
 #'@param bandwidth.skip (float) The minimum distance (as a factor of the specified bandwidth) of any data from a geographic 'sample point'. Where all data are greater than 'b.skip' x bandwidth away from a sample point, that sample point will be not used. (default = NULL)
 #'@param bandwidth.DistFact (float) The distance between sample points, as a factor to be multiplied by the bandwidth. (default = NULL)
 #'@param geowt.RndProp (float) The proportion of sites relative to the geographically weighted sample that will be drawn at random from the whole region (default = NULL)
@@ -63,7 +63,7 @@ sitepair_sample_assessor <- function(site.env.data,
   n.vars <- ncol(site.env.data) - n.cols.start 
   # Determine how many sites we are using for the training and testing sets
   n.sites.train <- nrow(site.env.data)
-  # If the number of pairs to use in modelling is not specified, use 'prop.pairs.train' of the available pairs (10% as a default)
+  # If the number of pairs to use in modelling is not specified, use 'prop.pairs.train' of the available pairs (10 percent as a default)
   if(is.null(n.pairs.train))
     {
     n.pairs.total <- ((n.sites.train^2)-n.sites.train)/2

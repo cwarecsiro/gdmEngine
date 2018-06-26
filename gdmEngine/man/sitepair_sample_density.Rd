@@ -27,7 +27,7 @@ sitepair_sample_density(site.env.data, n.pairs.target, n.pairs.sample = NULL,
 
 \item{c.used}{(float) The decay curve parameter (slope of the curve) for the number of times each site is used in selected pairs. (default = 3)}
 
-\item{sigma.spair}{(float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = NULL, in which case the value is set to 5% of the total x-axis extent of 'domain.mask')}
+\item{sigma.spair}{(float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = NULL, in which case the value is set to 5 percent of the total x-axis extent of 'domain.mask')}
 
 \item{a.spair}{(float) The decay curve parameter (minimum y-value) for the number of sites within the neighbourhood radius (default = 0.05)}
 

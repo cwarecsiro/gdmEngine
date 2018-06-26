@@ -184,7 +184,7 @@ proc.time() - ptm
 
 ## SELECT A SET OF PREDICTORS FOR A GDM & APPLY SIGNIFICANCE TEST -----------------------------------##
 final.mod.preds <- GDM.Selection$Mean.Final.GDM$predictors
-geo.in = TRUE
+geo.in = FALSE
 if(final.mod.preds[1] == 'Geographic')
   {
   final.mod.preds <- final.mod.preds[-1]
@@ -194,6 +194,7 @@ if(final.mod.preds[1] == 'Geographic')
 # final.mod.preds <- c('WDA','TXM','PTX','ELVR1000','SNDT','ECET','TNI','PTOT') #PLANTS
  final.mod.preds <- c('TXM','EAAS','TRI','ECET','ELVR1000','SNDT') #AMPHIBIANS
  final.mod.preds <- c('WDA','EAAS','TRA','EPI','BDWT','ELVR1000','CLYT') #geo.in=TRUE #LANDSNAILS
+ final.mod.preds <- c('EPA','ADI','PTX','TRA','PHCT','NTOT','EPI','ELVR1000','SNDT') #REPTILES 
  
 ## ASSUMING YOU'RE HAPPY WITH A SET OF PREDICTORS, FIT A FINAL MODEL, INCLUDING CROSS-VALIDATION 
 ## ASSESSMENT AND SIGNIFICANCE TEST -----------------------------------------------------------------##
@@ -212,7 +213,7 @@ final.model.test <- gdm_build_single_model(site.env.data = Site.Env.Data,
                                             bandwidth.DistFact=1,
                                             geowt.RndProp=0.05,
                                             output.folder = file.path(data.processing.folder,"Final_GDM"),
-                                            output.name = "gdm_build_FinMod_land_snails")
+                                            output.name = "gdm_build_FinMod_amphibians")
  
 # ## SIGNIFICANCE TEST
 # ptm <- proc.time()
@@ -223,6 +224,10 @@ final.model.test <- gdm_build_single_model(site.env.data = Site.Env.Data,
 #                 iterations = 100,
 #                 do_geo = TRUE)
 # proc.time() - ptm
+
+# Load a model
+load(file.path(data.processing.folder,"Final_GDM","gdm_build_FinMod_land_snails_2018-06-12.Rdata"))
+final.gdm <- GDM_Final_Model$Mean.Final.GDM
 
 ## NOW TRANSFORM THE GRIDS BASED ON THE SELECTED MODEL ----------------------------------------------##
 final.gdm <- final.model.test$Mean.Final.GDM
@@ -250,13 +255,10 @@ rastDat <- sampleRandom(trans.grid.stk, 200000)
 pcaSamp <- prcomp(rastDat)
 pcaRast <- predict(trans.grid.stk, pcaSamp, index=1:3)
 # scale rasters
-pcaRast[[1]] <- (pcaRast[[1]]-pcaRast[[1]]@data@min) /
-  (pcaRast[[1]]@data@max-pcaRast[[1]]@data@min)*255
-pcaRast[[2]] <- (pcaRast[[2]]-pcaRast[[2]]@data@min) /
-  (pcaRast[[2]]@data@max-pcaRast[[2]]@data@min)*255
-pcaRast[[3]] <- (pcaRast[[3]]-pcaRast[[3]]@data@min) /
-  (pcaRast[[3]]@data@max-pcaRast[[3]]@data@min)*255
-#plotRGB(pcaRast, r=1, g=2, b=3)
+pcaRast[[1]] <- (pcaRast[[1]]-pcaRast[[1]]@data@min) / (pcaRast[[1]]@data@max-pcaRast[[1]]@data@min)*255
+pcaRast[[2]] <- (pcaRast[[2]]-pcaRast[[2]]@data@min) / (pcaRast[[2]]@data@max-pcaRast[[2]]@data@min)*255
+pcaRast[[3]] <- (pcaRast[[3]]-pcaRast[[3]]@data@min) / (pcaRast[[3]]@data@max-pcaRast[[3]]@data@min)*255
+plotRGB(pcaRast, r=1, g=2, b=3)
 # KM - rescale pca axes to represent their contribution
 PC1.rng <- max(pcaSamp$x[,1]) - min(pcaSamp$x[,1])
 PC2.rng <- max(pcaSamp$x[,2]) - min(pcaSamp$x[,2])

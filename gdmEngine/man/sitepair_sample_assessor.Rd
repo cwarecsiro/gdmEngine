@@ -22,7 +22,7 @@ sitepair_sample_assessor(site.env.data, composition.data,
 
 \item{n.pairs.per.site}{(integer) If 'n.pairs.train' is not specified, this parameter specifies the target of the average number of pairs each site is included in, to calculate n.pairs.train. (default = NULL)}
 
-\item{prop.pairs.train}{(float) If 'n.pairs.train' is not specified, and 'n.pairs.per.site' is not specified, a proportion of all possible sitepairs is specified by this argument and used. (default = 0.05 (i.e. 5% of possible number of sitepairs))}
+\item{prop.pairs.train}{(float) If 'n.pairs.train' is not specified, and 'n.pairs.per.site' is not specified, a proportion of all possible sitepairs is specified by this argument and used. (default = 0.05 (i.e. 5 percent of possible number of sitepairs))}
 
 \item{n.crossvalid.tests}{(integer) The number of cross-validation sets to use in sampling site-pairs. (default = 10)}
 
@@ -34,7 +34,7 @@ sitepair_sample_assessor(site.env.data, composition.data,
 
 \item{b.epair.factor}{(float) For sample method 'envdist'. Multiplier for the decay curve parameter (x-value at curve inflection point) for the distance between sites in a pair. This factor is multiplied by the mean environmental distance to obtain the b.epair parameter (default = 1)}
 
-\item{sigma.spair}{(float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = NULL, in which case the value is set to 5% of the total x-axis extent of 'domain.mask')}
+\item{sigma.spair}{(float) The standard deviation of the isotropic smoothing kernel used in the 'density()' function from the spatstat package, which is used to determine the density of other sites around each site with compositional data. (default = NULL, in which case the value is set to 5 percent of the total x-axis extent of 'domain.mask')}
 
 \item{spair.factor}{(float) For sample method 'geodens'. Multiplier for the decay curve parameter (x-value at curve inflection point) for the density of other sites around each site. This factor is multiplied by the mean density of sites to obtain the b.spair parameter. (default = 1.0)}
 
@@ -42,7 +42,7 @@ sitepair_sample_assessor(site.env.data, composition.data,
 
 \item{pcs.projargs}{(character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, for example when 'domain.mask' is in geographic coordinate system. For Australian Albers, pcs.projargs="+init=epsg:3577". (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).}
 
-\item{bandwidth.geowt}{(float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. (default = NULL, in which case bandwidth is 5% of the x-axis extent)}
+\item{bandwidth.geowt}{(float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. (default = NULL, in which case bandwidth is 5 percent of the x-axis extent)}
 
 \item{bandwidth.skip}{(float) The minimum distance (as a factor of the specified bandwidth) of any data from a geographic 'sample point'. Where all data are greater than 'b.skip' x bandwidth away from a sample point, that sample point will be not used. (default = NULL)}
 

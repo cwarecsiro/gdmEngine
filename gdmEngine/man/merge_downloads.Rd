@@ -5,7 +5,7 @@
 \title{Merge datasets downloaded from the ALA}
 \usage{
 merge_downloads(src, output.folder = NULL, output.name = "merged_taxa_data",
-  keep_unzip = FALSE, parallel = TRUE, verbose = TRUE)
+  keep_unzip = FALSE, parallel = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{src}{(string) Filepath to directory where loadeds are saved. Must not be other .zip files stored in src.}
@@ -16,7 +16,7 @@ merge_downloads(src, output.folder = NULL, output.name = "merged_taxa_data",
 
 \item{keep_unzip}{(boolean) Save the unzipped contents of each file?}
 
-\item{parallel}{(boolean) If TRUE (default) will use all CPU (-2) available to load data.}
+\item{parallel}{(boolean) If TRUE will use all CPU (-2) available to load data. (default = FALSE)}
 
 \item{verbose}{(boolean) Print messages to console. Default TRUE.}
 }

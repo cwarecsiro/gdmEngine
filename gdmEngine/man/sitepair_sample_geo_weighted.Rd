@@ -14,13 +14,13 @@ sitepair_sample_geo_weighted(site.env.data, n.pairs.target, bandwidth = NULL,
 
 \item{n.pairs.target}{(integer) The number of site-pairs to select.}
 
-\item{bandwidth}{(float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. Units are the same x/y units as 'domain.mask' or pcs.projargs (if specified). (default = NULL, in which case bandwidth is 5% of the x-axis extent)}
+\item{bandwidth}{(float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. Units are the same x/y units as 'domain.mask' or pcs.projargs (if specified). (default = NULL, in which case bandwidth is 5 percent of the x-axis extent)}
 
 \item{b.skip}{(float) The minimum distance (as a factor of the specified bandwidth) of any data from a geographic 'sample point'. Where all data are greater than 'b.skip' x bandwidth away from a sample point, that sample point will be not used. (default = 3)}
 
 \item{inter.sample.pt.b.factor}{(float) The distance between sample points, as a factor to be multiplied by the bandwidth. (default=1, in which case the distance between sample points is equal to the bandwidth)}
 
-\item{prop.sites.background}{(float) The proportion of sites relative to the geographically weighted sample that will be drawn at random from the whole region (default = 0.1 (i.e. 10%))}
+\item{prop.sites.background}{(float) The proportion of sites relative to the geographically weighted sample that will be drawn at random from the whole region (default = 0.1 (i.e. 10 percent))}
 
 \item{domain.mask}{(raster layer) A raster layer specifying the analysis domain}
 

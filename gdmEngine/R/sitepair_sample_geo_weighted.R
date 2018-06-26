@@ -4,10 +4,10 @@
 #'
 #'@param site.env.data (dataframe) A dataframe holding the location and environmental conditions for each site (grid cell) for which we have species composition data.
 #'@param n.pairs.target (integer) The number of site-pairs to select.
-#'@param bandwidth (float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. Units are the same x/y units as 'domain.mask' or pcs.projargs (if specified). (default = NULL, in which case bandwidth is 5% of the x-axis extent)
+#'@param bandwidth (float) The bandwidth to use in the 'geowt' (geographically weighted) sample function. Units are the same x/y units as 'domain.mask' or pcs.projargs (if specified). (default = NULL, in which case bandwidth is 5 percent of the x-axis extent)
 #'@param b.skip (float) The minimum distance (as a factor of the specified bandwidth) of any data from a geographic 'sample point'. Where all data are greater than 'b.skip' x bandwidth away from a sample point, that sample point will be not used. (default = 3)
 #'@param inter.sample.pt.b.factor (float) The distance between sample points, as a factor to be multiplied by the bandwidth. (default=1, in which case the distance between sample points is equal to the bandwidth)
-#'@param prop.sites.background (float) The proportion of sites relative to the geographically weighted sample that will be drawn at random from the whole region (default = 0.1 (i.e. 10%))
+#'@param prop.sites.background (float) The proportion of sites relative to the geographically weighted sample that will be drawn at random from the whole region (default = 0.1 (i.e. 10 percent))
 #'@param domain.mask (raster layer) A raster layer specifying the analysis domain
 #'@param pcs.projargs (character) A character string of projection arguments; the arguments must be entered exactly as in the PROJ.4 documentation. Used to undertake spatial distance calculations, such as when 'domain.mask' is in geographic coordinate system. An example would be specifying Albers projected coordinates for Australia as: pcs.projargs="+init=epsg:3577" . (default = NULL, in which case the CRS of 'domain.mask' is used for distance calculations).
 #'@param output.folder (string) A folder to save the outputs to. If none specified, no file is written.
@@ -44,7 +44,7 @@ sitepair_sample_geo_weighted=function(site.env.data,
   ###### Set up the geographic sample points ############################################################
   if(is.null(pcs.projargs))
     {
-    # if bandwidth isn't specified, set it at 5% of the grid x-axis extent
+    # if bandwidth isn't specified, set it at 5 percent of the grid x-axis extent
     if(is.null(bandwidth))
       {bandwidth <- ((domain.mask@extent@xmax - domain.mask@extent@xmin)/20)}
     # start of the geographic sample net
@@ -62,7 +62,7 @@ sitepair_sample_geo_weighted=function(site.env.data,
     # Find the extent of the domain, in projected coordinates
     pcs.domain.ext <- raster::projectExtent(domain.mask,
                                             crs=sp::CRS(pcs.projargs))
-    # if bandwidth isn't specified, set it at 5% of the grid x-axis extent
+    # if bandwidth isn't specified, set it at 5 percent of the grid x-axis extent
     if(is.null(bandwidth))
       {bandwidth <- ((pcs.domain.ext@extent@xmax - pcs.domain.ext@extent@xmin)/20)}
     # start of the geographic sample net

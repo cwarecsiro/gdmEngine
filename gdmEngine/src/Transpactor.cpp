@@ -1120,8 +1120,8 @@ void TTranspactor::SetModelParameters(int arg_geo,
   // If geographic distance is included, move this to the end.
   if(arg_geo>0)
     {
-    d_geo_splines=double(arg_n_splines[0]); 
-    for(i_spline=0; i_spline<n_splines[i_prd]; i_spline++)
+    i_geo_splines=int(arg_n_splines[0]); 
+    for(i_spline=0; i_spline<i_geo_splines; i_spline++)
       {
       d_geo_quant[i_spline]=double(arg_knots[i_upto]);  
       d_geo_coeff[i_spline]=double(arg_coefficients[i_upto]);  
@@ -1129,7 +1129,7 @@ void TTranspactor::SetModelParameters(int arg_geo,
       }// end for i_spline
     for(i_prd=0; i_prd<arg_n_layers; i_prd++)
       {
-      n_splines[i_prd]=double(arg_n_splines[(i_prd+1)]);
+      n_splines[i_prd]=int(arg_n_splines[(i_prd+1)]);
       for(i_spline=0; i_spline<n_splines[i_prd]; i_spline++)
         {
         d_quant[i_prd][i_spline]=double(arg_knots[i_upto]);  
@@ -1142,7 +1142,7 @@ void TTranspactor::SetModelParameters(int arg_geo,
     {
     for(i_prd=0; i_prd<arg_n_layers; i_prd++)
       {
-      n_splines[i_prd]=double(arg_n_splines[i_prd]);
+      n_splines[i_prd]=int(arg_n_splines[i_prd]);
       for(i_spline=0; i_spline<n_splines[i_prd]; i_spline++)
         {
         d_quant[i_prd][i_spline]=double(arg_knots[i_upto]);  
