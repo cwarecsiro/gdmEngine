@@ -29,7 +29,9 @@ filter_ALA_data = function(ALA.download.data,
   ## substituted year for eventDate in returned data.frame
   ## set domain.mask to an optional arg
   ## made cols to keep an argument
-  
+  ## now uses specificEpithet if available and defaults toscientificName 
+  ## when not (like specificEpithet doesn't ship consistently anymore...)
+
   {
   ## Read in the data
   ALA.data <- ALA.download.data 
@@ -82,24 +84,69 @@ filter_ALA_data = function(ALA.download.data,
   # select only the data we will/might use later
   #ALA.data <- ALA.data[,c(1,8,10,11:15)] # "occurrenceID", "scientificName", "taxonRank", "eventDate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters"
   if(is.null(select.fields)){
-    select.fields = c("occurrenceID", "specificEpithet", "taxonRank", "eventDate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters")
+    
+    has_epithet = length(grep('specificEpithet', names(ALA.data))) > 0
+    if (has_epithet){
+      select.fields = c("occurrenceID", "specificEpithet", "taxonRank", 
+                            "eventDate", "decimalLatitude", "decimalLongitude", 
+                            "coordinateUncertaintyInMeters")      
+    } else {
+      select.fields = c("occurrenceID", "scientificName", "taxonRank", 
+                        "eventDate", "decimalLatitude", "decimalLongitude", 
+                        "coordinateUncertaintyInMeters")
+    }
+    
+    check_fields_exist = lapply(select.fields, grep, names(ALA.data))
+    valid_fields = unlist(lapply(check_fields_exist, function(x)
+      length(x) > 0))
+    
+    # this shouldn't ever be called... but it's there as a trigger 
+    # that something has become inconsistent
+    if (!all(valid_fields)) {
+      select.fields = select.fields[valid_fields]
+      warning(sprintf('Default select.field(s): %s were not found - returning subset only', 
+                      select.fields[!valid_fields]))
+    }
+  
   } else {
-    check_fields = all(select.fields %in% names(amphibs_filt))
+    check_fields = all(select.fields %in% names(ALA.data))
     if(!check_fields){
-      select.fields = c("occurrenceID", "specificEpithet", "taxonRank", "eventDate", "decimalLatitude", "decimalLongitude", "coordinateUncertaintyInMeters")
+      
+      # which fields are available?
+      avaialble = selected.fields %in% names(ALA.data) 
+      select.fields = select.fields[available]
+      
+      # generate default fields 
+      has_epithet = length(grep('specificEpithet', names(ALA.data))) > 0
+      if (has_epithet){
+        select.fields.def = c("occurrenceID", "specificEpithet", "taxonRank", 
+                          "eventDate", "decimalLatitude", "decimalLongitude", 
+                          "coordinateUncertaintyInMeters")      
+      } else {
+        select.fields.def = c("occurrenceID", "scientificName", "taxonRank", 
+                          "eventDate", "decimalLatitude", "decimalLongitude", 
+                          "coordinateUncertaintyInMeters")
+      }
+      
+      # combine available with defualt
+      select.fields = c(select.fields.def, select.fields)
+      
+      # warrants a warning
       warning('Specified select.fields were not found in the dataset - returning default fields instead')
     }
   }
   ALA.data = subset(ALA.data, select = select.fields)
-  colnames(ALA.data)[2]='scientificName' ## changing 'specificEpithet' to 'scientificName' for convenience (later functions assume 'scientificName') 
+  # changing 'specificEpithet' to 'scientificName' for convenience 
+  # (later functions assume 'scientificName') 
+  colnames(ALA.data)[2]='scientificName' 
   
   # write the data to file, if an output folder is specified
   if(!is.null(output.folder))
-    {
+  {
     if(!dir.exists(output.folder))
-      {
+    {
       dir.create(output.folder)
-      }# end if !dir.exists
+    }# end if !dir.exists
     out.path <- file.path(output.folder,paste0(output.name,"_",Sys.Date(),".csv")) 
     write.csv(ALA.data, out.path, row.names=FALSE)
     # write a log file describing how the data was created *************************************
@@ -120,16 +167,16 @@ filter_ALA_data = function(ALA.download.data,
     writeLines(paste0("Number of records after filtering = ", nrow(ALA.data)),con = fileConn)
     writeLines("#######################################################################",con = fileConn)
     close(fileConn) #**************************************************************************
-    } # end if !is.null
-
+  } # end if !is.null
+  
   # write some feedback to the terminal
   if(verbose)
-    {
+  {
     msg1 = 'Returned object is a dataframe.'
     msg2 = paste('These data have been also been written to ', out.path)
     cat(paste(msg1, msg2, sep = '\n'))
-    }# end if verbose
+  }# end if verbose
   
   return(ALA.data)
   
-  } # end filter_ALA_data function
+} # end filter_ALA_data function

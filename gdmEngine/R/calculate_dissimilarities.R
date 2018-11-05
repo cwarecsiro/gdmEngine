@@ -15,6 +15,11 @@
 #'@importFrom Rcpp evalCpp
 #'@useDynLib gdmEngine
 #'@export 
+
+
+# composition.data = Selected.records
+#head(composition.data)
+
 calculate_dissimilarities <- function(pairs.table, 
                                       composition.data,
                                       output.folder = NULL,       
@@ -24,17 +29,36 @@ calculate_dissimilarities <- function(pairs.table,
   # First indexify the sites and species in composition.data
   composition.data$Site.ID <- as.factor(paste(composition.data$decimalLongitude, composition.data$decimalLatitude, sep = '_'))
   composition.data.site.indices<-levels(composition.data$Site.ID)
-  composition.data.spp.indices<-levels(composition.data$scientificName)
+  
+  # CW: account for scenario where scientific name is not factor
+  if (class(composition.data$scientificName) == 'character'){
+    
+    # do it this way to avoid creating a column with class factor where it 
+    # was previously char... just because factors are trouble.
+    composition.data.spp.indices <- unique(composition.data$scientificName)
+    
+  } else {
+    
+    composition.data$scientificName = as.factor(composition.data$scientificName)
+    composition.data.spp.indices <- levels(composition.data$scientificName)
+    
+  }
+  
+  #composition.data.spp.indices<-levels(composition.data$scientificName)
   composition.data$site.index <- match(composition.data$Site.ID, composition.data.site.indices)  
   composition.data$spp.index <- match(composition.data$scientificName, composition.data.spp.indices)
-  site.spp.index <- as.matrix(composition.data[,c(5,6)]) 
+  
+  # generalise
+  site.spp.index <- as.matrix(composition.data[,c('site.index', 'spp.index')]) 
   
   # Then get the index for each site in the pairs.table
   pairs.table$s1.site.ID <- paste(pairs.table$s1.decimalLongitude, pairs.table$s1.decimalLatitude, sep = '_')
   pairs.table$s2.site.ID <- paste(pairs.table$s2.decimalLongitude, pairs.table$s2.decimalLatitude, sep = '_')
   pairs.table$S1.index <- match(pairs.table$s1.site.ID, composition.data.site.indices)
   pairs.table$S2.index <- match(pairs.table$s2.site.ID, composition.data.site.indices)
-  pairs.site.index <- as.matrix(pairs.table[,c(13,14)])
+  #pairs.site.index <- as.matrix(pairs.table[,c(13,14)])
+  # generalise
+  pairs.site.index <- as.matrix(pairs.table[,c('S1.index', 'S2.index')])
   
   # Determine the richness of each site 
   site.richness <- tabulate(composition.data$site.index)
@@ -47,7 +71,9 @@ calculate_dissimilarities <- function(pairs.table,
                           max.richness)
   
   # create a new dataframe to return, with the scaled dissimilarities
-  pairs.table.new <- pairs.table[,-c(11:14)] # If we want to remove the xy site names
+  #pairs.table.new <- pairs.table[,-c(11:14)] # If we want to remove the xy site names
+  # generalise:
+  pairs.table.new <- pairs.table[,-c('s1.site.ID', 's2.site.ID')] # If we want to remove the xy site names
   pairs.table.new$distance <- distance
   
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
@@ -99,7 +125,7 @@ calculate_dissimilarities <- function(pairs.table,
   return(pairs.table.new)
   
 } # end calculate_dissimilarities
-  
+
 
 ##-------------------------------------------------------------------------------------------------------------##
 # #'@title Compositional dissimilarity calculation for specified pairs of sites

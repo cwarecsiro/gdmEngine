@@ -18,6 +18,10 @@
 #'@examples output = aggregate_data(my.data, my.raster)
 #'
 #'@export
+#'
+
+# ALA.aggregated.data = Aggregated.records
+
 select_gridcells_composition = function(ALA.aggregated.data,
                                         domain.mask,
                                         min.richness.threshold = NULL,
@@ -43,20 +47,20 @@ select_gridcells_composition = function(ALA.aggregated.data,
   
   # If we're applying a minimum richness threshold, remove those cells
   if(!is.null(min.richness.threshold))
-    {
+  {
     agg.check$select[agg.check$richness < min.richness.threshold] <- 0
-    }#end if !is.null(min.richness.threshold) 
-
+  }#end if !is.null(min.richness.threshold) 
+  
   # If we're applying a maximum richness threshold, remove those cells
   if(!is.null(max.richness.threshold))
-    {
+  {
     agg.check$select[agg.check$richness > max.richness.threshold] <- 0
-    }#end if !is.null(max.richness.threshold) 
+  }#end if !is.null(max.richness.threshold) 
   
   # If we're applying the more complex min proportion of maximum richness in the 
   # surrounding area threshold, then do it laddie.
   if(!is.null(reference.radius.ncells))
-    {
+  {
     # determine the radius in spatial units
     radius <- reference.radius.ncells * xres(domain.mask) 
     # add the x/y values back into the working dataframe
@@ -71,7 +75,7 @@ select_gridcells_composition = function(ALA.aggregated.data,
     agg.check.rad <- agg.check[which(agg.check$select>0),]
     # Then loop
     for(i.row in 1:nrow(agg.check.rad))
-      {
+    {
       x.cell <- agg.check.rad$decimalLongitude[i.row]
       y.cell <- agg.check.rad$decimalLatitude[i.row]  
       neighbours <- agg.check.rad
@@ -79,14 +83,16 @@ select_gridcells_composition = function(ALA.aggregated.data,
       neighbours <- neighbours[which(neighbours$cell.dist <= radius),]
       rich.thrsh <- max(neighbours$richness) * min.proportion.max.richness 
       if(agg.check.rad$richness[i.row] < rich.thrsh)
-        { 
+      { 
         agg.check$select[which(agg.check$xy == agg.check.rad$xy[i.row])] <- 0
-        }#end if(agg.check.rad$richness...)
-      }# end for i.row
-    }#end if !is.null(reference.radius.ncells) 
+      }#end if(agg.check.rad$richness...)
+    }# end for i.row
+  }#end if !is.null(reference.radius.ncells) 
   
   # Now we've finished selecting cells, format up the records for output
-  agg.check <- agg.check[,-which(names(agg.check) %in% c("decimalLatitude", "decimalLongitude"))]
+  
+  # CW: don't think this next line is required - and breaks the code
+  # agg.check <- agg.check[,-which(names(agg.check) %in% c("decimalLatitude", "decimalLongitude"))]
   ALA.aggregated.data <- merge(ALA.aggregated.data, agg.check, by="xy", all.x=TRUE,  sort=FALSE)
   # remove the relevant records
   ALA.aggregated.data <- ALA.aggregated.data[which(ALA.aggregated.data$select > 0), ]
@@ -119,19 +125,19 @@ select_gridcells_composition = function(ALA.aggregated.data,
     writeLines(paste0("Domain mask applied = ", domain.mask@file@name),con = fileConn)
     if(is.null(min.richness.threshold)){
       writeLines(paste0("No minimum richness threshold applied."),con = fileConn)
-      }else{
+    }else{
       writeLines(paste0("Minimum richness threshold applied = ", min.richness.threshold," species."),con = fileConn)
-      }
+    }
     if(is.null(max.richness.threshold)){
       writeLines(paste0("No maximum richness threshold applied."),con = fileConn)
-      }else{
+    }else{
       writeLines(paste0("Maximum richness threshold applied = ", max.richness.threshold," species."),con = fileConn)
-      }
+    }
     if(is.null(reference.radius.ncells)){
       writeLines(paste0("No threshold richness within neighbourhood applied "),con = fileConn)
-      }else{
+    }else{
       writeLines(paste0("Minimum richness proportion of ", min.proportion.max.richness," of the maximum richness within radius of ", reference.radius.ncells," cells."),con = fileConn)  
-      } # end if else is.null(agg.radius.ncells)
+    } # end if else is.null(agg.radius.ncells)
     writeLines(paste0("Number of records before grid cell selection = ", nrecs.initial),con = fileConn)
     writeLines(paste0("Number of records after grid cell selection = ", nrow(ALA.aggregated.data)),con = fileConn)
     writeLines(paste0("Number of grid cells before selection = ", nrow(agg.check)),con = fileConn)
@@ -142,19 +148,18 @@ select_gridcells_composition = function(ALA.aggregated.data,
   
   # write some feedback to the terminal
   if(verbose)
-    {
+  {
     msg1 = 'Returned object is a dataframe.'
     msg2 = paste(sum(agg.check$select),' grid cells have been selected, containing ', nrow(ALA.aggregated.data), ' species records.')
     if(!is.null(output.folder)){
       msg3 = paste('These data have been also been written to ', out.path)
       cat(paste(msg1, msg2, msg3, sep = '\n'))      
-      }else{
+    }else{
       cat(paste(msg1, msg2, sep = '\n'))
-      }
-    }# end if verbose
+    }
+  }# end if verbose
   
   # And hand back the aggregated data
   return(ALA.aggregated.data)
   
 } # end select_gridcells_composition()
-  
