@@ -59,13 +59,17 @@ download_taxalist = function(specieslist, dst = NULL, parallel = FALSE,
       
       ## execute
       make_call = paste0('R CMD BATCH ', tmp_script)
-      system(make_call, wait = FALSE)
-      
+	  ## get system pid so that progress can be tracked
+	  before = get_pids()
+	  system(make_call, wait = FALSE)
+	  after = get_pids()
+	 
       heads_up = paste0('Searching the ALA for records. Files will be downloaded here: ', '\n',
                         dst)
       cat(heads_up, sep = '\n')
+	  cat('Use job_status(pid) check stutus of this download')
       ## done
-      return()
+      return(outersect(before, after))
       
     }
   }
@@ -208,4 +212,30 @@ download_taxalist = function(specieslist, dst = NULL, parallel = FALSE,
   cat('Completed occurrence searches', sep = '\n')
   cat(search_summary)
   
+}
+
+# (hacky) code to return pid from system call
+get_pid = function(){
+  now = grep("^rsession",readLines(textConnection(system('tasklist',intern=TRUE))),value=TRUE)
+  pids = NULL
+  for (i in now){
+    p = lapply(strsplit(i, ' ')[[1]], function(x) 
+      Filter(haschar, x))
+    pids = c(pids, unlist(p)[2])
+  }
+  
+  return(pids)
+}
+
+outersect = function(x, y){
+  sort(c(setdiff(x, y), setdiff(y, x)))
+}
+
+job_status = function(pid){
+  now = get_pid()
+  if(pid %in% now){
+    cat(sprintf('Process %s still running', pid), sep = '\n')
+  } else {
+    cat(sprintf('Process %s not running', pid), sep = '\n')
+  }
 }
