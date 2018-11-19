@@ -229,6 +229,8 @@ get_pids = function(){
   return(pids)
 }
 
+haschar = function(x) ifelse(x == "", FALSE, TRUE)
+
 outersect = function(x, y){
   sort(c(setdiff(x, y), setdiff(y, x)))
 }
