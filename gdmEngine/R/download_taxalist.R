@@ -53,6 +53,7 @@ download_taxalist = function(specieslist, dst = NULL, parallel = FALSE,
       cat('library(gdmEngine)', sep = '\n')
       cat('library(parallel)', sep = '\n')
       cat(sprintf('%s = read.csv(%s, stringsAsFactors = False', spp_obj, tmp_file), sep = '\n')
+	  cat(sprintf('%s = as.character(%s[, 1]', spp_obj), sep = '\n')
       if(!is.null(dst)) cat(paste0('dst = ', '"', dst, '"'), sep = '\n')
       cat(this_call, sep = '\n')
       sink()
