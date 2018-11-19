@@ -220,7 +220,7 @@ download_taxalist = function(specieslist, dst = NULL, parallel = FALSE,
 #'@title Get list of pids
 #'@export
 get_pids = function(){
-  now = grep("^rsession",readLines(textConnection(system('tasklist',intern=TRUE))),value=TRUE)
+  now = grep("^Rterm.exe",readLines(textConnection(system('tasklist',intern=TRUE))),value=TRUE)
   pids = NULL
   for (i in now){
     p = lapply(strsplit(i, ' ')[[1]], function(x) 

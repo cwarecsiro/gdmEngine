@@ -16,6 +16,7 @@
 #'
 #'@importFrom magrittr %>%
 #'@importFrom parallel detectCores makeCluster clusterExport clusterEvalQ parLapply stopCluster
+#'@importFrom data.table rbindlist
 #'
 #'@export
 merge_downloads = function(src, 
