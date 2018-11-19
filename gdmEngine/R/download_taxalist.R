@@ -215,6 +215,7 @@ download_taxalist = function(specieslist, dst = NULL, parallel = FALSE,
 }
 
 # (hacky) code to return pid from system call
+#'@export
 get_pid = function(){
   now = grep("^rsession",readLines(textConnection(system('tasklist',intern=TRUE))),value=TRUE)
   pids = NULL
@@ -231,6 +232,7 @@ outersect = function(x, y){
   sort(c(setdiff(x, y), setdiff(y, x)))
 }
 
+#'@export
 job_status = function(pid){
   now = get_pid()
   if(pid %in% now){
