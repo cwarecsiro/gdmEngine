@@ -1,9 +1,9 @@
 Package: gdmEngine
 Version: 0.01
-Date: 2018-06-26
+Date: 2018-11-19
 Title: Workflow for GDM
 Description: Functions used to develop GDMs
-Author: mok010
+Author: war42q
 Maintainer: Chris Ware <chris.ware@csiro.au>
 SystemRequirements: git with shell distribution
 Licence: errr
@@ -20,4 +20,3 @@ Imports:
                   Rcpp,
                   sp,
                   spatstat,
-RoxygenNote: 6.0.1
