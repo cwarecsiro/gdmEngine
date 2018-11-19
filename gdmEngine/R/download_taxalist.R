@@ -216,7 +216,7 @@ download_taxalist = function(specieslist, dst = NULL, parallel = FALSE,
 
 # (hacky) code to return pid from system call
 #'@export
-get_pid = function(){
+get_pids = function(){
   now = grep("^rsession",readLines(textConnection(system('tasklist',intern=TRUE))),value=TRUE)
   pids = NULL
   for (i in now){
@@ -234,7 +234,7 @@ outersect = function(x, y){
 
 #'@export
 job_status = function(pid){
-  now = get_pid()
+  now = get_pids()
   if(pid %in% now){
     cat(sprintf('Process %s still running', pid), sep = '\n')
   } else {
