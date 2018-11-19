@@ -20,3 +20,4 @@ Imports:
                   Rcpp,
                   sp,
                   spatstat,
+RoxygenNote: 6.0.1

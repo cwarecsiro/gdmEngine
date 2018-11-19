@@ -31,7 +31,8 @@ download_taxalist = function(specieslist, dst = NULL, parallel = FALSE,
       
       ## get call
       this_call = match.call()
-      this_call$background = FALSE
+	  spp_obj = as.character(this_call$specieslist)  
+	  this_call$background = FALSE
       this_call = paste0(deparse(this_call), collapse = '')
       
       ## set up input arg in tmp dir/file
@@ -51,7 +52,7 @@ download_taxalist = function(specieslist, dst = NULL, parallel = FALSE,
       #cat('#!/usr/bin/env Rscript')
       cat('library(gdmEngine)', sep = '\n')
       cat('library(parallel)', sep = '\n')
-      cat(paste0('src = read.csv(', '"', tmp_file, '"', ')'), sep = '\n')
+      cat(sprintf('%s = read.csv(%s, stringsAsFactors = False', spp_obj, tmp_file), sep = '\n')
       if(!is.null(dst)) cat(paste0('dst = ', '"', dst, '"'), sep = '\n')
       cat(this_call, sep = '\n')
       sink()
