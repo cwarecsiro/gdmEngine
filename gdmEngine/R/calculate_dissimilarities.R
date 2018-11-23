@@ -73,7 +73,8 @@ calculate_dissimilarities <- function(pairs.table,
   # create a new dataframe to return, with the scaled dissimilarities
   #pairs.table.new <- pairs.table[,-c(11:14)] # If we want to remove the xy site names
   # generalise:
-  pairs.table.new <- pairs.table[,-c('s1.site.ID', 's2.site.ID')] # If we want to remove the xy site names
+  rm_id = sort(unlist(lapply(c('s1.site.ID', 's2.site.ID'), grep, names(pairs.table))))
+  pairs.table.new <- pairs.table[,-rm_id] # If we want to remove the xy site names
   pairs.table.new$distance <- distance
   
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -#
